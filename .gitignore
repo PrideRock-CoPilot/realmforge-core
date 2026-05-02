@@ -1,0 +1,10 @@
+/target/
+/.env
+/.env.*
+!.env.example
+/.realmforge/
+*.pdb
+*.log
+# session/rollout logs
+docs/rollout-*.jsonl
+docs/*.jsonl

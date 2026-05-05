@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0006
+title: "ADR-0006: Apache Arrow + DataFusion as Parquet Library and Query Engine"
+status: accepted
+owner: data-architect
+reviewers: [cto, data-architect, data-engineer, backend]
+created_at: 2026-05-05
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: data
+work_path_ids: [WP-KNOWLEDGE-001, WP-DATA-001]
+related_decision_ids: []
+related_file_ids: [FILE-CRATE-PARQUET-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0006: Apache Arrow + DataFusion as Parquet Library and Query Engine
 
 **Date:** 2026-05-05

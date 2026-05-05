@@ -1,3 +1,20 @@
+---
+doc_id: DOC-GUIDE-POSTGRES
+title: "PostgreSQL Setup for RealmForge Core"
+status: active
+owner: infra-architect
+reviewers: [infra-architect, backend, data-architect]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: infrastructure
+work_path_ids: [WP-DATA-001]
+related_decision_ids: []
+related_file_ids: [FILE-DB-001, FILE-DB-002]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # PostgreSQL Setup for RealmForge Core
 
 ## Overview

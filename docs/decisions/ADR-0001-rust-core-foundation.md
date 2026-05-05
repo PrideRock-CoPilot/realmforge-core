@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0001
+title: "ADR-0001: Rust-First Core Foundation"
+status: accepted
+owner: cto
+reviewers: [cto, backend, security-architect]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-04
+source_of_truth: true
+product_area: rust-core
+work_path_ids: [WP-CORE-001]
+related_decision_ids: []
+related_file_ids: [FILE-ROOT-CARGO, FILE-CRATE-DOMAIN-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0001: Rust-First Core Foundation
 
 ## Status

@@ -1,3 +1,20 @@
+---
+doc_id: DOC-QA-002
+title: "Release Certification — Phase 9 / Login Vertical"
+status: accepted
+owner: qa
+reviewers: [release-manager, cto, pm]
+created_at: 2026-05-05
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: login
+work_path_ids: [WP-LOGIN-001]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # RELEASE CERTIFICATION — Phase 9 / Login Vertical
 
 **Build:** RealmForge Core — Phase 9 (Login Vertical)  

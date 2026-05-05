@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0007
+title: "ADR-0007: Live Watch Auto-Remediation Tiered Framework"
+status: accepted
+owner: cto
+reviewers: [cto, security-architect, backend, biz-user]
+created_at: 2026-05-05
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: live-watch
+work_path_ids: [WP-LIVE-WATCH-001]
+related_decision_ids: []
+related_file_ids: [FILE-CRATE-LIVE-WATCH-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0007: Live Watch Auto-Remediation Tiered Framework
 
 **Date:** 2026-05-05

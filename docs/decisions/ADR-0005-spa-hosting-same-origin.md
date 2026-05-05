@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0005
+title: "ADR-0005: Same-Origin SPA Hosting from Axum (Phase 1)"
+status: accepted
+owner: infra-architect
+reviewers: [cto, infra-architect, frontend, security-architect]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-04
+source_of_truth: true
+product_area: infrastructure
+work_path_ids: [WP-BOARDS-001, WP-API-001]
+related_decision_ids: [DOC-ADR-0002]
+related_file_ids: [FILE-CRATE-API-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0005: Same-Origin SPA Hosting from Axum (Phase 1)
 
 **Date:** 2026-05-04

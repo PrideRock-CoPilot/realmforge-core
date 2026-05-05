@@ -1,3 +1,20 @@
+---
+doc_id: DOC-MCP-README
+title: "RealmForge Core — MCP Tool Reference"
+status: active
+owner: api-architect
+reviewers: [api-architect, backend]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: interfaces
+work_path_ids: [WP-MCP-001]
+related_decision_ids: []
+related_file_ids: [FILE-CRATE-MCP-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # RealmForge Core — MCP Tool Reference
 
 This document describes every tool exposed by the `agent-mcp` crate. These tools are designed to be consumed by AI agents through the Model Context Protocol (MCP).

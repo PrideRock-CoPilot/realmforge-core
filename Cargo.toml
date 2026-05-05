@@ -14,6 +14,7 @@ members = [
   "crates/runtime-bundle",
   "crates/live-runtime",
   "crates/live-watch",
+  "crates/parquet-store",
 ]
 
 [workspace.package]
@@ -50,6 +51,7 @@ policy-engine = { path = "crates/policy-engine" }
 control-service = { path = "crates/control-service" }
 snapshot-ledger = { path = "crates/snapshot-ledger" }
 control-store = { path = "crates/control-store" }
+parquet-store = { path = "crates/parquet-store" }
 assert_cmd = "2"
 predicates = "3"
 tower = { version = "0.5", features = ["util"] }

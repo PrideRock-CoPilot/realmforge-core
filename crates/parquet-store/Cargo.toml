@@ -1,5 +1,5 @@
 [package]
-name = "control-service"
+name = "parquet-store"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -8,19 +8,16 @@ rust-version.workspace = true
 [dependencies]
 chrono.workspace = true
 authority-domain.workspace = true
-audit-log.workspace = true
-policy-engine.workspace = true
-snapshot-ledger.workspace = true
-control-store.workspace = true
-agent-gateway.workspace = true
-parquet-store.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-sha2 = "0.10"
-hex = "0.4"
 thiserror.workspace = true
+tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 uuid.workspace = true
+datafusion = "43"
+parquet = "53"
+arrow = "53"
+arrow-schema = "53"
 
 [dev-dependencies]
-tokio.workspace = true
+tempfile = "3"

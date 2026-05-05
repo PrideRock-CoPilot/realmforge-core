@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0002
+title: "ADR-0002: React + TypeScript Frontend Stack"
+status: accepted
+owner: frontend
+reviewers: [cto, frontend, pm, security-architect]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-04
+source_of_truth: true
+product_area: frontend
+work_path_ids: [WP-BOARDS-001]
+related_decision_ids: [DEC-COUNCIL-001]
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0002: React + TypeScript Frontend Stack
 
 **Date:** 2026-05-04

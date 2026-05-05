@@ -1,6 +1,7 @@
 use audit_log::EventError;
 use authority_domain::DomainError;
 use control_store::StoreError;
+use parquet_store::ParquetStoreError;
 use policy_engine::PolicyDecision;
 use snapshot_ledger::{ManifestError, ObjectStoreError};
 use thiserror::Error;
@@ -14,6 +15,10 @@ pub enum ServiceError {
     // ── Store/persistence errors ──
     #[error("store error: {0}")]
     Store(#[from] StoreError),
+
+    // ── Parquet store errors ──
+    #[error("parquet store error: {0}")]
+    Parquet(#[from] ParquetStoreError),
 
     // ── Event errors ──
     #[error("event error: {0}")]
@@ -87,6 +92,7 @@ impl ServiceError {
         match self {
             Self::Domain(_) => "DOMAIN_ERROR",
             Self::Store(_) => "STORE_ERROR",
+            Self::Parquet(_) => "PARQUET_ERROR",
             Self::Event(_) => "EVENT_ERROR",
             Self::PolicyDenied(_) => "POLICY_DENIED",
             Self::Manifest(_) => "MANIFEST_ERROR",
@@ -115,7 +121,7 @@ impl ServiceError {
             Self::PolicyDenied(_) | Self::RateLimited(_) => "info",
             Self::LoginBlocked(_) | Self::InvalidCredentials => "warn",
             Self::Validation(_) => "warn",
-            Self::Domain(_) | Self::Store(_) | Self::Event(_) => "error",
+            Self::Domain(_) | Self::Store(_) | Self::Event(_) | Self::Parquet(_) => "error",
             Self::Internal(_) => "critical",
             _ => "warn",
         }

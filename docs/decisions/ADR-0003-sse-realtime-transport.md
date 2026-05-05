@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0003
+title: "ADR-0003: SSE as Real-Time Transport for Live Feeds"
+status: accepted
+owner: cto
+reviewers: [cto, frontend, security-architect, infra-architect]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-04
+source_of_truth: true
+product_area: real-time
+work_path_ids: [WP-LIVE-WATCH-001, WP-BOARDS-001]
+related_decision_ids: []
+related_file_ids: [FILE-CRATE-API-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0003: SSE as Real-Time Transport for Live Feeds
 
 **Date:** 2026-05-04

@@ -1,3 +1,20 @@
+---
+doc_id: DOC-ADR-0004
+title: "ADR-0004: Bearer Token as Frontend Authentication Mechanism"
+status: accepted
+owner: security-architect
+reviewers: [cto, security-architect, frontend, backend]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-04
+source_of_truth: true
+product_area: auth
+work_path_ids: [WP-LOGIN-001, WP-BOARDS-001]
+related_decision_ids: []
+related_file_ids: [FILE-CRATE-API-LIB, FILE-CRATE-SERVICE-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ADR-0004: Bearer Token as Frontend Authentication Mechanism
 
 **Date:** 2026-05-04

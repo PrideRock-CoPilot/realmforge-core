@@ -1,3 +1,20 @@
+---
+doc_id: DOC-AGENT-EXEC-GUIDE
+title: "RealmForge Core — Agent Execution Guide"
+status: active
+owner: cto
+reviewers: [cto, backend, pm]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: workspace
+work_path_ids: [WP-CORE-001]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ⚔️ RealmForge Core — Agent Execution Guide
 
 ## The Deep Companion to MASTER_BUILD_PLAN.md

@@ -1,3 +1,20 @@
+---
+doc_id: DOC-REVIEW-001
+title: "Phase 9 Login Vertical — Backend Review (Dmitri Volkov)"
+status: accepted
+owner: backend
+reviewers: [cto, qa]
+created_at: 2026-05-05
+last_reviewed_at: 2026-05-05
+source_of_truth: false
+product_area: login
+work_path_ids: [WP-LOGIN-001]
+related_decision_ids: []
+related_file_ids: [FILE-CRATE-SERVICE-LIB, FILE-CRATE-STORE-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # Phase 9 Login Vertical — Backend Review (Dmitri Volkov)
 
 ## Review Inputs

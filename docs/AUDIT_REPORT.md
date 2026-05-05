@@ -1,3 +1,20 @@
+---
+doc_id: DOC-AUDIT-REPORT
+title: "RealmForge Core — Full Workspace Audit Report"
+status: accepted
+owner: cto
+reviewers: [cto, backend, qa, pm]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-04
+source_of_truth: false
+product_area: workspace
+work_path_ids: [WP-CORE-001]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ⚔️ RealmForge Core — Full Workspace Audit Report
 
 **Date:** 2026-05-04

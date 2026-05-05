@@ -1,3 +1,20 @@
+---
+doc_id: DOC-GUIDE-SCENARIOS
+title: "RealmForge Core — End-to-End Scenarios"
+status: active
+owner: tech-writer
+reviewers: [tech-writer, backend, qa]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+source_of_truth: false
+product_area: workspace
+work_path_ids: [WP-CORE-001]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # RealmForge Core — End-to-End Scenarios
 
 This guide provides realistic, multi-step scenarios demonstrating how RealmForge Core's governance kernel operates in practice. Each scenario walks through a complete workflow using the HTTP API (curl) and MCP tool invocations side by side.

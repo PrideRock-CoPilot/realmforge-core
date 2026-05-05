@@ -1,3 +1,20 @@
+---
+doc_id: DOC-QA-001
+title: "Deployment Runbook — Phase 9 / Login Vertical"
+status: accepted
+owner: release-manager
+reviewers: [qa, infra-architect, backend]
+created_at: 2026-05-05
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: login
+work_path_ids: [WP-LOGIN-001]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # DEPLOYMENT RUNBOOK — Phase 9 / Login Vertical to Development
 
 **Prepared by:** Sam Osei, Release Manager  

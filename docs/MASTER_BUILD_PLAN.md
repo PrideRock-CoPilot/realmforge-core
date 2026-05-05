@@ -1,3 +1,20 @@
+---
+doc_id: DOC-MASTER-BUILD-PLAN
+title: "RealmForge Core — Master Build Plan"
+status: active
+owner: pm
+reviewers: [cto, pm, backend, frontend, qa]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: workspace
+work_path_ids: [WP-CORE-001]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # ⚔️ RealmForge Core — Master Build Plan
 
 ## The Living Blueprint for AI-Native Software Construction

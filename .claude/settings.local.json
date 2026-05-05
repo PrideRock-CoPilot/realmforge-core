@@ -3,5 +3,29 @@
     "allow": ["*"],
     "defaultMode": "bypassPermissions"
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/check-doc-metadata.py"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -Command \"Write-Host '--- SESSION DISCIPLINE CHECK ---'; Write-Host 'Required before acting: (1) Read CLAUDE.md + AGENTS.md + docs/MASTER_BUILD_PLAN.md  (2) Invoke /orchestrator for workflow state  (3) Route to the correct skill — do not solve outside your domain'; exit 0\""
+          }
+        ]
+      }
+    ]
+  }
 }

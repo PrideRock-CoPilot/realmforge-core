@@ -1,3 +1,20 @@
+---
+doc_id: DOC-API-PIPELINE
+title: "OpenAPI to TypeScript Client Pipeline"
+status: active
+owner: api-architect
+reviewers: [api-architect, frontend, backend]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+source_of_truth: true
+product_area: interfaces
+work_path_ids: [WP-API-001, WP-BOARDS-001]
+related_decision_ids: [DOC-ADR-0002]
+related_file_ids: [FILE-CRATE-API-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # OpenAPI → TypeScript Client Pipeline
 
 **Owner:** Marcus Webb (API Architect)

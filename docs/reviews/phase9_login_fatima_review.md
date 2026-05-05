@@ -1,3 +1,20 @@
+---
+doc_id: DOC-REVIEW-002
+title: "Phase 9 Login Vertical — Security Architect Review (Fatima Al-Hassan)"
+status: accepted
+owner: security-architect
+reviewers: [cto, qa]
+created_at: 2026-05-05
+last_reviewed_at: 2026-05-05
+source_of_truth: false
+product_area: login
+work_path_ids: [WP-LOGIN-001]
+related_decision_ids: [DOC-ADR-0004]
+related_file_ids: [FILE-CRATE-POLICY-LIB, FILE-CRATE-API-LIB]
+visual_node_ids: []
+visual_edge_ids: []
+approval_state: accepted
+---
 # Phase 9 Login Vertical — Security Architect Review (Fatima Al-Hassan)
 
 ## Surface Area

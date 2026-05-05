@@ -1,0 +1,76 @@
+{
+  "profile_id": "wp-login-001",
+  "module_id": "mod-login-001",
+  "name": "Login Watch Profile",
+  "description": "Live Watch profile for monitoring login module health and security signals.",
+  "signals": [
+    {
+      "signal_id": "SIG-LOGIN-FAILURE-RATE",
+      "name": "Login Failure Rate",
+      "description": "Rate of failed login attempts as a fraction of total attempts.",
+      "metric": "failed_attempts / total_attempts",
+      "unit": "ratio",
+      "thresholds": {
+        "warning": 0.1,
+        "critical": 0.3
+      },
+      "severity_mapping": {
+        "normal": "info",
+        "warning": "warn",
+        "critical": "critical"
+      },
+      "evaluation_window_seconds": 300
+    },
+    {
+      "signal_id": "SIG-LOGIN-LATENCY",
+      "name": "Login Latency",
+      "description": "95th percentile login request latency.",
+      "metric": "p95_latency_ms",
+      "unit": "milliseconds",
+      "thresholds": {
+        "warning": 500,
+        "critical": 2000
+      },
+      "severity_mapping": {
+        "normal": "info",
+        "warning": "warn",
+        "critical": "critical"
+      },
+      "evaluation_window_seconds": 60
+    },
+    {
+      "signal_id": "SIG-LOGIN-BLOCK-EVENT",
+      "name": "Login Block Event",
+      "description": "An actor has been blocked due to excessive failed attempts.",
+      "metric": "block_count",
+      "unit": "count",
+      "thresholds": {
+        "warning": 1,
+        "critical": 5
+      },
+      "severity_mapping": {
+        "normal": "info",
+        "warning": "warn",
+        "critical": "critical"
+      },
+      "evaluation_window_seconds": 3600
+    },
+    {
+      "signal_id": "SIG-LOGIN-BRUTE-FORCE-SUSPECTED",
+      "name": "Suspected Brute Force",
+      "description": "Multiple distinct actors with abnormally high failure rates within a short window.",
+      "metric": "distinct_blocked_actors",
+      "unit": "count",
+      "thresholds": {
+        "warning": 3,
+        "critical": 10
+      },
+      "severity_mapping": {
+        "normal": "info",
+        "warning": "warn",
+        "critical": "critical"
+      },
+      "evaluation_window_seconds": 300
+    }
+  ]
+}

@@ -6,7 +6,7 @@
 
 ## Core Repo
 
-`realmforge-core` owns the foundation:
+The control workspace owns the foundation:
 
 - identity and typed scope
 - authorization decisions
@@ -23,6 +23,6 @@ Future Builder, runtime, UI, module-library, and ingestion repos must treat Core
 ```text
 human/agent/client
   -> future repo surface
-  -> realmforge-core command authorization
+  -> control-service command authorization
   -> state write + audit event + snapshot anchor
 ```

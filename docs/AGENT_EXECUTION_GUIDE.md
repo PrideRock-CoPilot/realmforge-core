@@ -40,28 +40,28 @@ phase:
 
 | Crate | Files | Line Count | Status |
 |-------|-------|-----------|--------|
-| `rf-domain` | 7 files | ~435 lines | Skeleton — types defined, logic sparse |
-| `rf-events` | 1 file | 107 lines | Solid — AuditEvent + hash chain working |
-| `rf-policy` | 1 file | 172 lines | Solid — 6-check authorize_action() working |
-| `rf-snapshot` | 3 files | 183 lines | Partial — manifest + file store, no validation |
-| `rf-store` | 1 file | 139 lines | Partial — 3 methods only, no queries |
-| `rf-api` | 2 files | 58 lines | Stub — health + authorize endpoints only |
-| `rf-mcp` | 1 file | 128 lines | Stub — 5 tool defs, 1 handler |
-| `rf-cli` | 1 file | 50 lines | Stub — 3 commands, no service wiring |
+| `authority-domain` | 7 files | ~435 lines | Skeleton — types defined, logic sparse |
+| `audit-log` | 1 file | 107 lines | Solid — AuditEvent + hash chain working |
+| `policy-engine` | 1 file | 172 lines | Solid — 6-check authorize_action() working |
+| `snapshot-ledger` | 3 files | 183 lines | Partial — manifest + file store, no validation |
+| `control-store` | 1 file | 139 lines | Partial — 3 methods only, no queries |
+| `control-api` | 2 files | 58 lines | Stub — health + authorize endpoints only |
+| `agent-mcp` | 1 file | 128 lines | Stub — 5 tool defs, 1 handler |
+| `operator-cli` | 1 file | 50 lines | Stub — 3 commands, no service wiring |
 
 ### What Does NOT Exist Yet
 
 ```
-rf-service/          DOES NOT EXIST — the entire service layer is missing
-rf-domain/error.rs   DOES NOT EXIST — no unified domain error type
-rf-snapshot/rollback.rs  DOES NOT EXIST
-rf-api/routes/       DOES NOT EXIST
-rf-api/error.rs      DOES NOT EXIST
-rf-api/middleware.rs DOES NOT EXIST
-rf-api/models.rs     DOES NOT EXIST
-rf-mcp/tools/        DOES NOT EXIST
-rf-mcp/error.rs      DOES NOT EXIST
-rf-cli/commands/     DOES NOT EXIST
+control-service/          DOES NOT EXIST — the entire service layer is missing
+authority-domain/error.rs   DOES NOT EXIST — no unified domain error type
+snapshot-ledger/rollback.rs  DOES NOT EXIST
+control-api/routes/       DOES NOT EXIST
+control-api/error.rs      DOES NOT EXIST
+control-api/middleware.rs DOES NOT EXIST
+control-api/models.rs     DOES NOT EXIST
+agent-mcp/tools/        DOES NOT EXIST
+agent-mcp/error.rs      DOES NOT EXIST
+operator-cli/commands/     DOES NOT EXIST
 ```
 
 ### What the Database Has
@@ -86,18 +86,18 @@ This is the single most important architectural contract in the system. Every ag
 understand the full error propagation chain before writing a single `?` operator.
 
 ```
-DomainError          (rf-domain/error.rs)  — pure domain violations, no IO
+DomainError          (authority-domain/error.rs)  — pure domain violations, no IO
     ↑ wrapped by
-EventError           (rf-events/lib.rs)    — serialization failures only
-PolicyDenial         (rf-policy/lib.rs)    — authorization rejections (not errors)
+EventError           (audit-log/lib.rs)    — serialization failures only
+PolicyDenial         (policy-engine/lib.rs)    — authorization rejections (not errors)
     ↑ all wrapped by
-StoreError           (rf-store/lib.rs)     — DB failures
+StoreError           (control-store/lib.rs)     — DB failures
     ↑ all wrapped by
-ServiceError         (rf-service/error.rs) — orchestration failures (most important)
+ServiceError         (control-service/error.rs) — orchestration failures (most important)
     ↑ all wrapped by
-ApiError             (rf-api/error.rs)     — HTTP presentation layer
-McpError             (rf-mcp/error.rs)     — MCP presentation layer
-CliError             (rf-cli/error.rs)     — CLI exit code mapping
+ApiError             (control-api/error.rs)     — HTTP presentation layer
+McpError             (agent-mcp/error.rs)     — MCP presentation layer
+CliError             (operator-cli/error.rs)     — CLI exit code mapping
 ```
 
 **The Rule:** Errors flow UP only. An error from a lower layer is wrapped (not swallowed)
@@ -118,13 +118,13 @@ phase:
     - cargo_fmt_check_passes
     - all_files_under_300_lines
   agent_work_packet:
-    allowed_crates: [rf-domain, rf-events, rf-policy, rf-snapshot]
-    forbidden_crates: [rf-store, rf-service, rf-api, rf-cli, rf-mcp]
+    allowed_crates: [authority-domain, audit-log, policy-engine, snapshot-ledger]
+    forbidden_crates: [control-store, control-service, control-api, operator-cli, agent-mcp]
     allowed_actions: [extend_types, add_impls, add_tests, create_error_module]
     forbidden_actions: [add_io, add_db_queries, add_http_routes]
 ```
 
-### Phase 0.1 — `rf-domain/src/error.rs` (NEW)
+### Phase 0.1 — `authority-domain/src/error.rs` (NEW)
 
 Create this file first. Everything else in Phase 0 references it.
 
@@ -158,13 +158,13 @@ pub enum DomainError {
 }
 ```
 
-After creating this, add to `rf-domain/src/lib.rs`:
+After creating this, add to `authority-domain/src/lib.rs`:
 ```rust
 pub mod error;
 pub use error::*;
 ```
 
-### Phase 0.2 — `rf-domain/src/ids.rs` (EXTEND)
+### Phase 0.2 — `authority-domain/src/ids.rs` (EXTEND)
 
 Current: 67 lines — typed ID newtypes with `new()`, `generate()`, `as_str()`
 Missing: `Display`, `FromStr`, `Serialize`/`Deserialize` — WAIT, check first.
@@ -196,7 +196,7 @@ fn id_display_round_trips() {
 }
 ```
 
-### Phase 0.3 — `rf-domain/src/scope.rs` (EXTEND)
+### Phase 0.3 — `authority-domain/src/scope.rs` (EXTEND)
 
 Current: 28 lines — ActorScope struct with `allows_action()`
 Add these methods:
@@ -248,7 +248,7 @@ impl ActorScope {
 }
 ```
 
-### Phase 0.4 — `rf-domain/src/state.rs` (EXTEND)
+### Phase 0.4 — `authority-domain/src/state.rs` (EXTEND)
 
 Current: 48 lines — enums (ExecutionMode, ApprovalState, CommandStatus, SnapshotStatus, etc.)
 Add TryFrom conversions for DB string round-trips:
@@ -291,7 +291,7 @@ impl std::fmt::Display for CommandStatus {
 }
 ```
 
-### Phase 0.5 — `rf-domain/src/command.rs` (EXTEND)
+### Phase 0.5 — `authority-domain/src/command.rs` (EXTEND)
 
 Current: 41 lines — BoundedCommand struct
 Add state machine validation:
@@ -342,7 +342,7 @@ fn applied_is_terminal() {
 }
 ```
 
-### Phase 0.6 — `rf-events/src/lib.rs` (EXTEND)
+### Phase 0.6 — `audit-log/src/lib.rs` (EXTEND)
 
 Add event type categorization (needed by audit_service in Phase 3):
 
@@ -373,7 +373,7 @@ impl AuditEvent {
 }
 ```
 
-### Phase 0.7 — `rf-policy/src/lib.rs` (EXTEND)
+### Phase 0.7 — `policy-engine/src/lib.rs` (EXTEND)
 
 Add `DenialCode::RateLimited` and a chain evaluator that can run multiple checks in sequence:
 
@@ -429,7 +429,7 @@ let decision = PolicyChain::new(&scope, "command.apply")
     .evaluate();
 ```
 
-### Phase 0.8 — `rf-snapshot/src/manifest.rs` (EXTEND)
+### Phase 0.8 — `snapshot-ledger/src/manifest.rs` (EXTEND)
 
 Add validation and delta computation:
 
@@ -482,13 +482,13 @@ The phase is complete when ALL of the following pass:
 [ ] cargo fmt --all -- --check                         (zero formatting issues)
 [ ] cargo clippy --workspace -- -D warnings            (zero warnings)
 [ ] cargo test --workspace                             (all tests pass)
-[ ] rf-domain/src/error.rs exists and compiles         (DomainError with 7 variants)
+[ ] authority-domain/src/error.rs exists and compiles         (DomainError with 7 variants)
 [ ] All 12 typed IDs have Display impl                 (tested by display_round_trips test)
 [ ] CommandStatus::validate_transition() has 5 tests   (one per from-state)
 [ ] TryFrom<&str> impls exist for all 4 state enums   (tested by round-trip tests)
 [ ] PolicyChain builder pattern compiles               (tested by existing tests)
 [ ] SnapshotDelta struct exists and compiles           (no behavior test yet)
-[ ] No file in rf-domain, rf-events, rf-policy, rf-snapshot exceeds 300 lines
+[ ] No file in authority-domain, audit-log, policy-engine, snapshot-ledger exceeds 300 lines
 ```
 
 ---
@@ -502,21 +502,21 @@ phase:
   depends_on: [phase.0.foundation-hardening]
   precondition: Phase 0 validation gate must be 100% green
   validation_gate:
-    - rf_service_crate_compiles
+    - control_service_crate_compiles
     - all_service_methods_have_doc_comments
     - no_direct_db_access_in_service
-    - cargo_check_p_rf_service_passes
+    - cargo_check_p_control_service_passes
   agent_work_packet:
-    new_crate: rf-service
+    new_crate: control-service
     allowed_actions: [create_crate, define_service_interfaces, write_error_types]
-    forbidden_actions: [implement_db_queries, add_http_routes, touch_rf_domain_files]
+    forbidden_actions: [implement_db_queries, add_http_routes, touch_authority_domain_files]
 ```
 
-### Phase 1.1 — `rf-service/Cargo.toml` (NEW)
+### Phase 1.1 — `control-service/Cargo.toml` (NEW)
 
 ```toml
 [package]
-name = "rf-service"
+name = "control-service"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -524,11 +524,11 @@ rust-version.workspace = true
 authors.workspace = true
 
 [dependencies]
-rf-domain   = { workspace = true }
-rf-events   = { workspace = true }
-rf-policy   = { workspace = true }
-rf-store    = { workspace = true }
-rf-snapshot = { workspace = true }
+authority-domain   = { workspace = true }
+audit-log   = { workspace = true }
+policy-engine   = { workspace = true }
+control-store    = { workspace = true }
+snapshot-ledger = { workspace = true }
 
 chrono      = { workspace = true }
 serde       = { workspace = true }
@@ -539,17 +539,17 @@ tokio       = { workspace = true }
 uuid        = { workspace = true }
 ```
 
-**Also update root `Cargo.toml`** — add `"crates/rf-service"` to the `[workspace] members` array.
-**Also update root `Cargo.toml`** — add `rf-service = { path = "crates/rf-service" }` to `[workspace.dependencies]`.
+**Also update root `Cargo.toml`** — add `"crates/control-service"` to the `[workspace] members` array.
+**Also update root `Cargo.toml`** — add `control-service = { path = "crates/control-service" }` to `[workspace.dependencies]`.
 
-### Phase 1.2 — `rf-service/src/error.rs` (NEW)
+### Phase 1.2 — `control-service/src/error.rs` (NEW)
 
 ```rust
 // Target: ~60 lines
-use rf_domain::DomainError;
-use rf_events::EventError;
-use rf_policy::PolicyDenial;
-use crate::store::StoreError;  // re-exported from rf-store
+use authority_domain::DomainError;
+use audit_log::EventError;
+use policy_engine::PolicyDenial;
+use crate::store::StoreError;  // re-exported from control-store
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -594,7 +594,7 @@ impl ServiceError {
 }
 ```
 
-### Phase 1.3 — `rf-service/src/lib.rs` (NEW)
+### Phase 1.3 — `control-service/src/lib.rs` (NEW)
 
 ```rust
 // Target: ~25 lines — module declarations only
@@ -610,7 +610,7 @@ pub mod snapshot_service;
 pub use error::ServiceError;
 
 // Re-export store for convenience
-pub use rf_store::CoreStore;
+pub use control_store::CoreStore;
 ```
 
 ### Phase 1.4 — Service Method Signatures (ALL 7 SERVICE FILES)
@@ -618,17 +618,17 @@ pub use rf_store::CoreStore;
 Each service file at this phase is INTERFACE ONLY — method signatures with
 `todo!()` bodies. Full implementation happens in Phases 2–6.
 
-**`rf-service/src/session_service.rs`** (NEW, ~50 lines signatures):
+**`control-service/src/session_service.rs`** (NEW, ~50 lines signatures):
 ```rust
 use crate::error::ServiceError;
-use rf_domain::{ActorId, ActorScope, ProjectId, SessionId, TenantId};
+use authority_domain::{ActorId, ActorScope, ProjectId, SessionId, TenantId};
 
 pub struct SessionService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 impl SessionService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Issues a new session for the given actor. Returns the session ID and initial scope.
     pub async fn issue_session(
@@ -671,18 +671,18 @@ impl SessionService {
 }
 ```
 
-**`rf-service/src/command_service.rs`** (NEW, ~70 lines signatures):
+**`control-service/src/command_service.rs`** (NEW, ~70 lines signatures):
 ```rust
 use crate::error::ServiceError;
-use rf_domain::{ActorScope, BoundedCommand, CommandId, CommandStatus};
+use authority_domain::{ActorScope, BoundedCommand, CommandId, CommandStatus};
 use serde_json::Value;
 
 pub struct CommandService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 impl CommandService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Proposes a new bounded command. Returns the CommandId.
     /// Policy is NOT checked here — this is a pure write.
@@ -734,16 +734,16 @@ impl CommandService {
 }
 ```
 
-**`rf-service/src/audit_service.rs`** (NEW, ~60 lines signatures):
+**`control-service/src/audit_service.rs`** (NEW, ~60 lines signatures):
 ```rust
 use crate::error::ServiceError;
 use chrono::{DateTime, Utc};
-use rf_domain::{ActorId, AuditEventId, ProjectId};
-use rf_events::AuditEvent;
+use authority_domain::{ActorId, AuditEventId, ProjectId};
+use audit_log::AuditEvent;
 use serde_json::Value;
 
 pub struct AuditService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 pub struct AuditQuery {
@@ -767,7 +767,7 @@ pub struct ChainVerification {
 }
 
 impl AuditService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Appends a new audit event, linking it to the previous event's hash.
     /// The event_type convention is "entity.verb" e.g. "command.authorized"
@@ -796,14 +796,14 @@ impl AuditService {
 }
 ```
 
-**`rf-service/src/snapshot_service.rs`** (NEW, ~55 lines signatures):
+**`control-service/src/snapshot_service.rs`** (NEW, ~55 lines signatures):
 ```rust
 use crate::error::ServiceError;
-use rf_domain::{ProjectId, SnapshotId, TenantId};
-use rf_snapshot::{SnapshotDelta, SnapshotManifest};
+use authority_domain::{ProjectId, SnapshotId, TenantId};
+use snapshot_ledger::{SnapshotDelta, SnapshotManifest};
 
 pub struct SnapshotService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 pub struct SnapshotValidation {
@@ -816,7 +816,7 @@ pub struct SnapshotValidation {
 }
 
 impl SnapshotService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Creates a new snapshot manifest. Computes content-addressed refs for provided objects.
     pub async fn create_snapshot(
@@ -858,13 +858,13 @@ impl SnapshotService {
 }
 ```
 
-**`rf-service/src/rollback_service.rs`** (NEW, ~55 lines signatures):
+**`control-service/src/rollback_service.rs`** (NEW, ~55 lines signatures):
 ```rust
 use crate::error::ServiceError;
-use rf_domain::SnapshotId;
+use authority_domain::SnapshotId;
 
 pub struct RollbackService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 pub struct RollbackPreview {
@@ -886,7 +886,7 @@ pub struct RollbackVerification {
 }
 
 impl RollbackService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Computes the impact of rolling back from from_id to to_id. Does NOT execute.
     pub async fn preview_rollback(
@@ -917,17 +917,17 @@ impl RollbackService {
 }
 ```
 
-**`rf-service/src/skill_service.rs`** (NEW, ~40 lines signatures):
+**`control-service/src/skill_service.rs`** (NEW, ~40 lines signatures):
 ```rust
 use crate::error::ServiceError;
-use rf_domain::{ProjectId, SessionId, SkillId, SkillRegistration, SkillSession, SkillSessionId};
+use authority_domain::{ProjectId, SessionId, SkillId, SkillRegistration, SkillSession, SkillSessionId};
 
 pub struct SkillService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 impl SkillService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Registers a new skill in the project catalog.
     pub async fn register_skill(
@@ -957,17 +957,17 @@ impl SkillService {
 }
 ```
 
-**`rf-service/src/actor_service.rs`** (NEW, ~40 lines signatures):
+**`control-service/src/actor_service.rs`** (NEW, ~40 lines signatures):
 ```rust
 use crate::error::ServiceError;
-use rf_domain::{ActorId, ActorScope, SessionId};
+use authority_domain::{ActorId, ActorScope, SessionId};
 
 pub struct ActorService {
-    store: rf_store::CoreStore,
+    store: control_store::CoreStore,
 }
 
 impl ActorService {
-    pub fn new(store: rf_store::CoreStore) -> Self { Self { store } }
+    pub fn new(store: control_store::CoreStore) -> Self { Self { store } }
 
     /// Builds a full ActorScope by loading actor roles, session state, and skill bindings.
     pub async fn get_scope(
@@ -991,16 +991,16 @@ impl ActorService {
 ### Phase 1 Validation Gate
 
 ```
-[ ] rf-service/ crate directory exists with Cargo.toml
-[ ] root Cargo.toml includes "crates/rf-service" in workspace members
-[ ] cargo check -p rf-service compiles with zero errors
+[ ] control-service/ crate directory exists with Cargo.toml
+[ ] root Cargo.toml includes "crates/control-service" in workspace members
+[ ] cargo check -p control-service compiles with zero errors
 [ ] All 7 service files exist with correct signatures
 [ ] All service structs take CoreStore as their only constructor arg
 [ ] All methods return Result<T, ServiceError>
 [ ] No method bodies yet — all use todo!("Phase N") markers
 [ ] All public items have /// doc comments
 [ ] ServiceError covers all 8 variants defined above
-[ ] No file in rf-service exceeds 100 lines at this phase (signatures only)
+[ ] No file in control-service exceeds 100 lines at this phase (signatures only)
 ```
 
 ---
@@ -1020,22 +1020,22 @@ phase:
     - all_session_mutations_emit_audit_events
   agent_work_packet:
     allowed_files:
-      - crates/rf-service/src/session_service.rs
-      - crates/rf-service/src/actor_service.rs
-      - crates/rf-service/src/skill_service.rs
-      - crates/rf-domain/src/scope.rs
-      - crates/rf-store/src/lib.rs
-      - crates/rf-store/src/session_queries.rs   (NEW)
+      - crates/control-service/src/session_service.rs
+      - crates/control-service/src/actor_service.rs
+      - crates/control-service/src/skill_service.rs
+      - crates/authority-domain/src/scope.rs
+      - crates/control-store/src/lib.rs
+      - crates/control-store/src/session_queries.rs   (NEW)
     forbidden_paths:
-      - crates/rf-api/**
-      - crates/rf-mcp/**
-      - crates/rf-cli/**
+      - crates/control-api/**
+      - crates/agent-mcp/**
+      - crates/operator-cli/**
       - db/migrations/** (without CTO sign-off)
 ```
 
-### Phase 2.1 — DB Queries Needed in `rf-store`
+### Phase 2.1 — DB Queries Needed in `control-store`
 
-Add a new file `rf-store/src/session_queries.rs` (NEW, ~120 lines):
+Add a new file `control-store/src/session_queries.rs` (NEW, ~120 lines):
 
 ```rust
 // These are the sqlx query shapes needed by SessionService and ActorService.
@@ -1080,7 +1080,7 @@ WHERE ar.actor_id = $1 AND ar.project_id = $2
 
 ### Phase 2.2 — Session Lifecycle Integration Test
 
-Create `rf-service/tests/session_lifecycle.rs`:
+Create `control-service/tests/session_lifecycle.rs`:
 
 ```rust
 // Test 1: Full lifecycle — issue → activate → renew → revoke
@@ -1135,7 +1135,7 @@ async fn issued_scope_is_read_only() {
 [ ] validate_session() returns SessionInvalid if state != 'active' or NOW() > expires_at
 [ ] get_scope() correctly builds ActorScope with roles from actor_roles table
 [ ] All 3 integration tests pass
-[ ] rf-store session queries are in separate session_queries.rs file (< 150 lines)
+[ ] control-store session queries are in separate session_queries.rs file (< 150 lines)
 ```
 
 ---
@@ -1163,7 +1163,7 @@ phase:
 
 ### Phase 3 — DB Queries Needed
 
-Add `rf-store/src/command_queries.rs` (NEW, ~120 lines):
+Add `control-store/src/command_queries.rs` (NEW, ~120 lines):
 
 ```rust
 // INSERT bounded_command
@@ -1221,7 +1221,7 @@ phase:
 
 ### Phase 4 — DB Queries Needed
 
-Add `rf-store/src/audit_queries.rs` (NEW, ~100 lines):
+Add `control-store/src/audit_queries.rs` (NEW, ~100 lines):
 
 ```rust
 // SELECT last event hash for a project (for chain linking)
@@ -1281,11 +1281,11 @@ phase:
     - rollback_impact_report_correct
 ```
 
-### Phase 5 — New File: `rf-snapshot/src/rollback.rs`
+### Phase 5 — New File: `snapshot-ledger/src/rollback.rs`
 
 ```rust
 // ~80 lines
-use rf_domain::SnapshotId;
+use authority_domain::SnapshotId;
 use crate::manifest::{SnapshotManifest, SnapshotObjectRef};
 
 /// The computed impact of rolling back from one snapshot to another.
@@ -1340,8 +1340,8 @@ phase:
     - packet_validation_detects_out_of_scope_files
     - packet_rollback_anchor_is_latest_snapshot
   new_files:
-    - crates/rf-domain/src/work_packet.rs
-    - crates/rf-service/src/work_packet_service.rs
+    - crates/authority-domain/src/work_packet.rs
+    - crates/control-service/src/work_packet_service.rs
   schema_migration_required:
     - 003_work_packets.sql  (adds agent_work_packets table)
 ```
@@ -1385,7 +1385,7 @@ phase:
   status: planned
   depends_on: [phase.6.work-packet-generator]
   validation_gate:
-    - cargo_run_rf_api_starts
+    - cargo_run_control_api_starts
     - health_endpoint_200
     - all_endpoints_correct_status_codes
     - error_responses_rfc7807
@@ -1393,7 +1393,7 @@ phase:
 
 ### Phase 7 — API Error Standard
 
-ALL error responses from `rf-api` follow RFC 7807 Problem Details:
+ALL error responses from `control-api` follow RFC 7807 Problem Details:
 
 ```json
 {
@@ -1577,7 +1577,7 @@ core_activate_skill_session
 ```
 
 Note: That's 25 tools. The MASTER_BUILD_PLAN targets "under 25" — correct. The test assertion
-in rf-mcp's existing test (`<= 15`) must be updated to `<= 25` in Phase 9.
+in agent-mcp's existing test (`<= 15`) must be updated to `<= 25` in Phase 9.
 
 ---
 
@@ -1600,7 +1600,7 @@ phase:
 All integration tests use this pattern:
 
 ```rust
-// rf-service/tests/common/mod.rs
+// control-service/tests/common/mod.rs
 pub async fn test_store() -> CoreStore {
     let url = std::env::var("TEST_DATABASE_URL")
         .unwrap_or_else(|_| "postgres://localhost/realmforge_test".to_string());
@@ -1622,7 +1622,7 @@ This is the single most important integration test. It must pass before any phas
 can be declared complete for production use.
 
 ```rust
-// rf-api/tests/integration_test.rs
+// control-api/tests/integration_test.rs
 
 #[tokio::test]
 async fn golden_path_propose_to_rollback() {
@@ -1702,30 +1702,30 @@ tracing::info!(
 ## Dependency Graph (Resolved)
 
 ```
-rf-cli ─────────────────────────────────────────────────────┐
-rf-api ──────────────────────────────────────────────────┐  │
-rf-mcp ───────────────────────────────────────────────┐  │  │
+operator-cli ─────────────────────────────────────────────────────┐
+control-api ──────────────────────────────────────────────────┐  │
+agent-mcp ───────────────────────────────────────────────┐  │  │
                                                        │  │  │
                                                        ▼  ▼  ▼
-                                                    rf-service
-                                                    ├── rf-store
-                                                    │     ├── rf-domain
-                                                    │     ├── rf-events ──→ rf-domain
-                                                    │     └── rf-snapshot ─→ rf-domain
-                                                    ├── rf-policy ──────→ rf-domain
-                                                    ├── rf-events ──────→ rf-domain
-                                                    ├── rf-snapshot ────→ rf-domain
-                                                    └── rf-domain  (pure — no rf-* deps)
+                                                    control-service
+                                                    ├── control-store
+                                                    │     ├── authority-domain
+                                                    │     ├── audit-log ──→ authority-domain
+                                                    │     └── snapshot-ledger ─→ authority-domain
+                                                    ├── policy-engine ──────→ authority-domain
+                                                    ├── audit-log ──────→ authority-domain
+                                                    ├── snapshot-ledger ────→ authority-domain
+                                                    └── authority-domain  (pure — no other capability-crate deps)
 ```
 
 **Layer Violation Scanner** — run this after every phase to verify no violations:
 
 ```bash
 # These commands must return ZERO matches:
-grep -r "use rf_store" crates/rf-domain/src/   # MUST be empty
-grep -r "use rf_store" crates/rf-api/src/      # MUST be empty (use rf-service instead)
-grep -r "use rf_policy" crates/rf-api/src/     # MUST be empty (use rf-service instead)
-grep -r "sqlx" crates/rf-service/src/          # MUST be empty (use rf-store instead)
+grep -r "use control_store" crates/authority-domain/src/   # MUST be empty
+grep -r "use control_store" crates/control-api/src/      # MUST be empty (use control-service instead)
+grep -r "use policy_engine" crates/control-api/src/     # MUST be empty (use control-service instead)
+grep -r "sqlx" crates/control-service/src/          # MUST be empty (use control-store instead)
 ```
 
 ---

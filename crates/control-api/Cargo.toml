@@ -1,0 +1,30 @@
+[package]
+name = "control-api"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+agent-gateway.workspace = true
+axum.workspace = true
+utoipa.workspace = true
+utoipa-axum.workspace = true
+chrono.workspace = true
+authority-domain.workspace = true
+control-service.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tower-http.workspace = true
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid.workspace = true
+
+[dev-dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json", "blocking"] }
+control-store.workspace = true
+serde_json.workspace = true
+tokio.workspace = true

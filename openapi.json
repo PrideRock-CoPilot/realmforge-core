@@ -1,0 +1,4621 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RealmForge Control API",
+    "description": "Governance kernel REST API — session, command, audit, snapshot, rollback, boards, and more.",
+    "license": {
+      "name": "UNLICENSED",
+      "identifier": "UNLICENSED"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Basic liveness check.",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Service is live",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/actors/{id}/scope": {
+      "get": {
+        "tags": [
+          "actors"
+        ],
+        "summary": "Get the full ActorScope for an actor and session.",
+        "operationId": "get_actor_scope",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Actor ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "ses_abc123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Actor scope returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActorScopeResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Actor or session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit/chain/verify": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Verify the integrity of the full audit hash chain for a project.",
+        "operationId": "verify_audit_chain",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chain verification result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChainVerifyResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid project ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit/events": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Query audit events for a project with optional filters and pagination.",
+        "operationId": "query_audit_events",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "event_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "actor_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "from_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Events returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventsListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/audit/stream": {
+      "get": {
+        "tags": [
+          "audit"
+        ],
+        "summary": "Stream audit events for a project as Server-Sent Events (SSE).",
+        "description": "SSE endpoint — streams audit events for a project as they arrive.\nReconnect-safe: pass the `Last-Event-ID` header with the last received\nevent's offset to resume without gaps.",
+        "operationId": "stream_audit_events",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "description": "Project ID to stream events for",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "description": "Resume offset from reconnect",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "SSE stream of audit events (text/event-stream)"
+          },
+          "400": {
+            "description": "Invalid project ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boards/plans": {
+      "get": {
+        "tags": [
+          "boards"
+        ],
+        "summary": "List board plans with optional status filter and pagination.",
+        "operationId": "list_board_plans",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by board state. One of: draft, in_review, approved, in_progress, completed, blocked, archived.",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plans listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "boards"
+        ],
+        "summary": "Create a new board plan for a work path.",
+        "operationId": "create_board_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBoardPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Plan created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boards/plans/{id}/approve": {
+      "post": {
+        "tags": [
+          "boards"
+        ],
+        "summary": "Approve a board plan submitted for review.",
+        "operationId": "approve_board_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Board plan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardApprovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Plan approved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Plan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boards/plans/{id}/reject": {
+      "post": {
+        "tags": [
+          "boards"
+        ],
+        "summary": "Reject a board plan and return it to draft.",
+        "operationId": "reject_board_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Board plan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardApprovalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Plan rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Plan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boards/plans/{id}/submit": {
+      "post": {
+        "tags": [
+          "boards"
+        ],
+        "summary": "Submit a draft board plan for approval.",
+        "operationId": "submit_board_plan",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Board plan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plan submitted for review",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardPlanResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid plan ID or state transition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Plan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boards/releases": {
+      "post": {
+        "tags": [
+          "boards"
+        ],
+        "summary": "Submit a release command from an approved board plan.",
+        "operationId": "submit_board_release",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BoardReleaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Release command submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoardReleaseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/bundles": {
+      "get": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "List bundle manifests, optionally filtered by app ID.",
+        "operationId": "list_bundles",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "example": "app_01"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 20
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bundle list"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "Create a new bundle manifest with artifact hashes and governance signature.",
+        "operationId": "create_bundle",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBundleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bundle recorded"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/bundles/{id}": {
+      "get": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "Get a bundle manifest by ID.",
+        "operationId": "get_bundle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Bundle ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bundle manifest"
+          },
+          "404": {
+            "description": "Bundle not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/bundles/{id}/deploy": {
+      "post": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "Mark a verified bundle as deployed.",
+        "operationId": "deploy_bundle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Bundle ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bundle marked deployed"
+          },
+          "404": {
+            "description": "Bundle not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/bundles/{id}/verify": {
+      "post": {
+        "tags": [
+          "bundles"
+        ],
+        "summary": "Update bundle status to verified, signed, or failed.",
+        "operationId": "verify_bundle",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Bundle ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyBundleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Bundle status updated"
+          },
+          "404": {
+            "description": "Bundle not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/catalog": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List catalog entries at a given scope (global, tenant, or app).",
+        "operationId": "list_catalog",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "description": "Scope level: \"global\", \"tenant\", or \"app\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "tenant"
+          },
+          {
+            "name": "scope_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "example": "ten_01"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CatalogEntryResponse"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/copy": {
+      "post": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Copy a catalog module to a new scope, recording provenance.",
+        "operationId": "copy_catalog",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CopyCatalogRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Catalog entry copied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogEntryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/catalog/{id}/provenance": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Get the copy provenance chain for a catalog entry.",
+        "operationId": "get_catalog_provenance",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Catalog entry ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provenance record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvenanceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Entry not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/commands": {
+      "post": {
+        "tags": [
+          "commands"
+        ],
+        "summary": "Propose a new bounded command within the command lifecycle.",
+        "operationId": "propose_command",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProposeCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Command proposed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Policy denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/commands/{id}": {
+      "get": {
+        "tags": [
+          "commands"
+        ],
+        "summary": "Retrieve a command by ID.",
+        "operationId": "get_command",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Command ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Command not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/commands/{id}/apply": {
+      "put": {
+        "tags": [
+          "commands"
+        ],
+        "summary": "Apply an authorized command, executing its effects.",
+        "operationId": "apply_command",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Command ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandScopeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Command applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Command not in authorized state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Command not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/commands/{id}/authorize": {
+      "put": {
+        "tags": [
+          "commands"
+        ],
+        "summary": "Authorize a proposed command against the policy engine.",
+        "operationId": "authorize_command",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Command ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommandScopeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Command authorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Policy denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Command not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/commands/{id}/deny": {
+      "post": {
+        "tags": [
+          "commands"
+        ],
+        "summary": "Explicitly deny a command, recording the reason in the audit trail.",
+        "operationId": "deny_command",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Command ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DenyCommandRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Command denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Command not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/gateway/execute": {
+      "post": {
+        "tags": [
+          "gateway"
+        ],
+        "summary": "Execute a command through the agent gateway. Every agent write must go through this endpoint.",
+        "operationId": "execute_gateway",
+        "requestBody": {
+          "description": "GatewayRequest: actor_id, session_id, action, file_paths, schema_views",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Command executed"
+          },
+          "403": {
+            "description": "Unauthorized by policy"
+          },
+          "500": {
+            "description": "Execution error"
+          }
+        }
+      }
+    },
+    "/v1/health/live": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Liveness probe — service process is running.",
+        "operationId": "health_live",
+        "responses": {
+          "200": {
+            "description": "Service is live",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Readiness probe — service is ready to accept traffic.",
+        "operationId": "health_ready",
+        "responses": {
+          "200": {
+            "description": "Service is ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/knowledge/datasets": {
+      "get": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "List all indexed knowledge datasets.",
+        "operationId": "list_datasets",
+        "responses": {
+          "200": {
+            "description": "Dataset list"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/knowledge/datasets/{id}": {
+      "get": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "Get metadata for a specific knowledge dataset.",
+        "operationId": "get_dataset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Dataset ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dataset info"
+          },
+          "404": {
+            "description": "Dataset not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/knowledge/query": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "Query knowledge records by scope, type, and text filters.",
+        "operationId": "query_knowledge",
+        "requestBody": {
+          "description": "KnowledgeQuery fields: scope, record_type, tags, text_contains, limit, offset",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Query results"
+          },
+          "400": {
+            "description": "Invalid query"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/profiles/{app_id}": {
+      "get": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Get the Live Watch monitoring profile for an app.",
+        "operationId": "get_profile",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Watch profile"
+          },
+          "404": {
+            "description": "Profile not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Update the Live Watch monitoring profile for an app.",
+        "operationId": "update_profile",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated"
+          },
+          "404": {
+            "description": "Profile not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/{app_id}/proposals": {
+      "get": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "List remediation proposals for an app.",
+        "operationId": "list_proposals",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 50
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proposal list"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/{app_id}/proposals/{id}/approve": {
+      "post": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Approve a remediation proposal, authorizing its execution.",
+        "operationId": "approve_proposal",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Proposal ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proposal approved"
+          },
+          "400": {
+            "description": "Invalid proposal ID"
+          },
+          "404": {
+            "description": "Proposal not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/{app_id}/propose": {
+      "post": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Propose a remediation action based on current signal state.",
+        "operationId": "propose_remediation",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Proposal created"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/{app_id}/signals": {
+      "get": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "List recorded signals for an app, optionally filtered by type and severity.",
+        "operationId": "get_signals",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "signal_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 50
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signal list"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Record a runtime signal (latency, error_rate, cost_rate, etc.) for an app.",
+        "operationId": "record_signal",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordSignalBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Signal recorded"
+          },
+          "400": {
+            "description": "Invalid signal type or severity"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/{app_id}/start": {
+      "post": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Enable Live Watch monitoring for an app.",
+        "operationId": "start_monitoring",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Monitoring started"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/live-watch/{app_id}/stop": {
+      "post": {
+        "tags": [
+          "live-watch"
+        ],
+        "summary": "Disable Live Watch monitoring for an app.",
+        "operationId": "stop_monitoring",
+        "parameters": [
+          {
+            "name": "app_id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Monitoring stopped"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/login": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Authenticate an actor and issue a session token.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Login successful, session issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid credentials or scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/login/blocks/{tenant_id}": {
+      "get": {
+        "tags": [
+          "login"
+        ],
+        "summary": "List active login blocks (rate-limit lockouts) for a tenant.",
+        "operationId": "list_login_blocks",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "description": "Tenant ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Active login blocks"
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/login/policy": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Set the login policy (rate limits, block duration) for a tenant.",
+        "operationId": "set_login_policy",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPolicyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Policy updated"
+          },
+          "400": {
+            "description": "Invalid policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/login/policy/{tenant_id}": {
+      "get": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Get the active login policy for a tenant.",
+        "operationId": "get_login_policy",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "description": "Tenant ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login policy"
+          },
+          "404": {
+            "description": "Tenant not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rollback/execute": {
+      "post": {
+        "tags": [
+          "rollback"
+        ],
+        "summary": "Execute a rollback, restoring state from an earlier snapshot.",
+        "operationId": "execute_rollback",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackExecuteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Rollback executed, new snapshot created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RollbackExecuteResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Snapshot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rollback/preview": {
+      "post": {
+        "tags": [
+          "rollback"
+        ],
+        "summary": "Preview what a rollback between two snapshots would restore. Does not execute.",
+        "operationId": "preview_rollback",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Rollback preview with impact report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RollbackPreviewResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Snapshot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rollback/{id}/verify": {
+      "get": {
+        "tags": [
+          "rollback"
+        ],
+        "summary": "Verify a rollback snapshot's consistency and hash integrity.",
+        "operationId": "verify_rollback",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Snapshot ID of the rollback result",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rollback verification report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RollbackVerifyResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Snapshot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/runtime": {
+      "get": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "List all active runtime instances.",
+        "operationId": "list_runtimes",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 20
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            },
+            "example": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runtime instance list"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/runtime/deploy": {
+      "post": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Deploy a bundle as a new runtime instance.",
+        "operationId": "deploy_runtime",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeployBundleRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Runtime deployed"
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/runtime/{id}": {
+      "get": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Get the current status of a runtime instance.",
+        "operationId": "get_runtime_status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Runtime ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runtime instance status"
+          },
+          "404": {
+            "description": "Runtime not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/runtime/{id}/stop": {
+      "post": {
+        "tags": [
+          "runtime"
+        ],
+        "summary": "Stop a running runtime instance.",
+        "operationId": "stop_runtime",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Runtime ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Runtime stopped"
+          },
+          "404": {
+            "description": "Runtime not found"
+          },
+          "500": {
+            "description": "Internal error"
+          }
+        }
+      }
+    },
+    "/v1/session": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Issue a new session for an actor within a tenant and project.",
+        "operationId": "issue_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Session issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/session/{id}": {
+      "get": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Get session details by ID.",
+        "operationId": "get_session",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Revoke a session, preventing further use.",
+        "operationId": "revoke_session",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeSessionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/session/{id}/activate": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Activate an issued session, transitioning it from issued to active.",
+        "operationId": "activate_session",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session activated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid session state transition",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/session/{id}/renew": {
+      "post": {
+        "tags": [
+          "sessions"
+        ],
+        "summary": "Extend a session's TTL.",
+        "operationId": "renew_session",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenewSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Session renewed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/snapshots": {
+      "get": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "List snapshots for the default project with pagination.",
+        "operationId": "list_snapshots",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshots listed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SnapshotResponse"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Create a new content-addressed snapshot manifest.",
+        "operationId": "create_snapshot",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSnapshotRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Snapshot created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/snapshots/compare": {
+      "get": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Compare two snapshots and return the delta (added, removed, changed objects).",
+        "operationId": "compare_snapshots",
+        "parameters": [
+          {
+            "name": "from_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "snap_001"
+          },
+          {
+            "name": "to_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "snap_002"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot delta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotCompareResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "One or both snapshots not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/snapshots/{id}": {
+      "get": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Get a snapshot by ID, returning its validation report.",
+        "operationId": "get_snapshot",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Snapshot ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Snapshot found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotValidateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Snapshot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/snapshots/{id}/validate": {
+      "post": {
+        "tags": [
+          "snapshots"
+        ],
+        "summary": "Validate a snapshot's manifest hash integrity and object reference consistency.",
+        "operationId": "validate_snapshot",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Snapshot ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SnapshotValidateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Snapshot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/work-packets/generate": {
+      "post": {
+        "tags": [
+          "work-packets"
+        ],
+        "summary": "Generate a scoped work packet for an AI agent from a work path node.",
+        "operationId": "generate_work_packet",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateWorkPacketRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Work packet generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPacketGenerateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/work-packets/{id}/validate": {
+      "post": {
+        "tags": [
+          "work-packets"
+        ],
+        "summary": "Validate a work packet's scope boundaries and cost budget.",
+        "operationId": "validate_work_packet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Work packet ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPacketValidateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Packet not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/work-paths": {
+      "post": {
+        "tags": [
+          "work-paths"
+        ],
+        "summary": "Create a new work path graph.",
+        "operationId": "create_work_path",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkPathRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Work path created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPathGraphResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/work-paths/{id}": {
+      "get": {
+        "tags": [
+          "work-paths"
+        ],
+        "summary": "Get a work path graph by ID.",
+        "operationId": "get_work_path",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Work path ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Work path found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkPathGraphResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Work path not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/work-paths/{id}/traverse": {
+      "post": {
+        "tags": [
+          "work-paths"
+        ],
+        "summary": "Traverse a work path node and generate a scoped work packet.",
+        "operationId": "traverse_work_path",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Work path ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TraverseWorkPathRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Traversal complete, packet generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TraverseResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Work path not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActorScopeResponse": {
+        "type": "object",
+        "required": [
+          "scope"
+        ],
+        "properties": {
+          "scope": {
+            "type": "object"
+          }
+        }
+      },
+      "AuthorizeRequest": {
+        "type": "object",
+        "required": [
+          "scope",
+          "action",
+          "mutating",
+          "approval_required"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "approval_required": {
+            "type": "boolean"
+          },
+          "max_context_age_seconds": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "mutating": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "object"
+          }
+        }
+      },
+      "BoardApprovalRequest": {
+        "type": "object",
+        "required": [
+          "approver"
+        ],
+        "properties": {
+          "approver": {
+            "type": "string"
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "BoardPlanListResponse": {
+        "type": "object",
+        "required": [
+          "plans",
+          "total"
+        ],
+        "properties": {
+          "plans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BoardPlanResponse"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "BoardPlanResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "work_path_refs",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "work_path_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "BoardReleaseRequest": {
+        "type": "object",
+        "required": [
+          "plan_id",
+          "bundle_ref",
+          "approval_ref"
+        ],
+        "properties": {
+          "approval_ref": {
+            "type": "string"
+          },
+          "bundle_ref": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          }
+        }
+      },
+      "BoardReleaseResponse": {
+        "type": "object",
+        "required": [
+          "command_id",
+          "status",
+          "plan_id"
+        ],
+        "properties": {
+          "command_id": {
+            "type": "string"
+          },
+          "plan_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "CatalogEntryResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "scope",
+          "module_type",
+          "has_provenance"
+        ],
+        "properties": {
+          "has_provenance": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "string"
+          },
+          "module_type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          }
+        }
+      },
+      "ChainVerifyResponse": {
+        "type": "object",
+        "required": [
+          "chain_integrity",
+          "event_count"
+        ],
+        "properties": {
+          "chain_integrity": {
+            "type": "boolean"
+          },
+          "event_count": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "CommandResponse": {
+        "type": "object",
+        "required": [
+          "command_id",
+          "status",
+          "action",
+          "target_type",
+          "target_id"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "command_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "target_id": {
+            "type": "string"
+          },
+          "target_type": {
+            "type": "string"
+          }
+        }
+      },
+      "CommandScopeRequest": {
+        "type": "object",
+        "description": "Typed request body for command authorization and application endpoints.\nMirrors the ActorScope fields so utoipa can generate a schema without\nrequiring ActorScope to implement ToSchema.",
+        "required": [
+          "tenant_id",
+          "project_id",
+          "actor_id",
+          "allowed_actions",
+          "approval_state",
+          "execution_mode"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": "string",
+            "example": "alice"
+          },
+          "allowed_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "approval_state": {
+            "type": "string"
+          },
+          "execution_mode": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string",
+            "example": "proj_01"
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tenant_id": {
+            "type": "string",
+            "example": "ten_01"
+          }
+        }
+      },
+      "CopyCatalogRequest": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "new_id",
+          "new_name",
+          "target_scope",
+          "copied_by"
+        ],
+        "properties": {
+          "copied_by": {
+            "type": "string",
+            "example": "alice"
+          },
+          "new_id": {
+            "type": "string",
+            "example": "cat_02"
+          },
+          "new_name": {
+            "type": "string",
+            "example": "my-module-copy"
+          },
+          "new_parent_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_id": {
+            "type": "string",
+            "example": "cat_01"
+          },
+          "target_scope": {
+            "type": "string",
+            "example": "tenant"
+          },
+          "target_scope_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "ten_02"
+          }
+        }
+      },
+      "CreateBoardPlanRequest": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Login Vertical — Phase 9"
+          },
+          "work_path_refs": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateBundleRequest": {
+        "type": "object",
+        "required": [
+          "bundle_id",
+          "version",
+          "app_id",
+          "artifact_hashes",
+          "governance_signature"
+        ],
+        "properties": {
+          "app_id": {
+            "type": "string",
+            "example": "app_01"
+          },
+          "artifact_hashes": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "bundle_id": {
+            "type": "string",
+            "example": "bundle_01"
+          },
+          "governance_signature": {
+            "type": "string",
+            "example": "sig_abc123"
+          },
+          "release_approval_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          }
+        }
+      },
+      "CreateSnapshotRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "project_id",
+          "reason"
+        ],
+        "properties": {
+          "parent_snapshot_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "previous_manifest_hash": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateWorkPathRequest": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "example": "End-to-end path for feature delivery"
+          },
+          "id": {
+            "type": "string",
+            "example": "wp_01"
+          },
+          "name": {
+            "type": "string",
+            "example": "Feature Delivery"
+          }
+        }
+      },
+      "DenyCommandRequest": {
+        "type": "object",
+        "required": [
+          "scope",
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "object"
+          }
+        }
+      },
+      "DeployBundleRequest": {
+        "type": "object",
+        "required": [
+          "runtime_id",
+          "bundle_id",
+          "metadata"
+        ],
+        "properties": {
+          "active_sessions": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "bundle_id": {
+            "type": "string",
+            "example": "bundle_01"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "runtime_id": {
+            "type": "string",
+            "example": "runtime_01"
+          }
+        }
+      },
+      "EventsListResponse": {
+        "type": "object",
+        "required": [
+          "events",
+          "total"
+        ],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        }
+      },
+      "GenerateWorkPacketRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "project_id",
+          "actor_id",
+          "work_path_id",
+          "node_id",
+          "objective"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "cost_budget": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "node_id": {
+            "type": "string"
+          },
+          "objective": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "work_path_id": {
+            "type": "string"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "production_deploy_enabled"
+        ],
+        "properties": {
+          "production_deploy_enabled": {
+            "type": "boolean"
+          },
+          "service": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "IssueSessionRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "project_id",
+          "actor_id",
+          "ttl_seconds"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": "string",
+            "example": "alice"
+          },
+          "project_id": {
+            "type": "string",
+            "example": "proj_01"
+          },
+          "tenant_id": {
+            "type": "string",
+            "example": "actor_01"
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "format": "int64",
+            "example": 3600
+          }
+        }
+      },
+      "ListBundlesQuery": {
+        "type": "object",
+        "properties": {
+          "app_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "ListCatalogParams": {
+        "type": "object",
+        "required": [
+          "scope"
+        ],
+        "properties": {
+          "scope": {
+            "type": "string",
+            "description": "Scope level: \"global\", \"tenant\", or \"app\"."
+          },
+          "scope_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ListPlansQuery": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "example": 20
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "example": 0
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Filter by board state. One of: draft, in_review, approved, in_progress, completed, blocked, archived."
+          }
+        }
+      },
+      "ListRuntimesQuery": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "project_id",
+          "actor_id",
+          "credential",
+          "scope"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": "string",
+            "example": "alice"
+          },
+          "credential": {
+            "type": "string",
+            "example": "s3cr3t"
+          },
+          "project_id": {
+            "type": "string",
+            "example": "proj_01"
+          },
+          "scope": {
+            "type": "string",
+            "example": "read"
+          },
+          "tenant_id": {
+            "type": "string",
+            "example": "ten_01"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": [
+          "session_token",
+          "actor_id",
+          "scope",
+          "expires_at",
+          "audit_event_id"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "audit_event_id": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "session_token": {
+            "type": "string"
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "description": "RFC 7807 Problem Details response, extended with a machine-readable error code\nand trace ID per the RealmForge API error standard.",
+        "required": [
+          "code",
+          "title",
+          "status",
+          "detail"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Machine-readable SCREAMING_SNAKE_CASE error code. Stable across versions."
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "title": {
+            "type": "string"
+          },
+          "trace_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Correlation ID matching the X-Request-Id response header."
+          }
+        }
+      },
+      "ProfileBody": {
+        "type": "object",
+        "description": "Body for updating a watch profile.",
+        "properties": {
+          "max_proposals_per_day": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "minimum": 0
+          },
+          "poll_interval_secs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          },
+          "signal_thresholds": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/ThresholdJson"
+            }
+          }
+        }
+      },
+      "ProjectParams": {
+        "type": "object",
+        "required": [
+          "project_id"
+        ],
+        "properties": {
+          "project_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ProposalQuery": {
+        "type": "object",
+        "description": "Query parameters for listing proposals.",
+        "properties": {
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "ProposeCommandRequest": {
+        "type": "object",
+        "required": [
+          "action",
+          "target_type",
+          "target_id",
+          "payload"
+        ],
+        "properties": {
+          "action": {
+            "type": "string",
+            "example": "command.board.approve"
+          },
+          "payload": {
+            "type": "object"
+          },
+          "scope": {
+            "type": "object"
+          },
+          "target_id": {
+            "type": "string",
+            "example": "board_01"
+          },
+          "target_type": {
+            "type": "string",
+            "example": "board"
+          }
+        }
+      },
+      "ProvenanceResponse": {
+        "type": "object",
+        "required": [
+          "source_scope",
+          "source_id",
+          "copied_at",
+          "copied_by"
+        ],
+        "properties": {
+          "copied_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "copied_by": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "source_scope": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryEventsParams": {
+        "type": "object",
+        "required": [
+          "project_id"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "from_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "to_time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "RecordSignalBody": {
+        "type": "object",
+        "description": "Body for recording a signal.",
+        "required": [
+          "signal_type",
+          "value",
+          "threshold",
+          "severity"
+        ],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "example": "warning"
+          },
+          "signal_type": {
+            "type": "string",
+            "example": "latency"
+          },
+          "threshold": {
+            "type": "number",
+            "format": "double",
+            "example": 200.0
+          },
+          "value": {
+            "type": "number",
+            "format": "double",
+            "example": 250.0
+          }
+        }
+      },
+      "RenewSessionRequest": {
+        "type": "object",
+        "required": [
+          "ttl_seconds"
+        ],
+        "properties": {
+          "ttl_seconds": {
+            "type": "integer",
+            "format": "int64",
+            "example": 3600
+          }
+        }
+      },
+      "RevokeSessionResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "session_id"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "RollbackExecuteRequest": {
+        "type": "object",
+        "required": [
+          "from_snapshot_id",
+          "to_snapshot_id",
+          "tenant_id",
+          "project_id",
+          "actor_id"
+        ],
+        "properties": {
+          "actor_id": {
+            "type": "string"
+          },
+          "from_snapshot_id": {
+            "type": "string"
+          },
+          "project_id": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "to_snapshot_id": {
+            "type": "string"
+          }
+        }
+      },
+      "RollbackExecuteResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object"
+          }
+        }
+      },
+      "RollbackPreviewRequest": {
+        "type": "object",
+        "required": [
+          "from_snapshot_id",
+          "to_snapshot_id"
+        ],
+        "properties": {
+          "from_snapshot_id": {
+            "type": "string"
+          },
+          "to_snapshot_id": {
+            "type": "string"
+          }
+        }
+      },
+      "RollbackPreviewResponse": {
+        "type": "object",
+        "required": [
+          "preview"
+        ],
+        "properties": {
+          "preview": {
+            "type": "object"
+          }
+        }
+      },
+      "RollbackVerifyResponse": {
+        "type": "object",
+        "required": [
+          "verification"
+        ],
+        "properties": {
+          "verification": {
+            "type": "object"
+          }
+        }
+      },
+      "SessionResponse": {
+        "type": "object",
+        "required": [
+          "session"
+        ],
+        "properties": {
+          "session": {
+            "type": "object"
+          }
+        }
+      },
+      "SetPolicyRequest": {
+        "type": "object",
+        "required": [
+          "tenant_id",
+          "config"
+        ],
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "tenant_id": {
+            "type": "string",
+            "example": "ten_01"
+          }
+        }
+      },
+      "SignalQuery": {
+        "type": "object",
+        "description": "Query parameters for listing signals.",
+        "properties": {
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "offset": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "severity": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signal_type": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "SnapshotCompareResponse": {
+        "type": "object",
+        "required": [
+          "delta"
+        ],
+        "properties": {
+          "delta": {
+            "type": "object"
+          }
+        }
+      },
+      "SnapshotResponse": {
+        "type": "object",
+        "required": [
+          "snapshot_id",
+          "status",
+          "reason",
+          "object_count"
+        ],
+        "properties": {
+          "object_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string"
+          },
+          "snapshot_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "SnapshotValidateResponse": {
+        "type": "object",
+        "required": [
+          "report"
+        ],
+        "properties": {
+          "report": {
+            "type": "object"
+          }
+        }
+      },
+      "ThresholdJson": {
+        "type": "object",
+        "required": [
+          "signal_type",
+          "warning_threshold",
+          "critical_threshold"
+        ],
+        "properties": {
+          "critical_threshold": {
+            "type": "number",
+            "format": "double"
+          },
+          "signal_type": {
+            "type": "string"
+          },
+          "warning_threshold": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TraverseResponse": {
+        "type": "object",
+        "required": [
+          "packet_id",
+          "allowed_file_count",
+          "required_contract_count",
+          "status"
+        ],
+        "properties": {
+          "allowed_file_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "packet_id": {
+            "type": "string"
+          },
+          "required_contract_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "TraverseWorkPathRequest": {
+        "type": "object",
+        "required": [
+          "node_id",
+          "agent_id",
+          "tenant_id",
+          "project_id",
+          "objective"
+        ],
+        "properties": {
+          "agent_id": {
+            "type": "string",
+            "example": "agent_01"
+          },
+          "node_id": {
+            "type": "string",
+            "example": "node_01"
+          },
+          "objective": {
+            "type": "string",
+            "example": "Implement the login vertical"
+          },
+          "project_id": {
+            "type": "string",
+            "example": "proj_01"
+          },
+          "tenant_id": {
+            "type": "string",
+            "example": "ten_01"
+          }
+        }
+      },
+      "VerifyBundleRequest": {
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "One of: \"verified\", \"signed\", \"failed\".",
+            "example": "verified"
+          }
+        }
+      },
+      "WorkPacketGenerateResponse": {
+        "type": "object",
+        "required": [
+          "packet_id",
+          "status"
+        ],
+        "properties": {
+          "packet_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "WorkPacketValidateResponse": {
+        "type": "object",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "type": "object"
+          }
+        }
+      },
+      "WorkPathGraphResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "description",
+          "node_count"
+        ],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "node_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "session_token"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "health",
+      "description": "Health and readiness probes"
+    },
+    {
+      "name": "sessions",
+      "description": "Session lifecycle — issue, activate, renew, revoke"
+    },
+    {
+      "name": "commands",
+      "description": "Bounded command lifecycle — propose, authorize, apply, deny"
+    },
+    {
+      "name": "audit",
+      "description": "Audit trail — query events, verify hash chain"
+    },
+    {
+      "name": "snapshots",
+      "description": "Content-addressed snapshots — create, validate, compare"
+    },
+    {
+      "name": "rollback",
+      "description": "Rollback engine — preview, execute, verify"
+    },
+    {
+      "name": "actors",
+      "description": "Actor scope retrieval"
+    },
+    {
+      "name": "work-packets",
+      "description": "Agent work packet generation and validation"
+    },
+    {
+      "name": "boards",
+      "description": "Boards — human planning, approval, and release command surface"
+    },
+    {
+      "name": "catalog",
+      "description": "Catalog — content-addressed module registry with provenance"
+    },
+    {
+      "name": "gateway",
+      "description": "Agent gateway — single entry point for all agent writes"
+    },
+    {
+      "name": "knowledge",
+      "description": "Knowledge store — dataset indexing and query"
+    },
+    {
+      "name": "work-paths",
+      "description": "Work paths — graph-based agent scope traversal"
+    },
+    {
+      "name": "bundles",
+      "description": "Runtime bundles — artifact manifests and deployment signing"
+    },
+    {
+      "name": "runtime",
+      "description": "Runtime instances — deploy, monitor, stop"
+    },
+    {
+      "name": "login",
+      "description": "Login — authentication, session issuance, policy management"
+    },
+    {
+      "name": "live-watch",
+      "description": "Live Watch — runtime signal monitoring, remediation proposals"
+    }
+  ]
+}

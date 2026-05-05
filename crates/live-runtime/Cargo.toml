@@ -1,0 +1,22 @@
+[package]
+name = "live-runtime"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+runtime-bundle = { path = "../runtime-bundle" }
+authority-domain = { path = "../authority-domain" }
+policy-engine = { path = "../policy-engine" }
+audit-log = { path = "../audit-log" }
+control-store = { path = "../control-store" }
+snapshot-ledger = { path = "../snapshot-ledger" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+uuid = { workspace = true }

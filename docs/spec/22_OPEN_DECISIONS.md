@@ -1,0 +1,51 @@
+---
+doc_id: DOC-SPEC-022
+title: Open Decisions
+status: draft
+owner: council
+reviewers: [ceo, pm, cto, tech-writer]
+created_at: 2026-05-04
+last_reviewed_at: 2026-05-05
+closed_decisions: [DEC-COUNCIL-001, DEC-COUNCIL-003, DEC-USER-004, DEC-USER-005, DEC-USER-006]
+source_of_truth: true
+product_area: decisions
+work_path_ids: [WP-DOCS-000]
+related_decision_ids: []
+related_file_ids: []
+visual_node_ids: [VN-OPEN-DECISIONS]
+visual_edge_ids: []
+approval_state: pending
+---
+
+# Open Decisions
+
+This is the only spec file where unresolved decisions may appear.
+
+## Council Decisions
+
+| Decision ID | Marker | Question | Blocked area | Required participants |
+| --- | --- | --- | --- | --- |
+
+## User Approval Decisions
+
+| Decision ID | Marker | Question | Blocked area |
+| --- | --- | --- | --- |
+
+## Closed Decisions
+
+| Decision ID | Decision | Resolution | Date Closed | Linked Spec |
+| --- | --- | --- | --- | --- |
+| `DEC-COUNCIL-001` | React + TypeScript frontend stack, web-first shell | React (Vite + React 19 + TypeScript), shadcn/ui (internal) + ui/ package (public), React Flow for graph rendering, OpenAPI-generated TypeScript client. No Tauri until specific capability requires it with Fatima threat model review. | 2026-05-04 | `ADR-0002` |
+| `DEC-COUNCIL-003` | Which Parquet library and query engine? | Apache Arrow + DataFusion (`datafusion` crate from `apache/arrow-rs`). Pure Rust, no C/FFI bindings. Same ecosystem as existing `parquet` crate. New `parquet-store` crate. | 2026-05-05 | `ADR-0006` |
+| `DEC-USER-004` | Catalog modules after Login | Follow existing roadmap order: Phase 3 (Catalogs & Work Paths) → Phase 5 (Knowledge) → Phase 6 (Boards) → Phase 7 (Runtime Bundle) → Phase 8 (Live Watch). Build catalog infrastructure first; module content defined by implementing phases. | 2026-05-05 | `DOC-PLAN-P3`, `DOC-PLAN-P5`, `DOC-PLAN-P6`, `DOC-PLAN-P7`, `DOC-PLAN-P8` |
+| `DEC-USER-005` | Brand removal from backend names | No brand prefix in any code — clean names like `LoginHandler`, `LoginRequest`, `login_service.rs`. | 2026-05-04 | `DOC-SPEC-019` |
+| `DEC-USER-006` | When may Live Watch auto-remediate? | Tier 0 (default): reports/suggests only, no auto-remediation. Tier 1 (opt-in per app): pre-approved low-severity actions with bounded blast radius, explicit operator opt-in per app. Tiers 2-3 deferred. | 2026-05-05 | `DOC-PLAN-P8` |
+
+## Lockout Rule
+
+Implementation that depends on a decision in this file cannot proceed until the decision record is closed and linked from the relevant spec.
+
+## Blocker Triage Rule
+
+Do not force every listed decision through Council at once. Route a decision to Council when active work reaches its lockout boundary, then record and link only that blocker before continuing.
+

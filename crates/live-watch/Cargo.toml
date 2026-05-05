@@ -1,0 +1,18 @@
+[package]
+name = "live-watch"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+
+[dependencies]
+authority-domain = { path = "../authority-domain" }
+control-store = { path = "../control-store" }
+snapshot-ledger = { path = "../snapshot-ledger" }
+chrono = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }

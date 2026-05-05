@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "name": "realmforge",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/target": true
+    }
+  }
+}

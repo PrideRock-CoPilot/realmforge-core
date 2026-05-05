@@ -1,14 +1,19 @@
 [workspace]
 resolver = "2"
 members = [
-  "crates/rf-api",
-  "crates/rf-cli",
-  "crates/rf-domain",
-  "crates/rf-events",
-  "crates/rf-mcp",
-  "crates/rf-policy",
-  "crates/rf-snapshot",
-  "crates/rf-store",
+  "crates/agent-gateway",
+  "crates/control-api",
+  "crates/operator-cli",
+  "crates/authority-domain",
+  "crates/audit-log",
+  "crates/agent-mcp",
+  "crates/policy-engine",
+  "crates/control-service",
+  "crates/snapshot-ledger",
+  "crates/control-store",
+  "crates/runtime-bundle",
+  "crates/live-runtime",
+  "crates/live-watch",
 ]
 
 [workspace.package]
@@ -19,23 +24,32 @@ authors = ["RealmForge"]
 
 [workspace.dependencies]
 axum = "0.7"
+utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-axum = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 clap = { version = "4.5", features = ["derive"] }
 hex = "0.4"
 serde = { version = "1", features = ["derive"] }
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "json"] }
 serde_json = "1"
 sha2 = "0.10"
-sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "chrono", "json", "uuid"] }
 thiserror = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.6", features = ["trace"] }
+tokio-stream = "0.1"
+tower-http = { version = "0.6", features = ["trace", "fs"] }
 tracing = "0.1"
 uuid = { version = "1", features = ["v4", "serde"] }
 
-rf-api = { path = "crates/rf-api" }
-rf-domain = { path = "crates/rf-domain" }
-rf-events = { path = "crates/rf-events" }
-rf-mcp = { path = "crates/rf-mcp" }
-rf-policy = { path = "crates/rf-policy" }
-rf-snapshot = { path = "crates/rf-snapshot" }
-rf-store = { path = "crates/rf-store" }
+agent-gateway = { path = "crates/agent-gateway" }
+control-api = { path = "crates/control-api" }
+operator-cli = { path = "crates/operator-cli" }
+authority-domain = { path = "crates/authority-domain" }
+audit-log = { path = "crates/audit-log" }
+agent-mcp = { path = "crates/agent-mcp" }
+policy-engine = { path = "crates/policy-engine" }
+control-service = { path = "crates/control-service" }
+snapshot-ledger = { path = "crates/snapshot-ledger" }
+control-store = { path = "crates/control-store" }
+assert_cmd = "2"
+predicates = "3"
+tower = { version = "0.5", features = ["util"] }

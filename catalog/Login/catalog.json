@@ -1,0 +1,90 @@
+{
+  "module_id": "mod-login-001",
+  "module_type": "auth",
+  "name": "Login",
+  "description": "Login module — first vertical slice covering authentication, policy enforcement, audit trail, snapshot, and rollback.",
+  "version": "0.1.0",
+  "status": "draft",
+  "files": [
+    {
+      "file_id": "FILE-CATALOG-LOGIN-MODULE",
+      "path": "catalog/Login/catalog.json",
+      "artifact_class": "runtime_definition",
+      "required_tests": ["TEST-LOGIN-MODULE-001"]
+    },
+    {
+      "file_id": "FILE-CONTRACT-LOGIN",
+      "path": "catalog/Login/contracts/login_request.json",
+      "artifact_class": "runtime_contract",
+      "required_tests": ["TEST-LOGIN-CONTRACT-001"]
+    },
+    {
+      "file_id": "FILE-CONTRACT-LOGIN-RESPONSE",
+      "path": "catalog/Login/contracts/login_response.json",
+      "artifact_class": "runtime_contract",
+      "required_tests": ["TEST-LOGIN-CONTRACT-002"]
+    },
+    {
+      "file_id": "FILE-POLICY-LOGIN",
+      "path": "catalog/Login/policy/login_policy.json",
+      "artifact_class": "runtime_policy",
+      "required_tests": ["TEST-LOGIN-POLICY-001"]
+    },
+    {
+      "file_id": "FILE-HANDLER-LOGIN",
+      "path": "control-service/src/login_handler.rs",
+      "artifact_class": "compiled_source",
+      "required_tests": ["TEST-LOGIN-HANDLER-001"]
+    },
+    {
+      "file_id": "FILE-WATCH-LOGIN",
+      "path": "catalog/Login/watch_profile.json",
+      "artifact_class": "runtime_trace_profile",
+      "required_tests": ["TEST-LOGIN-WATCH-001"]
+    }
+  ],
+  "contracts": [
+    {
+      "type": "login_request",
+      "schema_path": "catalog/Login/contracts/login_request.json"
+    },
+    {
+      "type": "login_response",
+      "schema_path": "catalog/Login/contracts/login_response.json"
+    }
+  ],
+  "policies": [
+    {
+      "type": "login_policy",
+      "path": "catalog/Login/policy/login_policy.json"
+    }
+  ],
+  "traces": [
+    "TRACE-LOGIN-REQUEST-RECEIVED",
+    "TRACE-LOGIN-CONTRACT-VALIDATED",
+    "TRACE-LOGIN-POLICY-CHECKED",
+    "TRACE-LOGIN-SESSION-CREATED",
+    "TRACE-LOGIN-AUDIT-WRITTEN",
+    "TRACE-LOGIN-RESPONSE-RETURNED"
+  ],
+  "work_path_id": "WP-LOGIN-001",
+  "visual_node_id": "VN-MODULE-LOGIN",
+  "dependencies": [
+    {
+      "module_id": "authority-domain",
+      "version": ">=0.1.0"
+    },
+    {
+      "module_id": "control-service",
+      "version": ">=0.1.0"
+    },
+    {
+      "module_id": "control-api",
+      "version": ">=0.1.0"
+    },
+    {
+      "module_id": "control-store",
+      "version": ">=0.1.0"
+    }
+  ]
+}

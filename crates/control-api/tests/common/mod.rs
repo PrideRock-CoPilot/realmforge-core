@@ -1,0 +1,82 @@
+// Shared test helpers for control-api integration tests.
+// Uses reqwest against a spawned test server.
+// Tests gracefully skip when no database is available.
+
+use control_service::ServiceContext;
+use control_store::CoreStore;
+use std::net::TcpListener;
+
+/// Connect to PostgreSQL and run migrations, or return None if unavailable.
+pub async fn get_store() -> Option<CoreStore> {
+    let uri = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/realmforge".to_string());
+
+    let store = match CoreStore::connect(&uri).await {
+        Ok(s) => s,
+        Err(_) => {
+            eprintln!(
+                "Skipping API integration test - no database available (tried: {})",
+                uri
+            );
+            return None;
+        }
+    };
+
+    match store.migrate().await {
+        Ok(_) => Some(store),
+        Err(e) => {
+            eprintln!(
+                "Skipping API integration test - migration failed (tried: {}): {e}",
+                uri
+            );
+            None
+        }
+    }
+}
+
+/// Spawn an API server on a random port and return a reqwest client and the base URL.
+pub struct TestServer {
+    pub client: reqwest::Client,
+    pub base_url: String,
+}
+
+impl TestServer {
+    #[allow(dead_code)]
+    pub async fn new(store: CoreStore) -> Self {
+        let ctx = ServiceContext::new(store);
+        let app = control_api::router(ctx);
+
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        let base_url = format!("http://{}", addr);
+
+        tokio::spawn(async move {
+            let listener = tokio::net::TcpListener::from_std(listener).unwrap();
+            axum::serve(listener, app).await.unwrap();
+        });
+
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
+        let client = reqwest::Client::new();
+        Self { client, base_url }
+    }
+
+    #[allow(dead_code)]
+    pub async fn get(&self, path: &str) -> reqwest::Response {
+        self.client
+            .get(format!("{}{}", self.base_url, path))
+            .send()
+            .await
+            .unwrap()
+    }
+
+    #[allow(dead_code)]
+    pub async fn post(&self, path: &str, body: &serde_json::Value) -> reqwest::Response {
+        self.client
+            .post(format!("{}{}", self.base_url, path))
+            .json(body)
+            .send()
+            .await
+            .unwrap()
+    }
+}

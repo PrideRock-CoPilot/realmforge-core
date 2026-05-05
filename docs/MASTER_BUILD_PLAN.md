@@ -24,14 +24,14 @@ The vision document (`realm_forge_ai_native_path_forward.md`) is the **north sta
 
 | Crate | Files | What's Implemented |
 |-------|-------|--------------------|
-| `rf-domain` | `lib.rs`, `ids.rs`, `scope.rs`, `state.rs`, `command.rs`, `skill.rs`, `skill_creator.rs` | Typed IDs (12 types), ActorScope, enums (ExecutionMode, ApprovalState, CommandStatus, etc.), BoundedCommand value object, SkillRegistration/SkillSession, SkillCreator with catalog |
-| `rf-events` | `lib.rs` | AuditEvent with hash-chain integrity, compute_hash/verify_hash |
-| `rf-policy` | `lib.rs` | PolicyDecision/PolicyDenial, authorize_action() with 6 checks (expired, stale, unauthorized, wrong skill, proposal only, approval required) |
-| `rf-snapshot` | `lib.rs`, `manifest.rs`, `object_store.rs` | SnapshotManifest with hash-chain, SnapshotObjectRef, FileObjectStore (content-addressed) |
-| `rf-store` | `lib.rs` | CoreStore with PostgreSQL pool, append_audit_event(), insert_snapshot_manifest(), get_snapshot_manifest() |
-| `rf-api` | `lib.rs`, `main.rs` | Axum router with /health GET and /v1/policy/authorize POST |
-| `rf-cli` | `main.rs` | Version, ListMigrations, ValidateManifest commands |
-| `rf-mcp` | `lib.rs` | Tool definitions (5 tools), handle_tool() dispatching core_authorize_command |
+| `authority-domain` | `lib.rs`, `ids.rs`, `scope.rs`, `state.rs`, `command.rs`, `skill.rs`, `skill_creator.rs` | Typed IDs (12 types), ActorScope, enums (ExecutionMode, ApprovalState, CommandStatus, etc.), BoundedCommand value object, SkillRegistration/SkillSession, SkillCreator with catalog |
+| `audit-log` | `lib.rs` | AuditEvent with hash-chain integrity, compute_hash/verify_hash |
+| `policy-engine` | `lib.rs` | PolicyDecision/PolicyDenial, authorize_action() with 6 checks (expired, stale, unauthorized, wrong skill, proposal only, approval required) |
+| `snapshot-ledger` | `lib.rs`, `manifest.rs`, `object_store.rs` | SnapshotManifest with hash-chain, SnapshotObjectRef, FileObjectStore (content-addressed) |
+| `control-store` | `lib.rs` | CoreStore with PostgreSQL pool, append_audit_event(), insert_snapshot_manifest(), get_snapshot_manifest() |
+| `control-api` | `lib.rs`, `main.rs` | Axum router with /health GET and /v1/policy/authorize POST |
+| `operator-cli` | `main.rs` | Version, ListMigrations, ValidateManifest commands |
+| `agent-mcp` | `lib.rs` | Tool definitions (5 tools), handle_tool() dispatching core_authorize_command |
 
 **Migrations (what the database looks like):**
 - `001_core_foundation.sql` — tenants, projects, actors, roles, actor_roles, skill_registrations, sessions, skill_sessions, bounded_commands, core_audit_events
@@ -85,7 +85,7 @@ service → db bypass         (service must go through store adapter)
 Files to create/modify:
 
 ```
-rf-domain/src/
+authority-domain/src/
   ├── error.rs              NEW — Unified domain error type
   ├── ids.rs                EXTEND — Add Display for all IDs, add FromStr/Serialize/Deserialize tests
   ├── scope.rs              EXTEND — Add scope validation, add session expiry helpers
@@ -95,13 +95,13 @@ rf-domain/src/
   ├── skill_creator.rs      EXTEND — Add catalog versioning, mutation methods
   └── lib.rs                UPDATE — Export error module
 
-rf-events/src/
+audit-log/src/
   └── lib.rs                EXTEND — Add event type categorization, add EventError variants
 
-rf-policy/src/
+policy-engine/src/
   └── lib.rs                EXTEND — Add DenialCode::RateLimited, add policy chain evaluator
 
-rf-snapshot/src/
+snapshot-ledger/src/
   ├── lib.rs                UPDATE — Re-export all modules
   ├── manifest.rs           EXTEND — Add validation, add delta computation between manifests
   └── object_store.rs       EXTEND — Add delete, list, stats operations
@@ -121,8 +121,8 @@ rf-snapshot/src/
 Files to create:
 
 ```
-rf-service/                 NEW CRATE
-  ├── Cargo.toml            Dependencies: rf-domain, rf-events, rf-policy, rf-store, rf-snapshot, chrono, serde, thiserror, tracing
+control-service/                 NEW CRATE
+  ├── Cargo.toml            Dependencies: authority-domain, audit-log, policy-engine, control-store, snapshot-ledger, chrono, serde, thiserror, tracing
   └── src/
       ├── lib.rs            Module declarations
       ├── error.rs          ServiceError enum (typed error propagation)
@@ -158,16 +158,16 @@ rf-service/                 NEW CRATE
             update_scope(scope_id) → refresh context
 ```
 
-**Critical design rules for rf-service:**
+**Critical design rules for control-service:**
 1. **Every service method returns `Result<T, ServiceError>`** — no panics, no unwraps
 2. **Every mutation path goes through policy check first** — no exceptions
 3. **Every mutation emits an audit event** — no silent writes
 4. **Service methods are shared** — called by API, CLI, and MCP equally
 
 **Validation Gate:**
-- Crate compiles with `cargo check -p rf-service`
+- Crate compiles with `cargo check -p control-service`
 - Service methods have doc comments explaining preconditions/postconditions
-- No direct DB access — all persistence goes through rf-store
+- No direct DB access — all persistence goes through control-store
 
 ---
 
@@ -177,14 +177,14 @@ rf-service/                 NEW CRATE
 Files to create/modify:
 
 ```
-rf-service/src/
+control-service/src/
   ├── session_service.rs    FULL IMPLEMENTATION
   └── actor_service.rs      FULL IMPLEMENTATION
 
-rf-domain/src/
+authority-domain/src/
   └── scope.rs              EXTEND — Add scope factory methods, add session→scope builder
 
-rf-store/src/
+control-store/src/
   └── lib.rs                EXTEND — Add session queries, scope queries
 ```
 
@@ -218,17 +218,17 @@ rf-store/src/
 Files to create/modify:
 
 ```
-rf-service/src/
+control-service/src/
   ├── command_service.rs    FULL IMPLEMENTATION
   └── audit_service.rs      FULL IMPLEMENTATION
 
-rf-domain/src/
+authority-domain/src/
   └── command.rs            EXTEND — Add status transition validation
                                Proposed → Authorized | Denied
                                Authorized → Applied | Failed
                                Applied → terminal
 
-rf-policy/src/
+policy-engine/src/
   └── lib.rs                EXTEND — Add command-specific policy checks (target_type, action)
 ```
 
@@ -265,14 +265,14 @@ rf-policy/src/
 Files to create/modify:
 
 ```
-rf-service/src/
+control-service/src/
   └── audit_service.rs      FULL IMPLEMENTATION
 
-rf-events/src/
+audit-log/src/
   └── lib.rs                EXTEND — Add event type categorization,
                                add batch append, add chain verification
 
-rf-store/src/
+control-store/src/
   └── lib.rs                EXTEND — Add audit query by project/time/event_type,
                                add chain verification query,
                                add paged results
@@ -299,16 +299,16 @@ get_chain_anchors(project_id) → first, last, count, integrity status
 Files to create/modify:
 
 ```
-rf-service/src/
+control-service/src/
   ├── snapshot_service.rs   FULL IMPLEMENTATION
   └── rollback_service.rs   FULL IMPLEMENTATION
 
-rf-snapshot/src/
+snapshot-ledger/src/
   ├── manifest.rs           EXTEND — Add SnapshotDelta (added, removed, changed objects)
   ├── object_store.rs       EXTEND — Add delete, list, stat operations
   └── rollback.rs           NEW — RollbackPreview, impact analysis, execution plan
 
-rf-store/src/
+control-store/src/
   └── lib.rs                EXTEND — Add rollback preview queries,
                                add snapshot manifest list/compare queries
 ```
@@ -370,7 +370,7 @@ verify_rollback(snapshot_id)
 Files to create:
 
 ```
-rf-service/src/
+control-service/src/
   ├── work_packet_service.rs   NEW
   │     generate_work_packet(scope, node_id, objective)
   │       → compute allowed files from node→file links
@@ -387,11 +387,11 @@ rf-service/src/
   │       → verify all required contracts have definitions
   │       → return validation result
 
-rf-domain/src/
+authority-domain/src/
   ├── work_packet.rs         NEW — AgentWorkPacket, PacketScope, FilePermission, ContractRequirement
   └── lib.rs                 UPDATE — Add work_packet module
 
-rf-store/src/
+control-store/src/
   └── lib.rs                EXTEND — Add work packet persistence
 ```
 
@@ -428,7 +428,7 @@ pub struct AgentWorkPacket {
 Files to create/modify:
 
 ```
-rf-api/src/
+control-api/src/
   ├── lib.rs                EXTEND — Add all route groups
   ├── main.rs               EXTEND — Add middleware, CORS, tracing
   ├── error.rs              NEW — ApiError enum with status code mapping
@@ -455,7 +455,7 @@ rf-api/src/
 6. All endpoints are versioned under `/v1/`
 
 **Validation Gate:**
-- `cargo run -p rf-api` starts and responds to health check
+- `cargo run -p control-api` starts and responds to health check
 - All endpoints return correct HTTP status codes
 - Error responses include proper problem details format
 - Postman/curl collection works against every endpoint
@@ -468,7 +468,7 @@ rf-api/src/
 Files to create/modify:
 
 ```
-rf-cli/src/
+operator-cli/src/
   ├── main.rs               EXTEND — Add all subcommands
   └── commands/
       ├── mod.rs            NEW — Command modules
@@ -491,7 +491,7 @@ rf-cli/src/
 4. Exit codes: 0=success, 1=user error, 2=data error, 3=runtime error
 
 **Validation Gate:**
-- `cargo run -p rf-cli -- --help` shows all subcommands
+- `cargo run -p operator-cli -- --help` shows all subcommands
 - Every subcommand works end-to-end against a test database
 - `--pretty` and default JSON output both work
 
@@ -503,7 +503,7 @@ rf-cli/src/
 Files to create/modify:
 
 ```
-rf-mcp/src/
+agent-mcp/src/
   ├── lib.rs                EXTEND — Add all tool definitions
   ├── error.rs              NEW — McpError variants for all error types
   ├── tools/
@@ -539,7 +539,7 @@ rf-mcp/src/
 Files to create:
 
 ```
-rf-service/tests/
+control-service/tests/
   ├── common/mod.rs         NEW — Test helpers, test database setup, test fixtures
   ├── session_lifecycle.rs  NEW — Issue → Activate → Renew → Revoke → Verify
   ├── command_lifecycle.rs  NEW — Propose → Authorize → Apply → Audit → Verify chain
@@ -549,7 +549,7 @@ rf-service/tests/
   ├── rollback_flow.rs      NEW — Preview → Execute → Verify → Validate
   └── work_packet_flow.rs   NEW — Generate → Validate → Scope check → Boundary test
 
-rf-api/tests/
+control-api/tests/
   ├── common/mod.rs         NEW — Test app builder, test client
   ├── health_test.rs        NEW — Health endpoint returns expected response
   ├── session_test.rs       NEW — Full session API lifecycle
@@ -557,7 +557,7 @@ rf-api/tests/
   ├── audit_test.rs         NEW — Full audit API lifecycle
   └── integration_test.rs   NEW — Cross-crate: propose command via API → verify via audit API → snapshot → rollback → verify
 
-rf-cli/tests/
+operator-cli/tests/
   ├── cli_integration.rs    NEW — Test CLI commands against test database
   └── output_format.rs      NEW — Verify JSON and pretty output formats
 ```
@@ -581,18 +581,18 @@ rf-cli/tests/
 Files to create/modify:
 
 ```
-rf-service/src/
+control-service/src/
   ├── lib.rs                EXTEND — Add tracing spans to all service methods
   └── error.rs              EXTEND — Add error codes, severity levels, user messages
 
-rf-api/src/
+control-api/src/
   ├── middleware.rs          EXTEND — Add request tracing, latency metrics, error logging
   └── main.rs               EXTEND — Add tracing subscriber setup, metrics endpoint
 
-rf-store/src/
+control-store/src/
   └── lib.rs                EXTEND — Add query timing, connection pool metrics
 
-rf-policy/src/
+policy-engine/src/
   └── lib.rs                EXTEND — Add policy decision logging (structured)
 ```
 
@@ -626,13 +626,13 @@ Read the crate's existing source files
 Load /skill-creator (to register any new skills needed)
 Convene /cto (Rena Okafor) for architecture review
 Map affected crate dependencies
-Identify any new types or enums needed in rf-domain
+Identify any new types or enums needed in authority-domain
 ```
 
 ### 3. Implementation Order
 ```
-Types first (rf-domain) → values follow types
-Policy next (rf-policy) → safety before execution
+Types first (authority-domain) → values follow types
+Policy next (policy-engine) → safety before execution
 Service layer next → orchestration logic
 Store layer next → persistence
 Transport last (API/CLI/MCP) → thin adapters only
@@ -688,154 +688,154 @@ When a phase is complete:
 ## Complete File Manifest
 
 ### Phase 0 — Foundation Hardening (7 files)
-- `rf-domain/src/error.rs` (NEW)
+- `authority-domain/src/error.rs` (NEW)
 - Extensions to: `ids.rs`, `scope.rs`, `state.rs`, `command.rs`, `skill.rs`, `skill_creator.rs`
 
 ### Phase 1 — Service Layer (12 files)
-- `rf-service/Cargo.toml` (NEW)
-- `rf-service/src/lib.rs` (NEW)
-- `rf-service/src/error.rs` (NEW)
-- `rf-service/src/session_service.rs` (NEW)
-- `rf-service/src/command_service.rs` (NEW)
-- `rf-service/src/audit_service.rs` (NEW)
-- `rf-service/src/snapshot_service.rs` (NEW)
-- `rf-service/src/rollback_service.rs` (NEW)
-- `rf-service/src/skill_service.rs` (NEW)
-- `rf-service/src/actor_service.rs` (NEW)
-- `Cargo.toml` (EXTEND — add `rf-service` member)
-- `rf-service/src/work_packet_service.rs` (NEW in Phase 6)
+- `control-service/Cargo.toml` (NEW)
+- `control-service/src/lib.rs` (NEW)
+- `control-service/src/error.rs` (NEW)
+- `control-service/src/session_service.rs` (NEW)
+- `control-service/src/command_service.rs` (NEW)
+- `control-service/src/audit_service.rs` (NEW)
+- `control-service/src/snapshot_service.rs` (NEW)
+- `control-service/src/rollback_service.rs` (NEW)
+- `control-service/src/skill_service.rs` (NEW)
+- `control-service/src/actor_service.rs` (NEW)
+- `Cargo.toml` (EXTEND — add `control-service` member)
+- `control-service/src/work_packet_service.rs` (NEW in Phase 6)
 
 ### Phase 2 — Session Lifecycle (4 files modified)
-- `rf-service/src/session_service.rs` (FULL IMPL)
-- `rf-service/src/actor_service.rs` (FULL IMPL)
-- `rf-domain/src/scope.rs` (EXTEND)
-- `rf-store/src/lib.rs` (EXTEND)
+- `control-service/src/session_service.rs` (FULL IMPL)
+- `control-service/src/actor_service.rs` (FULL IMPL)
+- `authority-domain/src/scope.rs` (EXTEND)
+- `control-store/src/lib.rs` (EXTEND)
 
 ### Phase 3 — Command Lifecycle (4 files modified)
-- `rf-service/src/command_service.rs` (FULL IMPL)
-- `rf-service/src/audit_service.rs` (FULL IMPL)
-- `rf-domain/src/command.rs` (EXTEND)
-- `rf-policy/src/lib.rs` (EXTEND)
+- `control-service/src/command_service.rs` (FULL IMPL)
+- `control-service/src/audit_service.rs` (FULL IMPL)
+- `authority-domain/src/command.rs` (EXTEND)
+- `policy-engine/src/lib.rs` (EXTEND)
 
 ### Phase 4 — Audit Trail Engine (3 files modified)
-- `rf-service/src/audit_service.rs` (FULL IMPL)
-- `rf-events/src/lib.rs` (EXTEND)
-- `rf-store/src/lib.rs` (EXTEND)
+- `control-service/src/audit_service.rs` (FULL IMPL)
+- `audit-log/src/lib.rs` (EXTEND)
+- `control-store/src/lib.rs` (EXTEND)
 
 ### Phase 5 — Snapshot & Rollback Engine (4 files modified + 1 new)
-- `rf-service/src/snapshot_service.rs` (FULL IMPL)
-- `rf-service/src/rollback_service.rs` (FULL IMPL)
-- `rf-snapshot/src/manifest.rs` (EXTEND)
-- `rf-snapshot/src/rollback.rs` (NEW)
-- `rf-snapshot/src/object_store.rs` (EXTEND)
-- `rf-store/src/lib.rs` (EXTEND)
+- `control-service/src/snapshot_service.rs` (FULL IMPL)
+- `control-service/src/rollback_service.rs` (FULL IMPL)
+- `snapshot-ledger/src/manifest.rs` (EXTEND)
+- `snapshot-ledger/src/rollback.rs` (NEW)
+- `snapshot-ledger/src/object_store.rs` (EXTEND)
+- `control-store/src/lib.rs` (EXTEND)
 
 ### Phase 6 — Work Packet Generator (4 files new/modified)
-- `rf-service/src/work_packet_service.rs` (NEW)
-- `rf-domain/src/work_packet.rs` (NEW)
-- `rf-domain/src/lib.rs` (EXTEND)
-- `rf-store/src/lib.rs` (EXTEND)
+- `control-service/src/work_packet_service.rs` (NEW)
+- `authority-domain/src/work_packet.rs` (NEW)
+- `authority-domain/src/lib.rs` (EXTEND)
+- `control-store/src/lib.rs` (EXTEND)
 
 ### Phase 7 — Full API Surface (14 files new/modified)
-- `rf-api/src/lib.rs` (EXTEND)
-- `rf-api/src/main.rs` (EXTEND)
-- `rf-api/src/error.rs` (NEW)
-- `rf-api/src/middleware.rs` (NEW)
-- `rf-api/src/models.rs` (NEW)
-- `rf-api/src/routes/mod.rs` (NEW)
-- `rf-api/src/routes/health.rs` (NEW)
-- `rf-api/src/routes/session.rs` (NEW)
-- `rf-api/src/routes/command.rs` (NEW)
-- `rf-api/src/routes/audit.rs` (NEW)
-- `rf-api/src/routes/snapshot.rs` (NEW)
-- `rf-api/src/routes/rollback.rs` (NEW)
-- `rf-api/src/routes/actor.rs` (NEW)
-- `rf-api/src/routes/work_packet.rs` (NEW)
+- `control-api/src/lib.rs` (EXTEND)
+- `control-api/src/main.rs` (EXTEND)
+- `control-api/src/error.rs` (NEW)
+- `control-api/src/middleware.rs` (NEW)
+- `control-api/src/models.rs` (NEW)
+- `control-api/src/routes/mod.rs` (NEW)
+- `control-api/src/routes/health.rs` (NEW)
+- `control-api/src/routes/session.rs` (NEW)
+- `control-api/src/routes/command.rs` (NEW)
+- `control-api/src/routes/audit.rs` (NEW)
+- `control-api/src/routes/snapshot.rs` (NEW)
+- `control-api/src/routes/rollback.rs` (NEW)
+- `control-api/src/routes/actor.rs` (NEW)
+- `control-api/src/routes/work_packet.rs` (NEW)
 
 ### Phase 8 — Full CLI Surface (12 files new/modified)
-- `rf-cli/src/main.rs` (EXTEND)
-- `rf-cli/src/commands/mod.rs` (NEW)
-- `rf-cli/src/commands/session.rs` (NEW)
-- `rf-cli/src/commands/command.rs` (NEW)
-- `rf-cli/src/commands/audit.rs` (NEW)
-- `rf-cli/src/commands/snapshot.rs` (NEW)
-- `rf-cli/src/commands/rollback.rs` (NEW)
-- `rf-cli/src/commands/actor.rs` (NEW)
-- `rf-cli/src/commands/work_packet.rs` (NEW)
-- `rf-cli/src/commands/skill.rs` (NEW)
-- `rf-cli/src/commands/migrate.rs` (NEW)
-- `rf-cli/src/commands/config.rs` (NEW)
+- `operator-cli/src/main.rs` (EXTEND)
+- `operator-cli/src/commands/mod.rs` (NEW)
+- `operator-cli/src/commands/session.rs` (NEW)
+- `operator-cli/src/commands/command.rs` (NEW)
+- `operator-cli/src/commands/audit.rs` (NEW)
+- `operator-cli/src/commands/snapshot.rs` (NEW)
+- `operator-cli/src/commands/rollback.rs` (NEW)
+- `operator-cli/src/commands/actor.rs` (NEW)
+- `operator-cli/src/commands/work_packet.rs` (NEW)
+- `operator-cli/src/commands/skill.rs` (NEW)
+- `operator-cli/src/commands/migrate.rs` (NEW)
+- `operator-cli/src/commands/config.rs` (NEW)
 
 ### Phase 9 — Full MCP Surface (10 files new/modified)
-- `rf-mcp/src/lib.rs` (EXTEND)
-- `rf-mcp/src/error.rs` (NEW)
-- `rf-mcp/src/types.rs` (NEW)
-- `rf-mcp/src/tools/mod.rs` (NEW)
-- `rf-mcp/src/tools/session.rs` (NEW)
-- `rf-mcp/src/tools/command.rs` (NEW)
-- `rf-mcp/src/tools/audit.rs` (NEW)
-- `rf-mcp/src/tools/snapshot.rs` (NEW)
-- `rf-mcp/src/tools/rollback.rs` (NEW)
-- `rf-mcp/src/tools/actor.rs` (NEW)
-- `rf-mcp/src/tools/skill.rs` (NEW)
-- `rf-mcp/src/tools/work_packet.rs` (NEW)
+- `agent-mcp/src/lib.rs` (EXTEND)
+- `agent-mcp/src/error.rs` (NEW)
+- `agent-mcp/src/types.rs` (NEW)
+- `agent-mcp/src/tools/mod.rs` (NEW)
+- `agent-mcp/src/tools/session.rs` (NEW)
+- `agent-mcp/src/tools/command.rs` (NEW)
+- `agent-mcp/src/tools/audit.rs` (NEW)
+- `agent-mcp/src/tools/snapshot.rs` (NEW)
+- `agent-mcp/src/tools/rollback.rs` (NEW)
+- `agent-mcp/src/tools/actor.rs` (NEW)
+- `agent-mcp/src/tools/skill.rs` (NEW)
+- `agent-mcp/src/tools/work_packet.rs` (NEW)
 
 ### Phase 10 — Integration Testing (11 files new)
-- `rf-service/tests/common/mod.rs` (NEW)
-- `rf-service/tests/session_lifecycle.rs` (NEW)
-- `rf-service/tests/command_lifecycle.rs` (NEW)
-- `rf-service/tests/policy_enforcement.rs` (NEW)
-- `rf-service/tests/audit_integrity.rs` (NEW)
-- `rf-service/tests/snapshot_flow.rs` (NEW)
-- `rf-service/tests/rollback_flow.rs` (NEW)
-- `rf-service/tests/work_packet_flow.rs` (NEW)
-- `rf-api/tests/common/mod.rs` (NEW)
-- `rf-api/tests/health_test.rs` (NEW)
-- `rf-api/tests/session_test.rs` (NEW)
-- `rf-api/tests/command_test.rs` (NEW)
-- `rf-api/tests/audit_test.rs` (NEW)
-- `rf-api/tests/integration_test.rs` (NEW)
-- `rf-cli/tests/cli_integration.rs` (NEW)
-- `rf-cli/tests/output_format.rs` (NEW)
+- `control-service/tests/common/mod.rs` (NEW)
+- `control-service/tests/session_lifecycle.rs` (NEW)
+- `control-service/tests/command_lifecycle.rs` (NEW)
+- `control-service/tests/policy_enforcement.rs` (NEW)
+- `control-service/tests/audit_integrity.rs` (NEW)
+- `control-service/tests/snapshot_flow.rs` (NEW)
+- `control-service/tests/rollback_flow.rs` (NEW)
+- `control-service/tests/work_packet_flow.rs` (NEW)
+- `control-api/tests/common/mod.rs` (NEW)
+- `control-api/tests/health_test.rs` (NEW)
+- `control-api/tests/session_test.rs` (NEW)
+- `control-api/tests/command_test.rs` (NEW)
+- `control-api/tests/audit_test.rs` (NEW)
+- `control-api/tests/integration_test.rs` (NEW)
+- `operator-cli/tests/cli_integration.rs` (NEW)
+- `operator-cli/tests/output_format.rs` (NEW)
 
 ### Phase 11 — Observability (5 files modified)
-- `rf-service/src/lib.rs` (EXTEND)
-- `rf-service/src/error.rs` (EXTEND)
-- `rf-api/src/middleware.rs` (EXTEND)
-- `rf-api/src/main.rs` (EXTEND)
-- `rf-store/src/lib.rs` (EXTEND)
-- `rf-policy/src/lib.rs` (EXTEND)
+- `control-service/src/lib.rs` (EXTEND)
+- `control-service/src/error.rs` (EXTEND)
+- `control-api/src/middleware.rs` (EXTEND)
+- `control-api/src/main.rs` (EXTEND)
+- `control-store/src/lib.rs` (EXTEND)
+- `policy-engine/src/lib.rs` (EXTEND)
 
 ---
 
 ## Dependency Graph (Crate Dependencies)
 
 ```
-rf-cli
-  └── rf-service
-        ├── rf-domain       (pure types — no deps on other RealmForge crates)
-        ├── rf-events       (depends on rf-domain)
-        ├── rf-policy       (depends on rf-domain)
-        ├── rf-store        (depends on rf-domain, rf-events, rf-snapshot)
-        └── rf-snapshot     (depends on rf-domain)
+operator-cli
+  └── control-service
+        ├── authority-domain       (pure types — no deps on other RealmForge crates)
+        ├── audit-log       (depends on authority-domain)
+        ├── policy-engine       (depends on authority-domain)
+        ├── control-store        (depends on authority-domain, audit-log, snapshot-ledger)
+        └── snapshot-ledger     (depends on authority-domain)
 
-rf-api
-  └── rf-service (same hierarchy)
+control-api
+  └── control-service (same hierarchy)
 
-rf-mcp
-  └── rf-service (same hierarchy)
+agent-mcp
+  └── control-service (same hierarchy)
 
-rf-snapshot ──┐
-rf-events ────┤──→ rf-domain (pure)
-rf-policy ────┘
+snapshot-ledger ──┐
+audit-log ────┤──→ authority-domain (pure)
+policy-engine ────┘
 ```
 
 **Layer violation detection:**
-- rf-domain MUST NOT import any rf-* crate
-- rf-events, rf-policy, rf-snapshot MAY import rf-domain only
-- rf-store MAY import rf-domain, rf-events, rf-snapshot
-- rf-service MAY import rf-domain, rf-events, rf-policy, rf-store, rf-snapshot
-- rf-api, rf-cli, rf-mcp MAY import rf-service only (NOT rf-store directly)
+- authority-domain MUST NOT import any other capability crate
+- audit-log, policy-engine, snapshot-ledger MAY import authority-domain only
+- control-store MAY import authority-domain, audit-log, snapshot-ledger
+- control-service MAY import authority-domain, audit-log, policy-engine, control-store, snapshot-ledger
+- control-api, operator-cli, agent-mcp MAY import control-service only (NOT control-store directly)
 
 ---
 

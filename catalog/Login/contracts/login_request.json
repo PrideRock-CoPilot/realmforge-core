@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LoginRequest",
+  "description": "Login credentials for authentication. Simplified for Phase 9 — OAuth/OIDC fields deferred.",
+  "type": "object",
+  "required": ["actor_id", "credential", "scope"],
+  "properties": {
+    "actor_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier of the actor attempting authentication."
+    },
+    "credential": {
+      "type": "string",
+      "contentEncoding": "base64",
+      "maxLength": 2732,
+      "description": "Base64-encoded credential bytes. Must be securely discarded after validation."
+    },
+    "scope": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^[a-zA-Z0-9._:/@-]+$",
+      "description": "Requested authorization scope (e.g., 'read', 'read:write', 'namespace/resource.action')."
+    }
+  },
+  "additionalProperties": false
+}

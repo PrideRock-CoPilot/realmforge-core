@@ -1,65 +1,18 @@
-# RealmForge Core
+# RealmForge Workspace
 
-RealmForge Core is the Rust-first control-plane foundation for governed AI-native software execution.
+RealmForge is an AI-native software construction and runtime governance ecosystem.
 
-It answers the core question:
+The current milestone is docs-first buildout: the product, metadata, work paths, agent grants, interfaces, data contracts, and acceptance tests are specified before implementation expands.
 
-```text
-Who is allowed to do what, to which project state, through which skill/session,
-under which approval, with what evidence, and how is it restored?
-```
+## Canonical Docs
 
-## V1 Foundation
+- `docs/realm_forge_ai_native_path_forward.md` — source vision.
+- `docs/spec/00_INDEX.md` — canonical specification entry point.
+- `docs/codex/00_CODEX_SETUP.md` — Codex setup and skill installation notes.
+- `AGENTS.md` — required agent instructions for this workspace.
 
-```text
-typed domain model
-  -> policy decision engine
-  -> append-only audit/event contracts
-  -> PostgreSQL store adapter
-  -> content-addressed snapshot manifests
-  -> thin API/MCP/CLI entry surfaces
-```
+## Current Code
 
-## Workspace
+- `crates/` — Rust-first governance kernel and control-plane foundation.
 
-```text
-crates/
-  rf-domain     typed IDs, state models, lifecycle enums
-  rf-policy     authorization and corrective denial decisions
-  rf-events     append-only audit event hash-chain contracts
-  rf-store      PostgreSQL persistence boundary
-  rf-snapshot   content-addressed objects and manifest validation
-  rf-api        REST adapter over shared core logic
-  rf-mcp        MCP tool contracts over shared core logic
-  rf-cli        operator CLI for migrate, inspect, and validation flows
-db/migrations/  production schema, applied before startup
-docs/           architecture and decision records
-```
-
-## Toolchain
-
-Install Rust before building:
-
-```powershell
-winget install Rustlang.Rustup
-rustup default stable
-```
-
-Then validate:
-
-```powershell
-cargo fmt --all -- --check
-cargo test --workspace
-```
-
-Run the API:
-
-```powershell
-cargo run -p rf-api
-```
-
-Inspect migrations:
-
-```powershell
-cargo run -p rf-cli -- list-migrations
-```
+Crate naming is accepted in `docs/decisions/DEC-COUNCIL-002-backend-crate-package-names.md`. Workspace flattening is now in progress under Phase 1.

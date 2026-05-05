@@ -1,0 +1,44 @@
+# Cline-Specific Enforcement Rules
+
+This file is a companion to CLAUDE.md. It defines Cline-specific behavioral rules
+that operate at the tool-use enforcement level.
+
+## Skill Invocation Protocol
+
+**Rule: `use_skill` must be the first tool call when a skill domain matches.**
+- Before any `read_file`, `write_to_file`, `execute_command`, or any other tool,
+  check if the user's request matches a skill domain (see CLAUDE.md routing table).
+- If it matches, call `use_skill` first. Let the skill instruct you before acting.
+- Exception: reading context files (CLAUDE.md, AGENTS.md, etc.) is permitted before
+  skill invocation to determine the correct skill to invoke.
+
+## Orchestrator Enforcement
+
+**Rule: Invoke `/orchestrator` on every session start and before every multi-skill handoff.**
+- Session start: call `use_skill` with `skill_name: "orchestrator"` after `/skill-creator`.
+- Before spanning skills: describe the planned handoff chain and ask orchestrator for confirmation.
+- After handoff: report completion to orchestrator.
+
+## Session Start Sequence
+
+**Rule: This exact sequence must be followed before any productive work:**
+1. `use_skill` with `skill_name: "skill-creator"` — register any new skills
+2. `use_skill` with `skill_name: "orchestrator"` — get workflow state
+3. `read_file("CLAUDE.md")` — workspace instructions
+4. `read_file("AGENTS.md")` — engineering instructions
+5. `read_file("docs/MASTER_BUILD_PLAN.md")` — build plan
+
+## Handoff Discipline
+
+**Rule: Every handoff between skills must be explicit.**
+- Before completing a skill's work, confirm the deliverable is ready.
+- After completion, report to orchestrator: "Handoff from [skill A] to [skill B] complete — [deliverable]."
+- Never mark a task complete without a confirmed receiver.
+
+## Violation Detection
+
+If Cline detects it has violated any of these rules (e.g., solved a problem without
+invoking the relevant skill), it MUST:
+1. Acknowledge the violation immediately
+2. Invoke the correct skill retroactively if still valuable
+3. Report the violation to `/orchestrator` with details

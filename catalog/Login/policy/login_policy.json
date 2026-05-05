@@ -1,0 +1,35 @@
+{
+  "policy_id": "pol-login-001",
+  "policy_type": "login_policy",
+  "name": "Default Login Policy",
+  "description": "Rate limiting, credential validation, and block rules for login attempts.",
+  "rules": {
+    "rate_limiting": {
+      "max_failed_attempts": 5,
+      "window_seconds": 60,
+      "block_duration_seconds": 300
+    },
+    "request_limits": {
+      "max_requests_per_window": 10,
+      "window_seconds": 60
+    },
+    "validation": {
+      "credential_validation_enabled": true,
+      "max_credential_length": 2048,
+      "max_scope_length": 1024,
+      "scope_pattern": "^[a-zA-Z0-9._:/@-]+$"
+    }
+  },
+  "actions": {
+    "on_rate_limit": "return generic rate-limit error (no account enumeration)",
+    "on_block": "return generic block error with retry-after hint",
+    "on_invalid_credentials": "return generic 'invalid credentials' error",
+    "on_success": "issue signed session token with requested scope"
+  },
+  "severity": {
+    "rate_limit_severity": "info",
+    "block_severity": "warn",
+    "invalid_credentials_severity": "info",
+    "success_severity": "info"
+  }
+}

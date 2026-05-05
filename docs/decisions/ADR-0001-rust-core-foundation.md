@@ -17,4 +17,4 @@ The control plane is security-sensitive. It must enforce authorization, approval
 - Core V1 starts below Builder workflows.
 - API/MCP/CLI surfaces stay thin.
 - PostgreSQL remains the durable system of record.
-- Higher-level repos will integrate with `realmforge-core` instead of owning authority themselves.
+- Higher-level repos will integrate with the control-service authority boundary instead of owning authority themselves.

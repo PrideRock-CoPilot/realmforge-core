@@ -2,7 +2,7 @@ pub mod executor;
 pub mod health;
 pub mod loader;
 
-pub use executor::RuntimeExecutor;
+pub use executor::{RuntimeExecutionRecord, RuntimeExecutor};
 pub use health::{runtime_health, runtime_metrics, RuntimeHealth, RuntimeMetrics};
 pub use loader::{load_bundle, unload_bundle, LoadError};
 

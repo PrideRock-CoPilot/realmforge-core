@@ -152,7 +152,13 @@ Rena (CTO)
   ↓ Schema contract → Priya (Data Engineer)
   
 Dmitri (Backend), Kai (Frontend), Priya (Data Engineer)
-  ↓ Build candidate → Meg (QA)
+  ↓ Build candidate → Nora (Peer Review)
+
+Nora (Peer Review)
+  ↓ Peer-reviewed candidate → Owen (Code Review)
+
+Owen (Code Review)
+  ↓ File-reviewed candidate → Meg (QA)
   
 Meg (QA)
   ↓ Release certification → Sam (Release Manager)

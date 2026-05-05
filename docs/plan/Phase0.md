@@ -58,8 +58,8 @@ approval_state: pending
 
 5. Register Codex skills
    a. Every resolver skill (ceo, pm, cto, domain-architect, security-architect, api-architect,
-      infra-architect, data-architect, backend, frontend, data-engineer, qa, release-manager,
-      tech-writer, biz-user, accountant, orchestrator, council) is registered
+      infra-architect, data-architect, backend, frontend, data-engineer, qa, peer-review,
+      code-review, release-manager, tech-writer, biz-user, accountant, orchestrator, council) is registered
    b. Each skill has a SKILL.md with the six required sections
 
 6. Acceptance test plan validation

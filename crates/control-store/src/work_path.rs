@@ -14,6 +14,10 @@ pub async fn insert_work_path_graph(
         r#"
         INSERT INTO work_path_graphs (id, name, description, created_at, updated_at)
         VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT (id) DO UPDATE
+        SET name = EXCLUDED.name,
+            description = EXCLUDED.description,
+            updated_at = EXCLUDED.updated_at
         "#,
     )
     .bind(graph.id.as_str())
@@ -23,6 +27,11 @@ pub async fn insert_work_path_graph(
     .bind(graph.updated_at)
     .execute(pool)
     .await?;
+
+    sqlx::query("DELETE FROM work_path_nodes WHERE work_path_id = $1")
+        .bind(graph.id.as_str())
+        .execute(pool)
+        .await?;
 
     for node in &graph.nodes {
         insert_work_path_node(pool, node).await?;

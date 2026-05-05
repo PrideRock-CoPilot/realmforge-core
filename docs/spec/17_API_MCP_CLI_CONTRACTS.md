@@ -5,7 +5,7 @@ status: draft
 owner: api-architect
 reviewers: [cto, backend, security-architect, qa, tech-writer]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: interfaces
 work_path_ids: [WP-API-001, WP-MCP-001, WP-CLI-001]
@@ -36,6 +36,7 @@ All endpoints are under `/v1`.
 | `POST` | `/snapshots` | `command.snapshot.create` | `snapshot.create` | `TEST-API-SNAPSHOT-001` |
 | `POST` | `/runtime-bundles/build` | `command.bundle.build` | `bundle.build` | `TEST-API-BUNDLE-001` |
 | `POST` | `/live-watch/signals` | `command.watch.signal_record` | `watch.signal.write` | `TEST-API-LIVE-WATCH-001` |
+| `POST` | `/login` | `command.login.issue_session` | `login.authenticate` | `TEST-LOGIN-E2E-001` |
 
 Error shape:
 
@@ -47,6 +48,8 @@ Error shape:
   "audit_event_id": "evt_..."
 }
 ```
+
+Login success responses include `session_token`, `actor_id`, `scope`, `expires_at`, `audit_event_id`, and `snapshot_id`.
 
 ## MCP Tools
 

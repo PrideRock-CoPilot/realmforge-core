@@ -6,12 +6,12 @@ status: draft
 owner: domain-architect
 reviewers: [cto, data-architect, backend, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-CATALOG-001, WP-WORKPATH-001]
 related_decision_ids: []
-related_file_ids: [FILE-CRATE-DOMAIN-CATALOG, FILE-CRATE-DOMAIN-WORKPATH, FILE-CRATE-API-LIB, FILE-CRATE-CLI-MAIN, FILE-CRATE-MCP-LIB, FILE-CRATE-SERVICE-LIB, FILE-CRATE-STORE-LIB]
+related_file_ids: [FILE-CRATE-DOMAIN-CATALOG, FILE-CRATE-DOMAIN-WORKPATH, FILE-CRATE-API-LIB, FILE-CRATE-CLI-MAIN, FILE-CRATE-MCP-LIB, FILE-CRATE-SERVICE-LIB, FILE-CRATE-STORE-LIB, FILE-CRATE-STORE-WORKPATH, FILE-TEST-CATALOG-INTEGRATION, FILE-TEST-WORKPATH-INTEGRATION]
 visual_node_ids: [VN-MODULE-CATALOGS, VN-MODULE-WORK-PATHS]
 approval_state: pending
 ---
@@ -144,14 +144,22 @@ pub struct WorkPathNode {
 
 ## Completion Gates
 
-- [ ] `TEST-CATALOG-001` — Tenant copies approved global module with provenance recorded
-- [ ] `TEST-WORKPATH-001` — Work path node generates scoped packet with correct boundaries
-- [ ] Catalog traversal returns correct hierarchy (global → tenant → app)
-- [ ] Work path DAG correctly links files, contracts, and tests
-- [ ] Packet generated from work path node has correct file scope
+- [x] `TEST-CATALOG-001` — Tenant copies approved global module with provenance recorded
+- [x] `TEST-WORKPATH-001` — Work path node generates scoped packet with correct boundaries
+- [x] Catalog traversal returns correct hierarchy (global → tenant → app)
+- [x] Work path DAG correctly links files, contracts, and tests
+- [x] Packet generated from work path node has correct file scope
 - [ ] All CRUD operations work via API, CLI, and MCP
-- [ ] `cargo test --workspace` passes with 0 failures
-- [ ] `cargo clippy --workspace -- -D warnings` passes
+- [x] `cargo test --workspace` passes with 0 failures
+- [x] `cargo clippy --workspace -- -D warnings` passes
+
+Verification evidence recorded 2026-05-05:
+
+- `cargo test -p control-service --test catalog_integration --target-dir target-quality` passed: 2 tests, 0 failures.
+- `cargo test -p control-service --test work_path_integration --target-dir target-quality` passed: 1 test, 0 failures.
+- `cargo test --workspace --target-dir target-quality` passed with 0 failures.
+- `cargo clippy --workspace --all-targets --target-dir target-quality -- -D warnings` passed.
+- Remaining open gate: API, CLI, and MCP CRUD operation proof for the Phase 3 surfaces.
 
 ---
 

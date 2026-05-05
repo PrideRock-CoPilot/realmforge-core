@@ -19,11 +19,15 @@ Skill files live in `skills/<name>/SKILL.md`.
 | Frontend UI, accessibility, performance | `frontend` | `skills/frontend/SKILL.md` |
 | Parquet pipelines, data products | `data-engineer` | `skills/data-engineer/SKILL.md` |
 | Verification, defect docs, release certification | `qa` | `skills/qa/SKILL.md` |
+| Peer review, area readiness evidence, project-board peer review status | `peer-review` | `skills/peer-review/SKILL.md` |
+| Code review, file-level implementation review, project-board code-review status | `code-review` | `skills/code-review/SKILL.md` |
 | Deployment runbooks, rollback, post-mortems | `release-manager` | `skills/release-manager/SKILL.md` |
 | ADRs, API docs, Rust crate docs | `tech-writer` | `skills/tech-writer/SKILL.md` |
+| Repo hygiene, docs freshness, quality-gate evidence | `tech-writer`, `pm`, `qa` | `skills/tech-writer/SKILL.md`, `skills/pm/SKILL.md`, `skills/qa/SKILL.md` |
 | User stories, acceptance criteria | `biz-user` | `skills/biz-user/SKILL.md` |
 | Financial reconciliation, forecasting | `accountant` | `skills/accountant/SKILL.md` |
 | Workflow state, handoff tracking, stall detection | `orchestrator` | `skills/orchestrator/SKILL.md` |
+| Focused lifecycle flow from idea through documentation | `orchestrator`, `pm`, `cto`, `qa`, `tech-writer` | `skills/orchestrator/SKILL.md`, `skills/pm/SKILL.md`, `skills/cto/SKILL.md`, `skills/qa/SKILL.md`, `skills/tech-writer/SKILL.md` |
 | Multi-stakeholder contested decisions | `council` | `skills/council/SKILL.md` |
 | Creating or auditing skills | `realmforge-skill-creator` | `skills/realmforge-skill-creator/SKILL.md` |
 
@@ -31,5 +35,6 @@ Skill files live in `skills/<name>/SKILL.md`.
 
 - Read the skill file **before** writing any code, creating any file, or making any decision
 - If the request spans three or more domains, load `orchestrator` first
+- If the request asks "what is next", "continue", or "build it", identify the lifecycle stage from `07-focused-workflow-lifecycle.md` before acting
 - Do not solve a skill's problem without loading that skill — this is wandering
 - A skill's "What You Don't Touch" section is a hard limit — escalate, do not cross it

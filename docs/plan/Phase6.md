@@ -139,8 +139,12 @@ pub struct WatchEvent {
 - [x] Violation detection fires on configurable rules (requires DB integration test)
 - [x] Cost summary aggregates correctly by time range and scope (requires DB integration test)
 - [x] API, CLI, and MCP surfaces all functional for both modules — compiles clean, routes registered, CLI subcommands wired, MCP tools defined
-- [ ] `cargo test --workspace` passes with 0 failures
-- [ ] `cargo clippy --workspace -- -D warnings` passes
+- [x] `cargo test --workspace` passes with 0 failures (verified 2026-05-05 with `--target-dir target-quality`)
+- [x] `cargo clippy --workspace -- -D warnings` passes (verified 2026-05-05 with `--all-targets --target-dir target-quality`)
+
+### Current Verification Note (2026-05-05)
+
+Workspace quality gates are green after QA re-verification. Phase 6 remains in `pending` approval state until the owner/reviewers formally accept the already-checked functional gates.
 
 ---
 

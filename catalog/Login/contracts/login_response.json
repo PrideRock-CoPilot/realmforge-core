@@ -1,9 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "LoginResponse",
-  "description": "Response from a successful login attempt containing session token and metadata.",
+  "description": "Response from a successful login attempt containing session token, audit trace, and snapshot anchor metadata.",
   "type": "object",
-  "required": ["session_token", "actor_id", "scope", "expires_at", "audit_event_id"],
+  "required": ["session_token", "actor_id", "scope", "expires_at", "audit_event_id", "snapshot_id"],
   "properties": {
     "session_token": {
       "type": "string",
@@ -27,6 +27,11 @@
       "type": "string",
       "format": "uuid",
       "description": "Audit event identifier for this login attempt (traceability)."
+    },
+    "snapshot_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Snapshot anchor identifier for rollback to the pre-login state."
     }
   },
   "additionalProperties": false

@@ -15,10 +15,11 @@ const EDGE_STYLE: Record<string, CSSProperties> = {
 
 export const VisualEdge = memo(({
   id, sourceX, sourceY, targetX, targetY, data, label,
-}: EdgeProps<VisualEdgeData>) => {
+}: EdgeProps) => {
   const [edgePath, labelX, labelY] = getStraightPath({ sourceX, sourceY, targetX, targetY })
-  const edgeType = data?.type ?? 'handoff'
-  const displayLabel = data?.label ?? label
+  const edgeData = data as unknown as VisualEdgeData | undefined
+  const edgeType = edgeData?.type ?? 'handoff'
+  const displayLabel = edgeData?.label ?? label
 
   return (
     <>

@@ -30,6 +30,8 @@ Use the RealmForge company skills installed in Codex when their domain applies:
 - `api-architect` for REST, MCP, and CLI contracts
 - `data-architect` and `data-engineer` for Postgres, Parquet, and object store contracts
 - `backend`, `frontend`, `qa`, `release-manager`, `tech-writer`, `pm`, `ceo`, `biz-user`, and `accountant` for their documented domains
+- `peer-review` for independent area readiness review before code review, QA, or project-board peer-review advancement
+- `code-review` for file-level implementation review before QA or project-board code-review advancement
 
 ## Current Baseline Certification Constraints
 

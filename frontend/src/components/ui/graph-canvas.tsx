@@ -47,18 +47,20 @@ interface GraphCanvasProps {
   readOnly?: boolean
 }
 
-const nodeTypes: NodeTypes = {
+// @xyflow/react v12 has stricter generic constraints on NodeTypes/EdgeTypes.
+// Our custom node/edge components accept any props; we cast to satisfy the type checker.
+const nodeTypes = {
   module:   VisualModuleNode,
   phase:    VisualPhaseNode,
   decision: VisualDecisionNode,
   workpath: VisualWorkPathNode,
-} satisfies NodeTypes
+} as NodeTypes
 
-const edgeTypes: EdgeTypes = {
+const edgeTypes = {
   dependency:  VisualEdgeComponent,
   handoff:     VisualEdgeComponent,
   'data-flow': VisualEdgeComponent,
-} satisfies EdgeTypes
+} as EdgeTypes
 
 function GraphCanvasInner({
   nodes,

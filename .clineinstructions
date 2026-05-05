@@ -36,12 +36,17 @@ Every new session MUST begin with this sequence BEFORE any tools are used:
 1. Read .clinerules/00-company-index.md     — know the company skill deck
 2. Read .clinerules/01-session-protocol.md  — follow session protocol
 3. Read .clinerules/02-routing-and-skills.md — match request to skill
-4. Use_skill to load the matching skill      — adopt persona and workflow
+4. Read .clinerules/03-docs-first-law.md — enforce specs, metadata, work paths, grants, and tests
+5. Read .clinerules/04-architecture-laws.md — enforce layer law, crate law, and Rust rules
+6. Read .clinerules/05-workflow-and-handoffs.md — enforce handoff discipline
+7. Read .clinerules/06-repo-hygiene-and-verification.md — keep repo/docs clean
+8. Read .clinerules/07-focused-workflow-lifecycle.md — follow Idea → Planning → Architecture → Development → Testing → Documentation
+9. Use_skill to load the matching skill      — adopt persona and workflow
 ```
 
 ### 3. No Bypassing the Handoff Chain
 
-Work must flow through: CEO → PM → CTO → Architects (as needed) → Engineering → QA → Release Manager.
+Work must flow through: CEO → PM → CTO → Architects (as needed) → Engineering → Peer Review → Code Review → QA → Release Manager.
 Direct engineering-to-release without QA is a violation.
 Direct engineering-to-deployment without Release Manager is a violation.
 Any handoff must have a named deliverable and a named receiver.
@@ -62,6 +67,8 @@ Any handoff must have a named deliverable and a named receiver.
 | Frontend UI, accessibility | `frontend` | `skills/frontend/SKILL.md` |
 | Data pipelines, Parquet | `data-engineer` | `skills/data-engineer/SKILL.md` |
 | Verification, defect docs | `qa` | `skills/qa/SKILL.md` |
+| Peer review, area readiness | `peer-review` | `skills/peer-review/SKILL.md` |
+| Code review, file-level implementation review | `code-review` | `skills/code-review/SKILL.md` |
 | Financial reconciliation | `accountant` | `skills/accountant/SKILL.md` |
 | Deployment, rollback | `release-manager` | `skills/release-manager/SKILL.md` |
 | ADRs, API docs, crate docs | `tech-writer` | `skills/tech-writer/SKILL.md` |
@@ -96,5 +103,7 @@ Any violation of these rules is a breach of workspace protocol:
 | Docs-first law | `.clinerules/03-docs-first-law.md` |
 | Architecture laws | `.clinerules/04-architecture-laws.md` |
 | Workflow & handoffs | `.clinerules/05-workflow-and-handoffs.md` |
+| Repo hygiene and verification | `.clinerules/06-repo-hygiene-and-verification.md` |
+| Focused workflow lifecycle | `.clinerules/07-focused-workflow-lifecycle.md` |
 | Cline workspace settings | `.claude/settings.local.json` |
 | Workspace instructions | `CLAUDE.md`, `AGENTS.md` |

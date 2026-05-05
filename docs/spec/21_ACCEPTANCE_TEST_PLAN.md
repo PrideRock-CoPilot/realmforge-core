@@ -5,7 +5,7 @@ status: draft
 owner: qa
 reviewers: [pm, cto, security-architect, release-manager]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: quality
 work_path_ids: [WP-DOCS-000]
@@ -46,5 +46,16 @@ approval_state: pending
 | `TEST-KNOWLEDGE-001` | Knowledge answer cites governed records and respects grant scope. |
 | `TEST-BUILD-WATCH-001` | Build Watch records unauthorized file attempt. |
 | `TEST-BUNDLE-001` | Runtime bundle refuses invalid signature. |
+| `TEST-LIVE-RUNTIME-001` | Live Runtime execution passes policy check, writes an audit event, and anchors a snapshot before reporting success. |
 | `TEST-LIVE-WATCH-001` | Live Watch proposes remediation packet for repeated latency signal. |
 | `TEST-LOGIN-E2E-001` | Login vertical completes catalog to rollback loop. |
+
+## Verification Evidence
+
+| Test ID | Evidence | Status |
+| --- | --- | --- |
+| `TEST-CATALOG-001` | `cargo test -p control-service --test catalog_integration --target-dir target-quality` passed on 2026-05-05. | passed |
+| `TEST-WORKPATH-001` | `cargo test -p control-service --test work_path_integration --target-dir target-quality` passed on 2026-05-05. | passed |
+| `TEST-BUNDLE-001` | Runtime-bundle wrong-key and live-runtime invalid-signature tests passed under `cargo test --workspace --target-dir target-quality` on 2026-05-05. | passed |
+| `TEST-LIVE-WATCH-001` | `cargo test -p live-watch --target-dir target-quality` passed on 2026-05-05; engine now proposes from current-cycle anomalies only. | passed |
+| `TEST-LOGIN-E2E-001` | `cargo test -p control-service --test login_vertical --target-dir target-quality` passed on 2026-05-05 for handler/policy/session/audit/snapshot-anchor flow; catalog-to-rollback E2E remains open. | partial |

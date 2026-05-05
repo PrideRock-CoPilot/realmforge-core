@@ -1,4 +1,6 @@
 pub mod boards;
+pub mod plan;
+
 pub mod build_watch;
 pub mod bundle;
 pub mod catalog;
@@ -30,6 +32,7 @@ pub use knowledge::*;
 pub use live_watch::*;
 pub use login::*;
 pub use login_policy::*;
+pub use plan::*;
 pub use scope::*;
 pub use separation::*;
 pub use skill::*;

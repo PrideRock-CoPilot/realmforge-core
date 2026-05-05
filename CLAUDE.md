@@ -64,6 +64,8 @@ name, or invoke their skill directly with `/skill-name`.
 | Invoke | Person | Domain |
 |--------|--------|--------|
 | `/qa` | Margaret "Meg" Thompson | Verification, defect documentation, release certification |
+| `/peer-review` | Nora Patel | Independent readiness review before code review or QA |
+| `/code-review` | Owen Brooks | File-level implementation review before QA |
 | `/accountant` | Bob Kaczmarek | Reconciliation, forecasting, financial signals |
 | `/release-manager` | Sam Osei | Deployment runbooks, rollback safety, post-mortems |
 
@@ -90,6 +92,7 @@ Say their name naturally:
 - "hi Rena" → CTO
 - "hi Alex" → PM
 - "hi Meg" or "hi Margaret" → QA
+- "hi Owen" → Code Review
 - "hi Bob" → Accountant
 - "hi Yusuf" → Domain Architect
 - "hi Fatima" → Security Architect
@@ -128,6 +131,8 @@ When a user's request matches a skill's domain, invoke the skill using `use_skil
 - Frontend UI, accessibility → invoke `/frontend` (Kai Sato)
 - Data pipelines, Parquet → invoke `/data-engineer` (Priya Nair)
 - Verification, defect documentation → invoke `/qa` (Meg Thompson)
+- Peer review, area readiness evidence, project-board peer review status → invoke `/peer-review` (Nora Patel)
+- Code review, file-level implementation review, project-board code-review status → invoke `/code-review` (Owen Brooks)
 - Financial reconciliation, forecasting → invoke `/accountant` (Bob Kaczmarek)
 - Deployment, rollback → invoke `/release-manager` (Sam Osei)
 - ADRs, API docs, crate docs → invoke `/tech-writer` (Clara Mills)
@@ -191,6 +196,10 @@ Engineering:
   Dmitri  — Rust crate implementation
   Kai     — Frontend UI components
   Priya   — Data pipelines and Parquet artifacts
+       ↓
+Nora (Peer Review)     — Independent readiness review before downstream gates
+       ↓
+Owen (Code Review)     — File-level implementation review before QA
        ↓
 Meg (QA)              — Verification, defect documentation, release certification
        ↓

@@ -7,7 +7,9 @@ pub mod catalog_service;
 pub mod command_service;
 pub mod error;
 pub mod gateway_service;
+pub mod intake_service;
 pub mod knowledge_service;
+
 pub mod live_watch_service;
 pub mod login_handler;
 pub mod rollback_service;
@@ -25,8 +27,10 @@ pub use build_watch_service::BuildWatchService;
 pub use bundle_service::BundleService;
 pub use catalog_service::CatalogService;
 pub use command_service::CommandService;
+pub use control_store::plan_store::InMemoryPlanStore;
 pub use error::ServiceError;
 pub use gateway_service::GatewayService;
+pub use intake_service::IntakeService;
 pub use knowledge_service::{KnowledgeQueryResult, KnowledgeService};
 pub use live_watch_service::LiveWatchService;
 pub use login_handler::LoginHandler;
@@ -65,6 +69,7 @@ pub struct ServiceContext {
     pub live_watch: LiveWatchService,
     pub runtimes: RuntimeService,
     pub login: LoginHandler,
+    pub intake: IntakeService,
 }
 
 impl ServiceContext {
@@ -72,6 +77,7 @@ impl ServiceContext {
     pub fn new(store: CoreStore) -> Self {
         let audit_service = AuditService::new(store.clone());
         let session_service = SessionService::new(store.clone(), audit_service.clone());
+        let intake_store = std::sync::Arc::new(InMemoryPlanStore::new());
         Self {
             store: store.clone(),
             sessions: session_service.clone(),
@@ -92,6 +98,7 @@ impl ServiceContext {
             live_watch: LiveWatchService::new(store.clone()),
             runtimes: RuntimeService::new(store.clone()),
             login: LoginHandler::new(store, session_service, audit_service),
+            intake: IntakeService::new(intake_store),
         }
     }
 

@@ -5,7 +5,7 @@ status: draft
 owner: tech-writer
 reviewers: [cto, domain-architect, data-architect, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: metadata
 work_path_ids: [WP-DOCS-000]
@@ -85,13 +85,15 @@ These paths define the first implementation universe. File IDs are stable.
 | `FILE-CRATE-AUDIT-LIB` | `crates/audit-log/src/lib.rs` | `compiled_source` | Audit Ledger | high | `WP-CORE-001` | `SGL-BACKEND-AUDIT` | `TEST-AUDIT-CHAIN-001` |
 | `FILE-CRATE-SNAPSHOT-LIB` | `crates/snapshot-ledger/src/lib.rs` | `compiled_source` | Snapshot Ledger | critical | `WP-SNAPSHOT-001` | `SGL-BACKEND-SNAPSHOT` | `TEST-SNAPSHOT-001` |
 | `FILE-CRATE-STORE-LIB` | `crates/control-store/src/lib.rs` | `compiled_source` | Data Contracts | critical | `WP-DATA-001` | `SGL-BACKEND-STORE` | `TEST-STORE-001` |
+| `FILE-CRATE-STORE-WORKPATH` | `crates/control-store/src/work_path.rs` | `compiled_source` | Work Paths | high | `WP-WORKPATH-001` | `SGL-BACKEND-STORE` | `TEST-WORKPATH-001` |
 | `FILE-CRATE-SERVICE-LIB` | `crates/control-service/src/lib.rs` | `compiled_source` | Authority Core | critical | `WP-CORE-001` | `SGL-BACKEND-SERVICE` | `TEST-SERVICE-001` |
 | `FILE-CRATE-GATEWAY-LIB` | `crates/agent-gateway/src/lib.rs` | `compiled_source` | Agent Gateway | critical | `WP-GATEWAY-001` | `SGL-BACKEND-GATEWAY` | `TEST-GATEWAY-001` |
 | `FILE-CRATE-API-LIB` | `crates/control-api/src/lib.rs` | `compiled_source` | Interfaces | high | `WP-API-001` | `SGL-BACKEND-API` | `TEST-API-001` |
 | `FILE-CRATE-MCP-LIB` | `crates/agent-mcp/src/lib.rs` | `compiled_source` | Interfaces | high | `WP-MCP-001` | `SGL-BACKEND-MCP` | `TEST-MCP-001` |
 | `FILE-CRATE-CLI-MAIN` | `crates/operator-cli/src/main.rs` | `compiled_source` | Interfaces | medium | `WP-CLI-001` | `SGL-BACKEND-CLI` | `TEST-CLI-001` |
-| `FILE-CRATE-PARQUET-LIB` | `crates/parquet-catalog/src/lib.rs` | `compiled_source` | Knowledge | high | `WP-KNOWLEDGE-001` | `SGL-DATA-PARQUET` | `TEST-PARQUET-001` |
+| `FILE-CRATE-PARQUET-LIB` | `crates/parquet-store/src/lib.rs` | `compiled_source` | Knowledge | high | `WP-KNOWLEDGE-001` | `SGL-DATA-PARQUET` | `TEST-PARQUET-001` |
 | `FILE-CRATE-BUNDLE-LIB` | `crates/runtime-bundle/src/lib.rs` | `compiled_source` | Runtime Bundle | critical | `WP-RUNTIME-BUNDLE-001` | `SGL-BACKEND-RUNTIME` | `TEST-BUNDLE-001` |
+| `FILE-CRATE-LIVE-RUNTIME-LIB` | `crates/live-runtime/src/lib.rs` | `compiled_source` | Live Runtime | critical | `WP-LIVE-RUNTIME-001` | `SGL-BACKEND-RUNTIME` | `TEST-LIVE-RUNTIME-001` |
 | `FILE-CRATE-BUILD-WATCH-LIB` | `crates/build-watch/src/lib.rs` | `compiled_source` | Build Watch | high | `WP-BUILD-WATCH-001` | `SGL-BACKEND-WATCH` | `TEST-BUILD-WATCH-001` |
 | `FILE-CRATE-LIVE-WATCH-LIB` | `crates/live-watch/src/lib.rs` | `compiled_source` | Live Watch | high | `WP-LIVE-WATCH-001` | `SGL-BACKEND-WATCH` | `TEST-LIVE-WATCH-001` |
 | `FILE-DB-001` | `db/migrations/001_organization_tenant_app.sql` | `migration` | Data Contracts | critical | `WP-DATA-001` | `SGL-DATA-POSTGRES` | `TEST-MIGRATION-001` |
@@ -101,15 +103,25 @@ These paths define the first implementation universe. File IDs are stable.
 | `FILE-PARQUET-FILES` | `.realmforge/snapshots/{snapshot_id}/files.parquet` | `parquet_dataset` | Snapshot Ledger | high | `WP-SNAPSHOT-001` | `SGL-DATA-PARQUET` | `TEST-PARQUET-FILES-001` |
 | `FILE-PARQUET-WORKPATHS` | `.realmforge/snapshots/{snapshot_id}/work_paths.parquet` | `parquet_dataset` | Work Paths | high | `WP-WORKPATH-001` | `SGL-DATA-PARQUET` | `TEST-PARQUET-WORKPATHS-001` |
 | `FILE-PARQUET-EVIDENCE` | `.realmforge/snapshots/{snapshot_id}/evidence.parquet` | `parquet_dataset` | Evidence Ledger | high | `WP-BUILD-WATCH-001` | `SGL-DATA-PARQUET` | `TEST-PARQUET-EVIDENCE-001` |
-| `FILE-CATALOG-LOGIN-MODULE` | `catalog/global/modules/auth/login/module.yaml` | `runtime_definition` | Login Module | high | `WP-LOGIN-001` | `SGL-DATA-PARQUET` | `TEST-LOGIN-MODULE-001` |
-| `FILE-CONTRACT-LOGIN` | `catalog/global/modules/auth/login/contracts/login.v1.json` | `runtime_contract` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-RUNTIME` | `TEST-LOGIN-CONTRACT-001` |
-| `FILE-POLICY-LOGIN` | `catalog/global/modules/auth/login/policies/login.policy.yaml` | `runtime_policy` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-POLICY` | `TEST-LOGIN-POLICY-001` |
-| `FILE-HANDLER-LOGIN` | `apps/{app_id}/handlers/auth/login.rs` | `compiled_source` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-SERVICE` | `TEST-LOGIN-HANDLER-001` |
-| `FILE-WATCH-LOGIN` | `catalog/global/modules/auth/login/watch/login.watch.yaml` | `runtime_trace_profile` | Login Module | high | `WP-LOGIN-001` | `SGL-BACKEND-WATCH` | `TEST-LOGIN-WATCH-001` |
+| `FILE-CATALOG-LOGIN-MODULE` | `catalog/Login/catalog.json` | `runtime_definition` | Login Module | high | `WP-LOGIN-001` | `SGL-DATA-PARQUET` | `TEST-LOGIN-MODULE-001` |
+| `FILE-CONTRACT-LOGIN` | `catalog/Login/contracts/login_request.json` | `runtime_contract` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-RUNTIME` | `TEST-LOGIN-CONTRACT-001` |
+| `FILE-CONTRACT-LOGIN-RESPONSE` | `catalog/Login/contracts/login_response.json` | `runtime_contract` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-RUNTIME` | `TEST-LOGIN-CONTRACT-002` |
+| `FILE-POLICY-LOGIN` | `catalog/Login/policy/login_policy.json` | `runtime_policy` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-POLICY` | `TEST-LOGIN-POLICY-001` |
+| `FILE-HANDLER-LOGIN` | `crates/control-service/src/login_handler.rs` | `compiled_source` | Login Module | critical | `WP-LOGIN-001` | `SGL-BACKEND-SERVICE` | `TEST-LOGIN-HANDLER-001` |
+| `FILE-WATCH-LOGIN` | `catalog/Login/watch_profile.json` | `runtime_trace_profile` | Login Module | high | `WP-LOGIN-001` | `SGL-BACKEND-WATCH` | `TEST-LOGIN-WATCH-001` |
+| `FILE-TEST-CATALOG-INTEGRATION` | `crates/control-service/tests/catalog_integration.rs` | `test_only` | Catalogs | medium | `WP-CATALOG-001` | `SGL-BACKEND-SERVICE` | `TEST-CATALOG-001` |
+| `FILE-TEST-WORKPATH-INTEGRATION` | `crates/control-service/tests/work_path_integration.rs` | `test_only` | Work Paths | medium | `WP-WORKPATH-001` | `SGL-BACKEND-SERVICE` | `TEST-WORKPATH-001` |
 | `FILE-DOCS-CODEX-SETUP` | `docs/codex/00_CODEX_SETUP.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
 | `FILE-DOCS-CODEX-SESSION` | `docs/codex/01_CODEX_SESSION_PROTOCOL.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
 | `FILE-DOCS-CODEX-MAPPING` | `docs/codex/02_CODEX_SKILL_MAPPING.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
 | `FILE-DOCS-CODEX-SKILL-INSTALL` | `docs/codex/03_CODEX_SKILL_INSTALL_PLAN.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-DOCS-CLINE-NEXT-PHASE-HANDOFF` | `docs/codex/04_CLINE_NEXT_PHASE_PLANNING_HANDOFF.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-DOCS-CODE-REVIEW-PROCESS` | `docs/codex/05_CODE_REVIEW_PROCESS.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-DOCS-CODE-REVIEW-LEDGER` | `docs/codex/06_CODE_REVIEW_LEDGER.md` | `documentation` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-SKILL-PEER-REVIEW` | `skills/peer-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-CLAUDE-SKILL-PEER-REVIEW` | `.claude/skills/peer-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-SKILL-CODE-REVIEW` | `skills/code-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-CLAUDE-SKILL-CODE-REVIEW` | `.claude/skills/code-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
 
 ## Visual Metadata Contract
 

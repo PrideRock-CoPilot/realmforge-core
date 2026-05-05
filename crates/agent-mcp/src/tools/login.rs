@@ -26,5 +26,6 @@ pub async fn core_login(args: LoginArgs, ctx: &ServiceContext) -> Result<Value, 
         "scope": response.scope,
         "expires_at": response.expires_at.to_rfc3339(),
         "audit_event_id": response.audit_event_id,
+        "snapshot_id": response.snapshot_id,
     }))
 }

@@ -14,7 +14,7 @@
 mod common;
 
 use authority_domain::login::{LoginCredentials, LoginPolicyConfig, Scope};
-use authority_domain::{ActorId, ProjectId, TenantId};
+use authority_domain::{ActorId, ProjectId, SnapshotId, TenantId};
 use control_service::error::ServiceError;
 use control_service::{AuditService, LoginHandler, SessionService};
 use sha2::{Digest, Sha256};
@@ -145,7 +145,7 @@ async fn test_login_success() {
     };
 
     let result = handler
-        .handle_login(tenant, project, credentials)
+        .handle_login(tenant.clone(), project.clone(), credentials)
         .await
         .unwrap();
 
@@ -163,6 +163,23 @@ async fn test_login_success() {
     assert!(
         !result.audit_event_id.is_empty(),
         "audit event should be recorded"
+    );
+    assert!(
+        !result.snapshot_id.is_empty(),
+        "snapshot anchor should be recorded"
+    );
+
+    let snapshot_id = SnapshotId::new(result.snapshot_id.clone()).unwrap();
+    let snapshot = store
+        .get_snapshot_manifest(&snapshot_id)
+        .await
+        .unwrap()
+        .expect("snapshot anchor should be persisted");
+    assert_eq!(snapshot.tenant_id, tenant);
+    assert_eq!(snapshot.project_id, project);
+    assert!(
+        snapshot.reason.contains(actor.as_str()),
+        "snapshot reason should identify the login actor"
     );
 }
 

@@ -263,6 +263,7 @@ pub struct LoginResponse {
     pub scope: String,
     pub expires_at: chrono::DateTime<chrono::Utc>,
     pub audit_event_id: String,
+    pub snapshot_id: String,
 }
 
 // ── Health endpoints ──

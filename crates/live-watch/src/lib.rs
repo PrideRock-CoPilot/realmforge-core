@@ -38,7 +38,6 @@ impl Default for WatchConfig {
 /// generation for live runtime health monitoring.
 #[derive(Clone)]
 pub struct LiveWatchEngine {
-    store: CoreStore,
     config: WatchConfig,
     collector: SignalCollector,
     detector: AnomalyDetector,
@@ -51,7 +50,6 @@ pub struct LiveWatchEngine {
 impl LiveWatchEngine {
     pub fn new(store: CoreStore, config: WatchConfig) -> Self {
         Self {
-            store: store.clone(),
             config: config.clone(),
             collector: SignalCollector::new(store.clone()),
             detector: AnomalyDetector::new(),
@@ -120,15 +118,10 @@ impl LiveWatchEngine {
             );
         }
 
-        // Only generate proposals if there are anomalous signals
-        let recent_signals = self
-            .store
-            .query_watch_signals(app_id, None, None, 100, 0)
-            .await?;
-
-        if !recent_signals.is_empty() {
+        // Only generate proposals from anomalies found in this cycle.
+        if !anomalous_signals.is_empty() {
             self.generator
-                .propose_remediation(app_id, &recent_signals)
+                .propose_remediation(app_id, &anomalous_signals)
                 .await?;
         }
 

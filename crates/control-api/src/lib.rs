@@ -64,6 +64,16 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
         routes::boards::approve_plan,
         routes::boards::reject_plan,
         routes::boards::submit_release,
+        // Intake Pipeline
+        routes::intake::create_plan,
+        routes::intake::refine_plan,
+        routes::intake::set_architecture,
+        routes::intake::decompose,
+        routes::intake::generate_packets,
+        routes::intake::advance_to_ready,
+        routes::intake::list_plans,
+        routes::intake::get_plan,
+        routes::intake::get_plan_audit,
         // Catalog
         routes::catalog::list_catalog,
         routes::catalog::copy_catalog,
@@ -174,6 +184,23 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
             routes::live_watch::RecordSignalBody,
             routes::live_watch::ProfileBody,
             routes::live_watch::ThresholdJson,
+            // Intake Pipeline route types
+            routes::intake::CreateIntakePlanRequest,
+            routes::intake::RefinePlanRequest,
+            routes::intake::SetArchitectureRequest,
+            routes::intake::DecomposeRequest,
+            routes::intake::GeneratePacketsRequest,
+            routes::intake::StageActionRequest,
+            routes::intake::ListIntakePlansQuery,
+            routes::intake::IntakePlanResponse,
+            routes::intake::IntakePlanListResponse,
+            routes::intake::IntakeAuditResponse,
+            authority_domain::plan::CoreArea,
+            authority_domain::plan::PlanDecision,
+            authority_domain::plan::PlanRisk,
+            authority_domain::plan::PlanPhase,
+            authority_domain::plan::WorkPacket,
+            authority_domain::plan::PlanAuditEntry,
         )
     ),
     modifiers(&BearerSecurityAddon),
@@ -195,6 +222,7 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
         (name = "runtime", description = "Runtime instances — deploy, monitor, stop"),
         (name = "login", description = "Login — authentication, session issuance, policy management"),
         (name = "live-watch", description = "Live Watch — runtime signal monitoring, remediation proposals"),
+        (name = "intake", description = "Intake Pipeline — 6-stage plan creation flow"),
     )
 )]
 pub struct ApiDoc;
@@ -403,6 +431,34 @@ pub fn router(state: ServiceContext) -> Router {
         .route(
             "/v1/live-watch/profiles/:app_id",
             put(routes::live_watch::update_profile),
+        )
+        // Intake Pipeline
+        .route("/v1/intake/plans", post(routes::intake::create_plan))
+        .route("/v1/intake/plans", get(routes::intake::list_plans))
+        .route(
+            "/v1/intake/plans/:id/refine",
+            post(routes::intake::refine_plan),
+        )
+        .route(
+            "/v1/intake/plans/:id/architecture",
+            post(routes::intake::set_architecture),
+        )
+        .route(
+            "/v1/intake/plans/:id/decompose",
+            post(routes::intake::decompose),
+        )
+        .route(
+            "/v1/intake/plans/:id/packetize",
+            post(routes::intake::generate_packets),
+        )
+        .route(
+            "/v1/intake/plans/:id/ready",
+            post(routes::intake::advance_to_ready),
+        )
+        .route("/v1/intake/plans/:id", get(routes::intake::get_plan))
+        .route(
+            "/v1/intake/plans/:id/audit",
+            get(routes::intake::get_plan_audit),
         )
         // Static frontend assets (Phase 1: same-origin hosting, ADR-0005)
         // frontend/dist/ is served at / — catch-all for client-side routing

@@ -6,7 +6,7 @@ status: draft
 owner: data-architect
 reviewers: [cto, data-engineer, backend, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-KNOWLEDGE-001]
@@ -134,8 +134,12 @@ pub struct Citation {
 - [x] ParquetDataset supports versioned writes and query
 - [x] Service wired: KnowledgeService uses parquet-store when configured with `new_with_parquet()`
 - [x] Error propagation: ServiceError::Parquet variant for parquet-store errors
-- [ ] `cargo test --workspace` passes with 0 failures
-- [ ] `cargo clippy --workspace -- -D warnings` passes
+- [x] `cargo test --workspace` passes with 0 failures (verified 2026-05-05 with `--target-dir target-quality`)
+- [x] `cargo clippy --workspace -- -D warnings` passes (verified 2026-05-05 with `--all-targets --target-dir target-quality`)
+
+### Current Verification Note (2026-05-05)
+
+Development is complete for the Phase 5 code surface: domain types, parquet-store, versioned dataset operations, reconciliation, KnowledgeService Parquet wiring, and API/CLI/MCP query plus ingest surfaces all exist and compile. Workspace quality gates are green. `TEST-KNOWLEDGE-001` remains open until QA certifies the end-to-end answer path: governed citations plus grant-scope enforcement in the user-facing Knowledge answer flow.
 
 ---
 

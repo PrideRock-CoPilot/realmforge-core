@@ -46,6 +46,7 @@ pub async fn login(
             scope: response.scope,
             expires_at: response.expires_at,
             audit_event_id: response.audit_event_id,
+            snapshot_id: response.snapshot_id,
         }),
     ))
 }

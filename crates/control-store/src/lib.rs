@@ -1,5 +1,7 @@
 pub mod audit;
 pub mod boards;
+pub mod plan_store;
+
 pub mod build_watch;
 pub mod bundles;
 pub mod catalog;

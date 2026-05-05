@@ -20,11 +20,11 @@ export interface FetchError {
 // orval mutator: called for every generated API hook's fetch
 export async function customFetch<T>(
   url: string,
-  options: RequestInit,
+  options?: RequestInit,
 ): Promise<T> {
   const token = useSessionStore.getState().sessionToken
 
-  const headers = new Headers(options.headers)
+  const headers = new Headers(options?.headers)
   headers.set('Content-Type', 'application/json')
 
   // ADR-0004: Bearer token — never log this header
@@ -33,7 +33,7 @@ export async function customFetch<T>(
   }
 
   const response = await fetch(`${API_BASE_URL}${url}`, {
-    ...options,
+    ...(options ?? {}),
     headers,
   })
 

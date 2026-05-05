@@ -10,7 +10,7 @@ source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-DOCS-000, WP-CORE-001, WP-CATALOG-001, WP-SKILL-001, WP-GATEWAY-001, WP-WORKPATH-001, WP-BOARDS-001, WP-KNOWLEDGE-001, WP-BUILD-WATCH-001, WP-RUNTIME-BUNDLE-001, WP-LIVE-RUNTIME-001, WP-LIVE-WATCH-001, WP-LOGIN-001]
 related_decision_ids: [DEC-COUNCIL-001, DEC-COUNCIL-002, DEC-COUNCIL-003, DEC-USER-004, DEC-USER-005, DEC-USER-006]
-related_file_ids: [FILE-ROOT-CARGO, FILE-CRATE-DOMAIN-LIB, FILE-CRATE-DOMAIN-IDS, FILE-CRATE-DOMAIN-SCOPE, FILE-CRATE-DOMAIN-WORKPATH, FILE-CRATE-DOMAIN-CATALOG, FILE-CRATE-DOMAIN-GRANT, FILE-CRATE-POLICY-LIB, FILE-CRATE-POLICY-SOD, FILE-CRATE-AUDIT-LIB, FILE-CRATE-SNAPSHOT-LIB, FILE-CRATE-STORE-LIB, FILE-CRATE-SERVICE-LIB, FILE-CRATE-GATEWAY-LIB, FILE-CRATE-API-LIB, FILE-CRATE-MCP-LIB, FILE-CRATE-CLI-MAIN, FILE-CRATE-PARQUET-LIB, FILE-CRATE-BUNDLE-LIB, FILE-CRATE-BUILD-WATCH-LIB, FILE-CRATE-LIVE-WATCH-LIB, FILE-DB-001, FILE-DB-002, FILE-DB-003, FILE-DB-004, FILE-PARQUET-FILES, FILE-PARQUET-WORKPATHS, FILE-PARQUET-EVIDENCE, FILE-CATALOG-LOGIN-MODULE, FILE-CONTRACT-LOGIN, FILE-POLICY-LOGIN, FILE-HANDLER-LOGIN, FILE-WATCH-LOGIN]
+related_file_ids: [FILE-ROOT-CARGO, FILE-CRATE-DOMAIN-LIB, FILE-CRATE-DOMAIN-IDS, FILE-CRATE-DOMAIN-SCOPE, FILE-CRATE-DOMAIN-WORKPATH, FILE-CRATE-DOMAIN-CATALOG, FILE-CRATE-DOMAIN-GRANT, FILE-CRATE-POLICY-LIB, FILE-CRATE-POLICY-SOD, FILE-CRATE-AUDIT-LIB, FILE-CRATE-SNAPSHOT-LIB, FILE-CRATE-STORE-LIB, FILE-CRATE-SERVICE-LIB, FILE-CRATE-GATEWAY-LIB, FILE-CRATE-API-LIB, FILE-CRATE-MCP-LIB, FILE-CRATE-CLI-MAIN, FILE-CRATE-PARQUET-LIB, FILE-CRATE-BUNDLE-LIB, FILE-CRATE-LIVE-RUNTIME-LIB, FILE-CRATE-BUILD-WATCH-LIB, FILE-CRATE-LIVE-WATCH-LIB, FILE-DB-001, FILE-DB-002, FILE-DB-003, FILE-DB-004, FILE-PARQUET-FILES, FILE-PARQUET-WORKPATHS, FILE-PARQUET-EVIDENCE, FILE-CATALOG-LOGIN-MODULE, FILE-CONTRACT-LOGIN, FILE-CONTRACT-LOGIN-RESPONSE, FILE-POLICY-LOGIN, FILE-HANDLER-LOGIN, FILE-WATCH-LOGIN]
 visual_node_ids: [VN-ROADMAP, VN-MODULE-AUTHORITY-CORE, VN-MODULE-CATALOGS, VN-MODULE-SKILL-GRANTS, VN-MODULE-AGENT-GATEWAY, VN-MODULE-WORK-PATHS, VN-MODULE-BOARDS, VN-MODULE-KNOWLEDGE, VN-MODULE-BUILD-WATCH, VN-MODULE-RUNTIME-BUNDLE, VN-MODULE-LIVE-RUNTIME, VN-MODULE-LIVE-WATCH, VN-MODULE-LOGIN]
 visual_edge_ids: [VE-PHASE-0-TO-1, VE-PHASE-1-TO-2, VE-PHASE-2-TO-3, VE-PHASE-3-TO-4, VE-PHASE-4-TO-5, VE-PHASE-5-TO-6, VE-PHASE-6-TO-7, VE-PHASE-7-TO-8, VE-PHASE-8-TO-9]
 approval_state: pending
@@ -75,6 +75,22 @@ Phase 0: Documentation Certification
 | 7 | Runtime Bundle And Live Runtime | cto | critical | `docs/plan/Phase7.md` |
 | 8 | Live Watch | backend | medium | `docs/plan/Phase8.md` |
 | 9 | Login Vertical | pm | high | `docs/plan/Phase9.md` |
+
+---
+
+## Current Roadmap Position (2026-05-05)
+
+| Area | Current state | Next action |
+|------|---------------|-------------|
+| Phase 0 | Documentation certification remains open for human QA/release signoff. | Keep certification gates open until reviewed. |
+| Phase 1-2 | Workspace and Authority Core gates are checked in the phase plans. | Treat as baseline foundation unless regression appears. |
+| Phase 3 | Catalog and Work Path service acceptance tests pass; workspace test/clippy gates are green. | Verify API, CLI, and MCP CRUD operation evidence before certifying the phase. |
+| Phase 4 | Agent Gateway and Skill Grants gates are checked in the phase plan. | Treat as baseline security foundation unless regression appears. |
+| Phase 5 | Developed: Knowledge/Parquet implementation surface is complete and workspace test/clippy gates are green; `TEST-KNOWLEDGE-001` remains open. | Certify governed citations plus grant-scope enforcement in the Knowledge answer flow. |
+| Phase 6 | Workspace test/clippy gates are green; functional gates are checked pending formal owner/reviewer acceptance. | Complete formal acceptance. |
+| Phase 7 | Developed: Runtime Bundle and Live Runtime implementation surfaces are complete; workspace test/clippy gates are green. | Certify interface-level bundle/runtime scenarios and review/signoff gates. |
+| Phase 8 | Developed: Live Watch implementation surface is complete; workspace test/clippy gates are green; DB-backed E2E QA remains partial. | Certify collect -> detect -> propose and interval behavior against the DB-backed service path. |
+| Phase 9 | Developed: Login implementation surface is complete with catalog, policy, handler, transports, integration tests, and snapshot anchor response. | Certify full catalog-to-rollback E2E, gateway packet execution, audit-chain proof, and rollback restoration. |
 
 ---
 

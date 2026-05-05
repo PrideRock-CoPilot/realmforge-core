@@ -6,12 +6,12 @@ status: draft
 owner: cto
 reviewers: [backend, security-architect, release-manager, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-RUNTIME-BUNDLE-001, WP-LIVE-RUNTIME-001]
 related_decision_ids: []
-related_file_ids: [FILE-CRATE-BUNDLE-LIB, FILE-CRATE-SERVICE-LIB]
+related_file_ids: [FILE-CRATE-BUNDLE-LIB, FILE-CRATE-LIVE-RUNTIME-LIB, FILE-CRATE-SERVICE-LIB]
 visual_node_ids: [VN-MODULE-RUNTIME-BUNDLE, VN-MODULE-LIVE-RUNTIME]
 approval_state: pending
 ---
@@ -154,15 +154,19 @@ pub enum BundleStatus {
 
 ## Completion Gates
 
-- [ ] `TEST-BUNDLE-001` — Runtime bundle refuses invalid signature
-- [ ] Bundle creation pipeline produces valid signed manifest
-- [ ] Bundle verification detects tampered artifacts
-- [ ] Runtime deploys verified bundle and responds to actions
-- [ ] Every runtime execution goes through policy check → audit → snapshot anchor
-- [ ] Runtime health endpoint returns correct status and metrics
-- [ ] API, CLI, and MCP surfaces all functional
-- [ ] `cargo test --workspace` passes with 0 failures
-- [ ] `cargo clippy --workspace -- -D warnings` passes
+- [x] `TEST-BUNDLE-001` — Runtime bundle refuses invalid signature
+- [x] Bundle creation pipeline produces valid signed manifest
+- [x] Bundle verification detects tampered artifacts
+- [x] Runtime deploys verified bundle and responds to actions
+- [x] `TEST-LIVE-RUNTIME-001` — Every runtime execution goes through policy check → audit → snapshot anchor
+- [x] Runtime health endpoint returns correct status and metrics
+- [x] API, CLI, and MCP surfaces all functional
+- [x] `cargo test --workspace` passes with 0 failures (verified 2026-05-05 with `--target-dir target-quality`)
+- [x] `cargo clippy --workspace -- -D warnings` passes (verified 2026-05-05 with `--all-targets --target-dir target-quality`)
+
+### Current Verification Note (2026-05-05)
+
+Development is complete for the Phase 7 code surface: runtime-bundle builds signed manifests, rejects wrong-key signatures, detects tampered artifacts, and live-runtime loads verified bundles, reports health/metrics, and records policy/audit/snapshot receipts before success. API, CLI, and MCP surfaces are implemented and registered. Formal QA remains partial until interface-level bundle/runtime scenarios are certified outside unit/workspace coverage.
 
 ---
 

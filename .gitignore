@@ -13,3 +13,9 @@ docs/rollout-*.jsonl
 docs/*.jsonl
 # local test credential fixtures
 login_*.json
+
+# frontend build artifacts
+/frontend/dist/
+/frontend/tsconfig.tsbuildinfo
+/frontend/node_modules/
+/frontend/package-lock.json

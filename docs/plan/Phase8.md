@@ -151,16 +151,16 @@ pub struct RemediationProposal {
 
 ## Completion Gates
 
-- [ ] `TEST-LIVE-WATCH-001` — Live Watch proposes remediation packet for repeated latency signal
-- [ ] Signal collection runs on configurable interval
-- [ ] Anomaly detection fires on threshold breach and trend deviation
+- [x] `TEST-LIVE-WATCH-001` — Live Watch proposes remediation packet for repeated latency signal
+- [x] Signal collection runs on configurable interval
+- [x] Anomaly detection fires on threshold breach and trend deviation
 - [x] Remediation proposals include impact analysis (never auto-execute)
 - [x] Proposals can be approved via API, which routes to gateway for execution
 - [x] Watch profiles can be created, updated, and applied per app
 - [x] No auto-remediation occurs outside the `DEC-USER-006` tier rules
 - [x] API, CLI, and MCP surfaces all functional
-- [ ] `cargo test --workspace` passes with 0 failures
-- [ ] `cargo clippy --workspace -- -D warnings` passes
+- [x] `cargo test --workspace` passes with 0 failures (verified 2026-05-05 with `--target-dir target-quality`)
+- [x] `cargo clippy --workspace -- -D warnings` passes (verified 2026-05-05 with `--all-targets --target-dir target-quality`)
 - [x] `cargo check --workspace` passes with 0 errors
 - [x] Live Watch domain types defined (SignalType, SignalSeverity, WatchSignal, RemediationProposal, WatchProfile, SignalThreshold)
 - [x] DB migration created (008_live_watch.sql with watch_signals, remediation_proposals, watch_profiles tables)
@@ -169,7 +169,11 @@ pub struct RemediationProposal {
 - [x] control-api routes registered (10 endpoints: start, stop, record_signal, get_signals, propose, list_proposals, approve, get_profile, update_profile)
 - [x] operator-cli subcommands registered (6 commands: start, stop, signals, propose, proposals, approve)
 - [x] agent-mcp tools registered (4 tools: core_get_watch_signals, core_propose_remediation, core_list_proposals, core_approve_proposal)
-- [ ] Live Watch engine cycle (collect → detect → propose) functional
+- [x] Live Watch engine cycle (collect → detect → propose) functional
+
+### Current Verification Note (2026-05-05)
+
+Development is complete for the Phase 8 code surface. `TEST-LIVE-WATCH-001` proves the repeated-latency detection/proposal path, unit tests cover threshold breach plus trend-deviation detection, `run_cycle_for_app` now proposes only from anomalies detected in the current cycle, and the background monitor uses configurable polling. Formal QA remains partial until DB-backed interval and collect-to-propose scenarios are certified end to end.
 
 ---
 

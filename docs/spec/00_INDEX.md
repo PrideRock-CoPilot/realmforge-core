@@ -10,7 +10,7 @@ source_of_truth: true
 product_area: specification-system
 work_path_ids: [WP-DOCS-000]
 related_decision_ids: []
-related_file_ids: [FILE-DOCS-CODEX-SETUP, FILE-DOCS-CODEX-SESSION, FILE-DOCS-CODEX-MAPPING, FILE-DOCS-CODEX-SKILL-INSTALL]
+related_file_ids: [FILE-DOCS-CODEX-SETUP, FILE-DOCS-CODEX-SESSION, FILE-DOCS-CODEX-MAPPING, FILE-DOCS-CODEX-SKILL-INSTALL, FILE-DOCS-CLINE-NEXT-PHASE-HANDOFF, FILE-DOCS-CODE-REVIEW-PROCESS, FILE-DOCS-CODE-REVIEW-LEDGER]
 visual_node_ids: [VN-SPEC-INDEX]
 visual_edge_ids: []
 approval_state: pending

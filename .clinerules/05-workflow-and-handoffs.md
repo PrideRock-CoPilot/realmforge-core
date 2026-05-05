@@ -1,5 +1,7 @@
 # Workflow Chain and Handoff Discipline
 
+For stage-by-stage execution, also follow `07-focused-workflow-lifecycle.md`.
+
 ## The Canonical Handoff Chain
 
 Work must flow through this chain. Skipping a step is a violation.
@@ -14,6 +16,10 @@ Rena (CTO)             — architecture contracts and technical guardrails
 Architects (as needed) — Yusuf, Fatima, Marcus, Nadia, Chen
        ↓
 Engineering            — Dmitri (Rust), Kai (Frontend), Priya (Data)
+       ↓
+Nora (Peer Review)     — area readiness and evidence review
+       ↓
+Owen (Code Review)     — file-level implementation review
        ↓
 Meg (QA)               — verification, defect docs, release certification
        ↓

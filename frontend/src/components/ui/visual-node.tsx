@@ -16,22 +16,23 @@ const NODE_META: Record<string, { icon: string; shape: string }> = {
   workpath: { icon: '→', shape: 'node--workpath' },
 }
 
-function BaseVisualNode({ type, data, selected }: NodeProps<VisualNodeData> & { type: string }) {
+function BaseVisualNode({ type, data, selected }: NodeProps & { type: string }) {
   const meta = NODE_META[type] ?? { icon: '○', shape: 'node--unknown' }
+  const nodeData = data as unknown as VisualNodeData
 
   return (
     <div
       className={`visual-node ${meta.shape}${selected ? ' visual-node--selected' : ''}`}
       // aria-label on the node div provides the text alternative for AT users
       // The full graph has role="img" + aria-describedby pointing to the text list
-      aria-label={`${type} node: ${data.label}${data.state ? `, state: ${data.state}` : ''}`}
+      aria-label={`${type} node: ${nodeData.label}${nodeData.state ? `, state: ${nodeData.state}` : ''}`}
     >
       <Handle type="target" position={Position.Top} />
       <span aria-hidden="true" className="visual-node__icon">{meta.icon}</span>
-      <span className="visual-node__label">{data.label}</span>
-      {data.state && (
+      <span className="visual-node__label">{nodeData.label}</span>
+      {nodeData.state && (
         <span className="visual-node__state" aria-hidden="true">
-          {data.state}
+          {nodeData.state}
         </span>
       )}
       <Handle type="source" position={Position.Bottom} />
@@ -39,10 +40,10 @@ function BaseVisualNode({ type, data, selected }: NodeProps<VisualNodeData> & { 
   )
 }
 
-export const VisualModuleNode   = memo((props: NodeProps<VisualNodeData>) => <BaseVisualNode {...props} type="module" />)
-export const VisualPhaseNode    = memo((props: NodeProps<VisualNodeData>) => <BaseVisualNode {...props} type="phase" />)
-export const VisualDecisionNode = memo((props: NodeProps<VisualNodeData>) => <BaseVisualNode {...props} type="decision" />)
-export const VisualWorkPathNode = memo((props: NodeProps<VisualNodeData>) => <BaseVisualNode {...props} type="workpath" />)
+export const VisualModuleNode   = memo((props: NodeProps) => <BaseVisualNode {...props} type="module" />)
+export const VisualPhaseNode    = memo((props: NodeProps) => <BaseVisualNode {...props} type="phase" />)
+export const VisualDecisionNode = memo((props: NodeProps) => <BaseVisualNode {...props} type="decision" />)
+export const VisualWorkPathNode = memo((props: NodeProps) => <BaseVisualNode {...props} type="workpath" />)
 
 VisualModuleNode.displayName   = 'VisualModuleNode'
 VisualPhaseNode.displayName    = 'VisualPhaseNode'

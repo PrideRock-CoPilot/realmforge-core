@@ -1,9 +1,10 @@
 use authority_domain::login::{LoginAttemptOutcome, LoginCredentials, LoginPolicyConfig};
 use authority_domain::login_policy;
-use authority_domain::{ActorId, TenantId};
+use authority_domain::{ActorId, ProjectId, TenantId};
 use chrono::{Duration, Utc};
 use control_store::CoreStore;
 use serde::{Deserialize, Serialize};
+use snapshot_ledger::SnapshotManifest;
 use tracing::{info, instrument, warn};
 
 use crate::error::ServiceError;
@@ -17,6 +18,7 @@ pub struct LoginResponse {
     pub scope: String,
     pub expires_at: chrono::DateTime<chrono::Utc>,
     pub audit_event_id: String,
+    pub snapshot_id: String,
 }
 
 /// Login handler — orchestrates the full login lifecycle:
@@ -25,9 +27,10 @@ pub struct LoginResponse {
 /// 2. Rate limit check (SR-3)
 /// 3. Block check (SR-3)
 /// 4. Credential validation (SR-2)
-/// 5. Session issuance
-/// 6. Audit trail (SR-5)
-/// 7. Login attempt recording
+/// 5. Snapshot anchor creation
+/// 6. Session issuance
+/// 7. Audit trail (SR-5)
+/// 8. Login attempt recording
 ///
 /// Layer: service → policy → store
 #[derive(Clone)]
@@ -136,13 +139,18 @@ impl LoginHandler {
                 actor_id: a,
                 scope: s,
             } => {
-                // Step 6: Issue session (SR-4)
+                // Step 6: Create a pre-mutation snapshot anchor for rollback.
+                let snapshot_anchor = self
+                    .create_snapshot_anchor(&tenant_id, &project_id, &a)
+                    .await?;
+
+                // Step 7: Issue session (SR-4)
                 let session = self
                     .sessions
                     .issue_session(&a, &tenant_id, &project_id, 3600)
                     .await?; // 1 hour TTL
 
-                // Step 7: Record audit event (SR-5)
+                // Step 8: Record audit event (SR-5)
                 let audit_event = self
                     .audit_service
                     .append_chained_event(
@@ -155,11 +163,12 @@ impl LoginHandler {
                         serde_json::json!({
                             "scope": s.as_str(),
                             "session_id": session.id.as_str(),
+                            "snapshot_id": snapshot_anchor.id.as_str(),
                         }),
                     )
                     .await?;
 
-                // Step 8: Record successful attempt
+                // Step 9: Record successful attempt
                 self.record_attempt(&tenant_id, &a, "success").await?;
 
                 info!(actor_id = %a, "login successful");
@@ -169,14 +178,15 @@ impl LoginHandler {
                     scope: s.to_string(),
                     expires_at: session.expires_at,
                     audit_event_id: audit_event.id.as_str().to_string(),
+                    snapshot_id: snapshot_anchor.id.as_str().to_string(),
                 })
             }
             _ => {
-                // Step 9: Record failed attempt
+                // Step 6: Record failed attempt
                 self.record_attempt(&tenant_id, &actor_id, "invalid_credentials")
                     .await?;
 
-                // Step 10: Check if auto-block needed
+                // Step 7: Check if auto-block needed
                 let failed_count = recent_attempts
                     .iter()
                     .filter(|a| a.outcome == "invalid_credentials" || a.outcome == "failed")
@@ -234,6 +244,38 @@ impl LoginHandler {
     }
 
     // ── Internal helpers ──
+
+    /// Create a snapshot anchor that can be used for login rollback.
+    async fn create_snapshot_anchor(
+        &self,
+        tenant_id: &TenantId,
+        project_id: &ProjectId,
+        actor_id: &ActorId,
+    ) -> Result<SnapshotManifest, ServiceError> {
+        let parent = self
+            .store
+            .list_snapshot_manifests(project_id, 1, 0)
+            .await?
+            .into_iter()
+            .next();
+        let parent_snapshot_id = parent.as_ref().map(|manifest| manifest.id.clone());
+        let previous_manifest_hash = parent
+            .as_ref()
+            .map(|manifest| manifest.manifest_hash.clone());
+
+        let manifest = SnapshotManifest::create(
+            tenant_id.clone(),
+            project_id.clone(),
+            format!("login pre-mutation anchor for actor {}", actor_id.as_str()),
+            parent_snapshot_id,
+            vec![],
+            vec![],
+            previous_manifest_hash,
+        )?;
+
+        self.store.insert_snapshot_manifest(&manifest).await?;
+        Ok(manifest)
+    }
 
     /// Record a login attempt outcome in the store.
     async fn record_attempt(

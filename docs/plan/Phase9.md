@@ -11,7 +11,7 @@ source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-LOGIN-001]
 related_decision_ids: [DEC-USER-004, DEC-USER-005]
-related_file_ids: [FILE-CATALOG-LOGIN-MODULE, FILE-CONTRACT-LOGIN, FILE-POLICY-LOGIN, FILE-HANDLER-LOGIN, FILE-WATCH-LOGIN]
+related_file_ids: [FILE-CATALOG-LOGIN-MODULE, FILE-CONTRACT-LOGIN, FILE-CONTRACT-LOGIN-RESPONSE, FILE-POLICY-LOGIN, FILE-HANDLER-LOGIN, FILE-WATCH-LOGIN]
 visual_node_ids: [VN-MODULE-LOGIN]
 approval_state: pending
 ---
@@ -174,17 +174,22 @@ No new crate is needed for Login. It uses existing crates:
 ## Completion Gates
 
 - [ ] `TEST-LOGIN-E2E-001` — Login vertical completes catalog-to-rollback loop
-- [ ] Catalog entry exists for Login module with all required metadata
+- [x] Catalog entry exists for Login module with all required metadata
 - [ ] Work path traversal correctly generates Login packet
 - [ ] Gateway executes Login packet with grants + audit + evidence + anchor
-- [ ] Login endpoint returns valid session token with correct scope
-- [ ] Login policy enforces rate limits
+- [x] Login endpoint returns valid session token with correct scope
+- [x] Login policy enforces rate limits
 - [ ] Audit trail records all login events with hash chain integrity
 - [ ] Snapshot captures login state correctly
 - [ ] Rollback restores system to pre-login state
-- [ ] Watch profile collects login failure rate signals
-- [ ] `cargo test --workspace` passes with 0 failures
-- [ ] `cargo clippy --workspace -- -D warnings` passes
+- [x] Login handler creates a snapshot anchor before session issuance
+- [x] Watch profile collects login failure rate signals
+- [x] `cargo test --workspace` passes with 0 failures (verified 2026-05-05 with `--target-dir target-quality`)
+- [x] `cargo clippy --workspace -- -D warnings` passes (verified 2026-05-05 with `--all-targets --target-dir target-quality`)
+
+### Current Verification Note (2026-05-05)
+
+Development is complete for the Phase 9 implementation surface: Login catalog files, request/response contracts, policy, watch profile, domain types, persistence, handler, API, CLI, MCP, and integration tests all exist. The handler now returns a persisted snapshot anchor in addition to the session and audit event. Phase QA remains partial because the full catalog-to-rollback E2E loop, gateway packet execution, full login-event audit chain proof, and rollback restoration proof are not yet certified.
 
 ---
 

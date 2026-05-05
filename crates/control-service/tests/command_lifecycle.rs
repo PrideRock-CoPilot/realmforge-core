@@ -6,12 +6,45 @@
 
 mod common;
 
-use authority_domain::{ActorScope, CommandStatus};
+use authority_domain::{ActorId, ActorScope, CommandStatus, ExecutionMode, ProjectId, TenantId};
 use control_service::{error::ServiceError, AuditService, CommandService};
 use serde_json::json;
+use sqlx::PgPool;
 
 fn test_scope() -> ActorScope {
-    ActorScope::default()
+    ActorScope {
+        allowed_actions: vec!["*".to_string()],
+        execution_mode: ExecutionMode::ReadWrite,
+        ..Default::default()
+    }
+}
+
+/// Ensure required FK targets (tenant, project, actor) exist in the database.
+async fn seed_test_env(pool: &PgPool) {
+    sqlx::query(
+        "INSERT INTO tenants (id, name, status, created_at) \
+         VALUES ('default', 'Test Tenant', 'active', now()) \
+         ON CONFLICT (id) DO NOTHING",
+    )
+    .execute(pool)
+    .await
+    .expect("seed_test_env: failed to insert tenant");
+    sqlx::query(
+        "INSERT INTO projects (id, tenant_id, name, status, created_at) \
+         VALUES ('default', 'default', 'Test Project', 'active', now()) \
+         ON CONFLICT (id) DO NOTHING",
+    )
+    .execute(pool)
+    .await
+    .expect("seed_test_env: failed to insert project");
+    sqlx::query(
+        "INSERT INTO actors (id, tenant_id, display_name, actor_type, status, created_at) \
+         VALUES ('default', 'default', 'Test Actor', 'human', 'active', now()) \
+         ON CONFLICT (id) DO NOTHING",
+    )
+    .execute(pool)
+    .await
+    .expect("seed_test_env: failed to insert actor");
 }
 
 #[tokio::test]
@@ -20,6 +53,8 @@ async fn test_command_propose() {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(store.pool()).await;
 
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store, audit_svc);
@@ -47,6 +82,8 @@ async fn test_command_propose_authorize_apply() {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(store.pool()).await;
 
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store, audit_svc);
@@ -85,6 +122,8 @@ async fn test_command_not_found() {
         None => return,
     };
 
+    seed_test_env(store.pool()).await;
+
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store, audit_svc);
     let fake_id = authority_domain::CommandId::generate();
@@ -99,6 +138,8 @@ async fn test_command_audit_events_emitted() {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(store.pool()).await;
 
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store.clone(), audit_svc.clone());
@@ -139,6 +180,58 @@ async fn test_command_audit_events_emitted() {
     );
 }
 
+/// Each chain test uses unique IDs so tests can run in parallel without conflict,
+/// AND cleans up any events for that project from previous runs.
+fn chain_ids(label: &str) -> (TenantId, ProjectId, ActorId) {
+    (
+        TenantId::new(format!("chain-t{label}")).unwrap(),
+        ProjectId::new(format!("chain-p{label}")).unwrap(),
+        ActorId::new(format!("chain-a{label}")).unwrap(),
+    )
+}
+
+/// Seed tenant, project, and actor for chain integrity tests (unique IDs).
+async fn seed_chain_env(pool: &PgPool, t: &TenantId, p: &ProjectId, a: &ActorId) {
+    sqlx::query(
+        "INSERT INTO tenants (id, name, status, created_at) \
+         VALUES ($1, $2, 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(t.as_str())
+    .bind(t.as_str())
+    .execute(pool)
+    .await
+    .expect("seed_chain_env: failed to insert tenant");
+    sqlx::query(
+        "INSERT INTO projects (id, tenant_id, name, status, created_at) \
+         VALUES ($1, $2, $3, 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(p.as_str())
+    .bind(t.as_str())
+    .bind(p.as_str())
+    .execute(pool)
+    .await
+    .expect("seed_chain_env: failed to insert project");
+    sqlx::query(
+        "INSERT INTO actors (id, tenant_id, display_name, actor_type, status, created_at) \
+         VALUES ($1, $2, $3, 'human', 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(a.as_str())
+    .bind(t.as_str())
+    .bind(a.as_str())
+    .execute(pool)
+    .await
+    .expect("seed_chain_env: failed to insert actor");
+}
+
+/// Clear audit events for the given project so chain starts fresh.
+async fn clear_chain_events(pool: &PgPool, project_id: &ProjectId) {
+    sqlx::query("DELETE FROM core_audit_events WHERE project_id = $1")
+        .bind(project_id.as_str())
+        .execute(pool)
+        .await
+        .ok();
+}
+
 #[tokio::test]
 async fn test_command_chain_integrity() {
     let store = match common::get_store().await {
@@ -146,9 +239,22 @@ async fn test_command_chain_integrity() {
         None => return,
     };
 
+    let (tenant, project, actor) = chain_ids("int");
+    seed_chain_env(store.pool(), &tenant, &project, &actor).await;
+    clear_chain_events(store.pool(), &project).await;
+
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store, audit_svc.clone());
-    let scope = test_scope();
+
+    // Build scope with unique IDs, allowing read-write execution
+    let scope = ActorScope {
+        tenant_id: tenant,
+        project_id: project,
+        actor_id: actor,
+        allowed_actions: vec!["*".to_string()],
+        execution_mode: ExecutionMode::ReadWrite,
+        ..Default::default()
+    };
 
     // Run a command lifecycle
     let cmd = cmd_svc

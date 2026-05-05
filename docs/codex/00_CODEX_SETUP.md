@@ -29,7 +29,7 @@ Codex has system skills installed under `C:\Users\amari\.codex\skills\.system`. 
 Project-owned Codex skill sources live in:
 
 ```text
-docs/codex/skills-source/
+skills/
 ```
 
 Approved skill folders are copied into:
@@ -42,7 +42,7 @@ Do not install `realmforge-skill-creator` as `skill-creator`; Codex already has 
 
 ## Setup Sequence
 
-1. Review every `docs/codex/skills-source/*/SKILL.md`.
+1. Review every `skills/*/SKILL.md`.
 2. Confirm each skill has front matter with only `name` and `description`.
 3. Copy each approved folder to `C:\Users\amari\.codex\skills\`.
 4. Start a fresh Codex session.
@@ -50,4 +50,4 @@ Do not install `realmforge-skill-creator` as `skill-creator`; Codex already has 
 
 ## Source Mapping
 
-Claude source skills remain in `.claude/skills/`. Codex skill sources in `docs/codex/skills-source/` are concise operational versions derived from those files.
+Claude source skills remain in `skills/` and `.claude/skills/`. Codex skill sources in `docs/codex/skills-source/` are deprecated — all canonical skill sources now live in `skills/`.

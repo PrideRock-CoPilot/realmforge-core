@@ -6,7 +6,10 @@ use crate::StoreError;
 
 /// Insert a work path graph and all its nodes into the database.
 #[instrument(skip(pool))]
-pub async fn insert_work_path_graph(pool: &PgPool, graph: &WorkPathGraph) -> Result<(), StoreError> {
+pub async fn insert_work_path_graph(
+    pool: &PgPool,
+    graph: &WorkPathGraph,
+) -> Result<(), StoreError> {
     sqlx::query(
         r#"
         INSERT INTO work_path_graphs (id, name, description, created_at, updated_at)
@@ -139,15 +142,20 @@ impl WorkPathNodeRow {
             "watch_signal" => authority_domain::WorkPathNodeType::WatchSignal,
             "data_contract" => authority_domain::WorkPathNodeType::DataContract,
             "evidence" => authority_domain::WorkPathNodeType::Evidence,
-            other => return Err(StoreError::invalid_data(format!("invalid node_type: {other}"))),
+            other => {
+                return Err(StoreError::invalid_data(format!(
+                    "invalid node_type: {other}"
+                )))
+            }
         };
 
         fn parse_str_vec(val: serde_json::Value) -> Result<Vec<String>, StoreError> {
             serde_json::from_value(val).map_err(|e| StoreError::invalid_data(e.to_string()))
         }
 
-        let children: Vec<authority_domain::WorkPathNodeId> = serde_json::from_value(self.children_ids)
-            .map_err(|e| StoreError::invalid_data(e.to_string()))?;
+        let children: Vec<authority_domain::WorkPathNodeId> =
+            serde_json::from_value(self.children_ids)
+                .map_err(|e| StoreError::invalid_data(e.to_string()))?;
 
         Ok(WorkPathNode {
             id: WorkPathNodeId::new(self.id)
@@ -163,5 +171,29 @@ impl WorkPathNodeRow {
             children,
             created_at: self.created_at,
         })
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a work path graph and all its nodes into the database.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_work_path_graph(
+        &self,
+        graph: &authority_domain::WorkPathGraph,
+    ) -> Result<(), StoreError> {
+        insert_work_path_graph(&self.pool, graph).await
+    }
+
+    /// Get the full work path graph (with all nodes) by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_work_path_graph(
+        &self,
+        id: &authority_domain::WorkPathId,
+    ) -> Result<Option<authority_domain::WorkPathGraph>, StoreError> {
+        get_work_path_graph(&self.pool, id).await
     }
 }

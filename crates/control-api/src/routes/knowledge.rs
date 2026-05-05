@@ -41,10 +41,7 @@ pub async fn list_datasets(State(ctx): State<ServiceContext>) -> Json<Value> {
         (status = 500, description = "Internal error"),
     )
 )]
-pub async fn get_dataset(
-    State(ctx): State<ServiceContext>,
-    Path(id): Path<String>,
-) -> Json<Value> {
+pub async fn get_dataset(State(ctx): State<ServiceContext>, Path(id): Path<String>) -> Json<Value> {
     match ctx.knowledge.get_dataset_info(&id).await {
         Ok(info) => Json(serde_json::json!({
             "success": true,

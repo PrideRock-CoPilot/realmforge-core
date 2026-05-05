@@ -24,7 +24,7 @@ This file maps Claude company skills to Codex skill sources.
 
 | Claude skill | Codex skill source | Responsibility |
 | --- | --- | --- |
-| `skill-creator` | `realmforge-skill-creator` | RealmForge company skill governance |
+| `realmforge-skill-creator` | `realmforge-skill-creator` | RealmForge company skill governance |
 | `ceo` | `ceo` | Strategy and investment approval |
 | `pm` | `pm` | Planning, scope, handoffs |
 | `cto` | `cto` | Architecture and technical risk |

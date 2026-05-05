@@ -6,7 +6,7 @@ status: draft
 owner: pm
 reviewers: [ceo, cto, security-architect, frontend, backend, qa, release-manager, biz-user]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-LOGIN-001]
@@ -28,11 +28,11 @@ approval_state: pending
 | Product module | Login Module |
 | Owner | pm (Alex Rivera) |
 | Risk | high |
-| Decision blockers | `DEC-USER-004` (catalog modules beyond Login), `DEC-USER-005` (brand removal threshold) |
+| Decision blockers | none; `DEC-USER-004` and `DEC-USER-005` are closed |
 
 **Mandate:** Build the first complete vertical slice of RealmForge — a Login module that demonstrates the entire governance loop from catalog to rollback. This is the **integration proof** that every layer works end-to-end.
 
-⚠️ **DECISION BLOCKER:** `DEC-USER-005` (brand removal threshold in naming) affects how the Login module is named in generated code vs. user-facing surfaces. `DEC-USER-004` affects what other catalog modules are defined after Login is complete.
+**Decision resolution:** `DEC-USER-005` requires clean backend names without a RealmForge brand prefix. `DEC-USER-004` keeps the roadmap order after Login: catalog infrastructure first, then module content defined by implementing phases.
 
 ---
 
@@ -208,5 +208,5 @@ No new crate is needed for Login. It uses existing crates:
 - Phase 3 complete (Catalogs — Login must be a catalog entry)
 - Phase 4 complete (Gateway — Login executes through gateway)
 - Phase 7 complete (Live Runtime — Login runs in governed runtime context)
-- `DEC-USER-005` resolved (brand removal threshold for naming)
-- `DEC-USER-004` is post-Login (defines what comes after Login in catalog)
+- `DEC-USER-005` resolved (clean backend names without brand prefix)
+- `DEC-USER-004` resolved (post-Login catalog work follows the roadmap order)

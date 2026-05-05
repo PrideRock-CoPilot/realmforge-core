@@ -104,10 +104,16 @@ impl SnapshotDelta {
             }
         }
 
-        let old_exports: std::collections::HashSet<&str> =
-            old.table_exports.iter().map(|e| e.table_name.as_str()).collect();
-        let new_exports: std::collections::HashSet<&str> =
-            new.table_exports.iter().map(|e| e.table_name.as_str()).collect();
+        let old_exports: std::collections::HashSet<&str> = old
+            .table_exports
+            .iter()
+            .map(|e| e.table_name.as_str())
+            .collect();
+        let new_exports: std::collections::HashSet<&str> = new
+            .table_exports
+            .iter()
+            .map(|e| e.table_name.as_str())
+            .collect();
 
         let added_exports: Vec<String> = new_exports
             .difference(&old_exports)

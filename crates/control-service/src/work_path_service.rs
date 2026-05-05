@@ -1,6 +1,7 @@
 use authority_domain::{
-    ActorId, AgentWorkPacket, CostBudget, PacketId, PacketPermissionScope, PacketScope, PacketStatus,
-    ProjectId, TenantId, WorkPathGraph, WorkPathId, WorkPathNode, WorkPathNodeId, WorkPathNodeType,
+    ActorId, AgentWorkPacket, CostBudget, PacketId, PacketPermissionScope, PacketScope,
+    PacketStatus, ProjectId, TenantId, WorkPathGraph, WorkPathId, WorkPathNode, WorkPathNodeId,
+    WorkPathNodeType,
 };
 use chrono::Utc;
 use control_store::CoreStore;
@@ -61,7 +62,9 @@ impl WorkPathService {
             .store
             .get_work_path_graph(work_path_id)
             .await?
-            .ok_or_else(|| ServiceError::Validation(format!("work path {work_path_id} not found")))?;
+            .ok_or_else(|| {
+                ServiceError::Validation(format!("work path {work_path_id} not found"))
+            })?;
 
         let node = WorkPathNode {
             id: id.clone(),
@@ -112,9 +115,9 @@ impl WorkPathService {
         cost_budget: Option<CostBudget>,
     ) -> Result<AgentWorkPacket, ServiceError> {
         let graph = self.get_work_path_graph(work_path_id).await?;
-        let node = graph
-            .get_node(node_id)
-            .ok_or_else(|| ServiceError::Validation(format!("node {node_id} not found in work path")))?;
+        let node = graph.get_node(node_id).ok_or_else(|| {
+            ServiceError::Validation(format!("node {node_id} not found in work path"))
+        })?;
 
         // Traverse from this node to collect all descendant scopes
         let mut visited = std::collections::HashSet::new();
@@ -262,6 +265,8 @@ mod tests {
         assert!(scope.required_contract_ids.contains(&"ct-1".to_string()));
         assert!(scope.required_contract_ids.contains(&"ct-2".to_string()));
         assert!(scope.required_test_ids.contains(&"test-1".to_string()));
-        assert!(scope.required_trace_point_ids.contains(&"trace-x".to_string()));
+        assert!(scope
+            .required_trace_point_ids
+            .contains(&"trace-x".to_string()));
     }
 }

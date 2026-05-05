@@ -8,12 +8,39 @@ mod common;
 use control_service::error::ServiceError;
 use control_service::SessionService;
 
+/// Seed tenant, project, and actor so FK constraints are satisfied.
+async fn seed_test_env(store: &control_store::CoreStore) {
+    let pool = store.pool();
+    sqlx::query("INSERT INTO tenants (id, name, status) VALUES ($1, $2, 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(common::test_tenant().as_str())
+        .bind(common::test_tenant().as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO projects (id, tenant_id, name, status) VALUES ($1, $2, $3, 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(common::test_project().as_str())
+        .bind(common::test_tenant().as_str())
+        .bind(common::test_project().as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO actors (id, tenant_id, display_name, actor_type, status) VALUES ($1, $2, $3, 'human', 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(common::test_actor().as_str())
+        .bind(common::test_tenant().as_str())
+        .bind(common::test_actor().as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+}
+
 #[tokio::test]
 async fn test_session_issue_and_validate() {
     let store = match common::get_store().await {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(&store).await;
 
     let audit_svc = common::audit_service(&store);
     let svc = SessionService::new(store, audit_svc);
@@ -41,6 +68,8 @@ async fn test_session_full_lifecycle() {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(&store).await;
 
     let audit_svc = common::audit_service(&store);
     let svc = SessionService::new(store, audit_svc);
@@ -84,6 +113,8 @@ async fn test_session_not_found() {
         None => return,
     };
 
+    seed_test_env(&store).await;
+
     let audit_svc = common::audit_service(&store);
     let svc = SessionService::new(store, audit_svc);
     let fake_id = authority_domain::SessionId::generate();
@@ -97,6 +128,8 @@ async fn test_session_revoke_twice_fails() {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(&store).await;
 
     let audit_svc = common::audit_service(&store);
     let svc = SessionService::new(store, audit_svc);
@@ -133,6 +166,8 @@ async fn test_session_expired_fails_validation() {
         None => return,
     };
 
+    seed_test_env(&store).await;
+
     let audit_svc = common::audit_service(&store);
     let svc = SessionService::new(store, audit_svc);
 
@@ -159,6 +194,8 @@ async fn test_get_session_data() {
         Some(s) => s,
         None => return,
     };
+
+    seed_test_env(&store).await;
 
     let audit_svc = common::audit_service(&store);
     let svc = SessionService::new(store, audit_svc);

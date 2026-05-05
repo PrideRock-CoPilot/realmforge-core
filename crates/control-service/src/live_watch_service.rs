@@ -80,11 +80,7 @@ impl LiveWatchService {
 
         let proposed_actions = vec![authority_domain::ProposedAction {
             action_type: "investigate".to_string(),
-            description: format!(
-                "Investigate {} signal(s) for app {}",
-                signals.len(),
-                app_id
-            ),
+            description: format!("Investigate {} signal(s) for app {}", signals.len(), app_id),
             params: serde_json::json!({"app_id": app_id}),
         }];
 
@@ -93,14 +89,13 @@ impl LiveWatchService {
             app_id: app_id.to_string(),
             triggering_signal_ids: signal_ids,
             proposed_actions,
-            impact_analysis: "Investigation and potential remediation actions as proposed".to_string(),
+            impact_analysis: "Investigation and potential remediation actions as proposed"
+                .to_string(),
             status: ProposalStatus::Proposed,
             created_at: Utc::now(),
         };
 
-        self.store
-            .insert_remediation_proposal(&proposal)
-            .await?;
+        self.store.insert_remediation_proposal(&proposal).await?;
 
         info!(
             proposal_id = %proposal.id,

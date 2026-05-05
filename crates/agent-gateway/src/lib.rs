@@ -4,7 +4,9 @@ pub mod scope_validator;
 
 pub use error::{DenialCode, GatewayError};
 pub use flow::{execute_gateway_flow, GatewayContext, GatewayRequest, GatewayResult};
-pub use scope_validator::{validate_file_scope, validate_schema_scope, FileScopeResult, SchemaScopeResult};
+pub use scope_validator::{
+    validate_file_scope, validate_schema_scope, FileScopeResult, SchemaScopeResult,
+};
 
 use control_store::CoreStore;
 

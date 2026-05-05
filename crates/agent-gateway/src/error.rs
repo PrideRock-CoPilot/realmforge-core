@@ -46,10 +46,7 @@ impl std::fmt::Display for DenialCode {
 #[derive(Debug, Error)]
 pub enum GatewayError {
     #[error("denied: {code} — {message}")]
-    Denied {
-        code: DenialCode,
-        message: String,
-    },
+    Denied { code: DenialCode, message: String },
 
     #[error("internal gateway error: {0}")]
     Internal(String),
@@ -134,7 +131,10 @@ mod tests {
         ];
         for code in &codes {
             let s = code.to_string();
-            assert!(!s.is_empty(), "denial code display should not be empty for {code:?}");
+            assert!(
+                !s.is_empty(),
+                "denial code display should not be empty for {code:?}"
+            );
         }
     }
 

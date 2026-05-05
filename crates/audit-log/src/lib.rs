@@ -1,5 +1,5 @@
 use authority_domain::{ActorId, AuditEventId, ProjectId, TenantId};
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
@@ -81,6 +81,13 @@ pub struct ChainAnchor {
 }
 
 impl AuditEvent {
+    /// Truncate a timestamp to PostgreSQL microsecond precision so hash
+    /// computation is stable across serialize/deserialize round-trips.
+    fn truncate_ts(ts: DateTime<Utc>) -> DateTime<Utc> {
+        ts.with_nanosecond(ts.nanosecond() - ts.nanosecond() % 1000)
+            .expect("truncation to microsecond precision cannot fail")
+    }
+
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         tenant_id: TenantId,
@@ -101,7 +108,7 @@ impl AuditEvent {
             entity_type: entity_type.into(),
             entity_id: entity_id.into(),
             payload,
-            occurred_at: Utc::now(),
+            occurred_at: Self::truncate_ts(Utc::now()),
             previous_hash,
             event_hash: String::new(),
         };

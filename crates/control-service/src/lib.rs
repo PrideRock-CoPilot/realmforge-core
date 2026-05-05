@@ -27,7 +27,7 @@ pub use catalog_service::CatalogService;
 pub use command_service::CommandService;
 pub use error::ServiceError;
 pub use gateway_service::GatewayService;
-pub use knowledge_service::{KnowledgeService, KnowledgeQueryResult};
+pub use knowledge_service::{KnowledgeQueryResult, KnowledgeService};
 pub use live_watch_service::LiveWatchService;
 pub use login_handler::LoginHandler;
 pub use policy_engine::PolicyDecision;
@@ -39,14 +39,13 @@ pub use snapshot_service::SnapshotService;
 pub use work_packet_service::WorkPacketService;
 pub use work_path_service::WorkPathService;
 
-use tracing::instrument;
 use control_store::CoreStore;
+use tracing::instrument;
 
 /// Shared application context holding all service instances and the underlying store.
 /// Passed to route handlers via Axum state injection — must be Clone.
 #[derive(Clone)]
 pub struct ServiceContext {
-
     store: CoreStore,
     pub sessions: SessionService,
     pub commands: CommandService,
@@ -71,7 +70,6 @@ pub struct ServiceContext {
 impl ServiceContext {
     #[instrument(skip(store))]
     pub fn new(store: CoreStore) -> Self {
-
         let audit_service = AuditService::new(store.clone());
         let session_service = SessionService::new(store.clone(), audit_service.clone());
         Self {

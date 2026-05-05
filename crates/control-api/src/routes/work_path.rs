@@ -1,6 +1,4 @@
-use authority_domain::{
-    WorkPathGraph, WorkPathId, WorkPathNodeId,
-};
+use authority_domain::{WorkPathGraph, WorkPathId, WorkPathNodeId};
 use axum::{
     extract::{Path, State},
     http::StatusCode,

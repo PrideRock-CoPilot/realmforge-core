@@ -1,5 +1,5 @@
 use crate::StoreError;
-use authority_domain::{BoardApprovalId, BoardPlan, BoardPlanId, ReleaseCommand};
+use authority_domain::{BoardApproval, BoardApprovalId, BoardPlan, BoardPlanId, ReleaseCommand};
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 
@@ -18,6 +18,21 @@ pub async fn insert_plan(pool: &PgPool, plan: &BoardPlan) -> Result<(), StoreErr
     .execute(pool)
     .await?;
     Ok(())
+}
+
+/// Get a single plan by its ID.
+pub async fn get_plan(
+    pool: &PgPool,
+    plan_id: &BoardPlanId,
+) -> Result<Option<BoardPlan>, StoreError> {
+    let row: Option<BoardPlanRaw> = sqlx::query_as(
+        "SELECT id, title, work_path_refs, status, created_at, updated_at \
+         FROM board_plans WHERE id = $1",
+    )
+    .bind(plan_id.as_str())
+    .fetch_optional(pool)
+    .await?;
+    row.map(|r| r.try_into()).transpose()
 }
 
 /// List board plans, optionally filtered by status.
@@ -56,14 +71,13 @@ pub async fn update_plan_status(
     plan_id: &BoardPlanId,
     status: &str,
 ) -> Result<(), StoreError> {
-    let updated = sqlx::query(
-        "UPDATE board_plans SET status = $1, updated_at = now() WHERE id = $2",
-    )
-    .bind(status)
-    .bind(plan_id.as_str())
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let updated =
+        sqlx::query("UPDATE board_plans SET status = $1, updated_at = now() WHERE id = $2")
+            .bind(status)
+            .bind(plan_id.as_str())
+            .execute(pool)
+            .await?
+            .rows_affected();
     if updated == 0 {
         return Err(StoreError::invalid_data(format!(
             "plan {plan_id} not found"
@@ -108,10 +122,7 @@ pub async fn list_approvals(
 }
 
 /// Insert a release command.
-pub async fn insert_release_command(
-    pool: &PgPool,
-    cmd: &ReleaseCommand,
-) -> Result<(), StoreError> {
+pub async fn insert_release_command(pool: &PgPool, cmd: &ReleaseCommand) -> Result<(), StoreError> {
     sqlx::query(
         "INSERT INTO release_commands (id, plan_id, bundle_ref, approval_ref, status, created_at) \
          VALUES ($1, $2, $3, $4, $5, $6)",
@@ -144,8 +155,7 @@ impl TryInto<BoardPlan> for BoardPlanRaw {
 
     fn try_into(self) -> Result<BoardPlan, Self::Error> {
         Ok(BoardPlan {
-            id: BoardPlanId::new(self.id)
-                .map_err(|e| StoreError::invalid_data(e.to_string()))?,
+            id: BoardPlanId::new(self.id).map_err(|e| StoreError::invalid_data(e.to_string()))?,
             title: self.title,
             work_path_refs: serde_json::from_value(self.work_path_refs)?,
             status: parse_plan_status(&self.status)?,
@@ -191,7 +201,9 @@ fn parse_plan_status(s: &str) -> Result<authority_domain::PlanStatus, StoreError
         "completed" => Ok(authority_domain::PlanStatus::Completed),
         "blocked" => Ok(authority_domain::PlanStatus::Blocked),
         "archived" => Ok(authority_domain::PlanStatus::Archived),
-        _ => Err(StoreError::invalid_data(format!("unknown plan status: {s}"))),
+        _ => Err(StoreError::invalid_data(format!(
+            "unknown plan status: {s}"
+        ))),
     }
 }
 
@@ -203,5 +215,56 @@ fn parse_approval_decision(s: &str) -> Result<authority_domain::ApprovalDecision
         _ => Err(StoreError::invalid_data(format!(
             "unknown approval decision: {s}"
         ))),
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new board plan.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_plan(&self, plan: &BoardPlan) -> Result<(), StoreError> {
+        insert_plan(&self.pool, plan).await
+    }
+
+    /// Get a single plan by its ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_plan(&self, plan_id: &BoardPlanId) -> Result<Option<BoardPlan>, StoreError> {
+        get_plan(&self.pool, plan_id).await
+    }
+
+    /// List board plans, optionally filtered by status.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_plans(
+        &self,
+        status_filter: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<BoardPlan>, StoreError> {
+        list_plans(&self.pool, status_filter, limit, offset).await
+    }
+
+    /// Update plan status.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_plan_status(
+        &self,
+        plan_id: &BoardPlanId,
+        status: &str,
+    ) -> Result<(), StoreError> {
+        update_plan_status(&self.pool, plan_id, status).await
+    }
+
+    /// Submit an approval decision for a plan.
+    #[tracing::instrument(skip(self))]
+    pub async fn submit_approval(&self, approval: &BoardApproval) -> Result<(), StoreError> {
+        submit_approval(&self.pool, approval).await
+    }
+
+    /// Insert a release command.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_release_command(&self, cmd: &ReleaseCommand) -> Result<(), StoreError> {
+        insert_release_command(&self.pool, cmd).await
     }
 }

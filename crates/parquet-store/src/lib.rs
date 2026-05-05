@@ -100,9 +100,7 @@ impl ParquetDataset {
 
     /// Return the path where this dataset's version files are stored.
     pub fn dataset_path(&self) -> PathBuf {
-        self.base_path
-            .join("knowledge")
-            .join(&self.dataset_id)
+        self.base_path.join("knowledge").join(&self.dataset_id)
     }
 
     /// Write a batch of knowledge records as a new version.
@@ -170,12 +168,8 @@ impl ParquetDataset {
                                     .created()
                                     .ok()
                                     .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
-                                    .and_then(|d| {
-                                        DateTime::from_timestamp(d.as_secs() as i64, 0)
-                                    })
-                                    .unwrap_or_else(|| {
-                                        DateTime::from_timestamp_nanos(0)
-                                    }),
+                                    .and_then(|d| DateTime::from_timestamp(d.as_secs() as i64, 0))
+                                    .unwrap_or_else(|| DateTime::from_timestamp_nanos(0)),
                                 file_path: path,
                                 record_count,
                             });

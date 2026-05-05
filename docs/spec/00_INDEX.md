@@ -5,7 +5,7 @@ status: draft
 owner: tech-writer
 reviewers: [pm, cto, domain-architect, security-architect, api-architect, data-architect, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: specification-system
 work_path_ids: [WP-DOCS-000]
@@ -78,6 +78,7 @@ No code, migration, API, CLI command, MCP tool, runtime bundle, visual node, tes
 | `20_IMPLEMENTATION_ROADMAP.md` | Sequenced buildout | `VN-ROADMAP` |
 | `21_ACCEPTANCE_TEST_PLAN.md` | Required validation | `VN-ACCEPTANCE-TESTS` |
 | `22_OPEN_DECISIONS.md` | Blocked decisions | `VN-OPEN-DECISIONS` |
+| `23_FRONTEND_VERTICAL_SPEC.md` | Frontend stack and Boards vertical implementation contract | `VN-MODULE-BOARDS` |
 
 ## Doc Quality Gate
 

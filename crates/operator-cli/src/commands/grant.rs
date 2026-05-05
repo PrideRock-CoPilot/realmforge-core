@@ -71,20 +71,22 @@ pub async fn handle_grant(cmd: GrantCommand, ctx: &ServiceContext) -> CliResult 
             budget_operations,
             separation_group,
             ttl_hours,
-        } => create_grant(
-            id,
-            actor_id,
-            tenant_id,
-            allowed_actions,
-            denied_actions,
-            allowed_file_patterns,
-            denied_file_patterns,
-            budget_operations,
-            separation_group,
-            ttl_hours,
-            ctx,
-        )
-        .await,
+        } => {
+            create_grant(
+                id,
+                actor_id,
+                tenant_id,
+                allowed_actions,
+                denied_actions,
+                allowed_file_patterns,
+                denied_file_patterns,
+                budget_operations,
+                separation_group,
+                ttl_hours,
+                ctx,
+            )
+            .await
+        }
         GrantCommand::List { actor_id } => list_grants(actor_id, ctx).await,
         GrantCommand::Revoke { grant_id } => revoke_grant(grant_id, ctx).await,
         GrantCommand::Inspect { grant_id } => inspect_grant(grant_id, ctx).await,
@@ -112,11 +114,12 @@ async fn create_grant(
 
     let grant = SkillGrant {
         id: grant_id,
-        actor_id: ActorId::new(&actor_id)
-            .map_err(|e| format!("invalid actor id: {}", e))?,
-        tenant_id: TenantId::new(&tenant_id)
-            .map_err(|e| format!("invalid tenant id: {}", e))?,
-        allowed_actions: allowed_actions.split(',').map(|s| s.trim().to_string()).collect(),
+        actor_id: ActorId::new(&actor_id).map_err(|e| format!("invalid actor id: {}", e))?,
+        tenant_id: TenantId::new(&tenant_id).map_err(|e| format!("invalid tenant id: {}", e))?,
+        allowed_actions: allowed_actions
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .collect(),
         denied_actions: denied_actions
             .unwrap_or_default()
             .split(',')
@@ -163,7 +166,10 @@ async fn list_grants(actor_id: String, ctx: &ServiceContext) -> CliResult {
 
     println!("Grants for actor {}:", actor_id);
     for grant in &grants {
-        println!("  {} — state: {}, expires: {}", grant.id, grant.state, grant.expires_at);
+        println!(
+            "  {} — state: {}, expires: {}",
+            grant.id, grant.state, grant.expires_at
+        );
         println!("    Allowed actions: {:?}", grant.allowed_actions);
         println!("    Group: {}", grant.separation_group);
     }

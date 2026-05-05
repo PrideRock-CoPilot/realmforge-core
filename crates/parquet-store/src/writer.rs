@@ -6,9 +6,7 @@
 
 use std::sync::Arc;
 
-use arrow::array::{
-    StringArray, TimestampNanosecondArray, UInt32Array,
-};
+use arrow::array::{StringArray, TimestampNanosecondArray, UInt32Array};
 use arrow::datatypes::SchemaRef;
 use arrow::record_batch::RecordBatch;
 use authority_domain::{KnowledgeRecord, KnowledgeScope, SourceType};
@@ -102,9 +100,8 @@ impl KnowledgeWriter {
         let file = tokio::fs::File::create(&file_path).await?;
         let file = file.into_std().await;
 
-        let mut writer =
-            ArrowWriter::try_new(file, schema, Some(props))
-                .map_err(|e| ParquetStoreError::Write(e.to_string()))?;
+        let mut writer = ArrowWriter::try_new(file, schema, Some(props))
+            .map_err(|e| ParquetStoreError::Write(e.to_string()))?;
 
         writer
             .write(&batch)
@@ -168,15 +165,11 @@ impl KnowledgeWriter {
 }
 
 /// Writes evidence records to a Parquet dataset.
-pub struct EvidenceWriter {
-    base_path: std::path::PathBuf,
-}
+pub struct EvidenceWriter;
 
 impl EvidenceWriter {
-    pub fn new(base_path: impl Into<std::path::PathBuf>) -> Self {
-        Self {
-            base_path: base_path.into(),
-        }
+    pub fn new(_base_path: impl Into<std::path::PathBuf>) -> Self {
+        Self
     }
 
     /// Write evidence records — creates dataset path if needed.

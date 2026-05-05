@@ -84,13 +84,15 @@ pub async fn get_dataset_info(
 
 /// Reconcile the Postgres index with the actual dataset files (stub — full impl needs Parquet crate).
 pub async fn reconcile_datasets(pool: &PgPool) -> Result<Vec<String>, StoreError> {
-    let rows: Vec<(String, String)> = sqlx::query_as(
-        "SELECT id, source_type FROM knowledge_datasets ORDER BY indexed_at",
-    )
-    .fetch_all(pool)
-    .await?;
+    let rows: Vec<(String, String)> =
+        sqlx::query_as("SELECT id, source_type FROM knowledge_datasets ORDER BY indexed_at")
+            .fetch_all(pool)
+            .await?;
 
-    Ok(rows.into_iter().map(|(id, st)| format!("{id} ({st})")).collect())
+    Ok(rows
+        .into_iter()
+        .map(|(id, st)| format!("{id} ({st})"))
+        .collect())
 }
 
 // ── Raw row types ──
@@ -113,8 +115,7 @@ impl TryInto<KnowledgeRecord> for KnowledgeRaw {
         let scope = parse_scope(&self.scope)?;
         let source_type = parse_source_type(&self.source_type)?;
         Ok(KnowledgeRecord {
-            id: KnowledgeId::new(self.id)
-                .map_err(|e| StoreError::invalid_data(e.to_string()))?,
+            id: KnowledgeId::new(self.id).map_err(|e| StoreError::invalid_data(e.to_string()))?,
             scope,
             source_type,
             source_id: self.source_id,
@@ -168,6 +169,50 @@ fn parse_source_type(s: &str) -> Result<SourceType, StoreError> {
         "decision" => Ok(SourceType::Decision),
         "evidence" => Ok(SourceType::Evidence),
         "trace" => Ok(SourceType::Trace),
-        _ => Err(StoreError::invalid_data(format!("unknown source type: {s}"))),
+        _ => Err(StoreError::invalid_data(format!(
+            "unknown source type: {s}"
+        ))),
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert metadata for a knowledge record into Postgres.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_knowledge_metadata(
+        &self,
+        record: &KnowledgeRecord,
+    ) -> Result<(), StoreError> {
+        insert_knowledge_metadata(&self.pool, record).await
+    }
+
+    /// Query knowledge metadata by scope and source type.
+    #[tracing::instrument(skip(self))]
+    pub async fn query_knowledge_metadata(
+        &self,
+        scopes: &[KnowledgeScope],
+        source_type: Option<&SourceType>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<KnowledgeRecord>, StoreError> {
+        query_knowledge_metadata(&self.pool, scopes, source_type, limit, offset).await
+    }
+
+    /// Get dataset info for a specific dataset.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_dataset_info(
+        &self,
+        dataset_id: &str,
+    ) -> Result<Option<DatasetInfo>, StoreError> {
+        get_dataset_info(&self.pool, dataset_id).await
+    }
+
+    /// Reconcile the Postgres index with the actual dataset files.
+    #[tracing::instrument(skip(self))]
+    pub async fn reconcile_datasets(&self) -> Result<Vec<String>, StoreError> {
+        reconcile_datasets(&self.pool).await
     }
 }

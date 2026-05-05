@@ -19,13 +19,19 @@ struct WorkPacketRaw {
     cost_budget: serde_json::Value,
     permission_scope: serde_json::Value,
     created_at: DateTime<Utc>,
-    status: serde_json::Value,
+    status: String,
 }
 
 impl TryFrom<WorkPacketRaw> for AgentWorkPacket {
     type Error = StoreError;
 
     fn try_from(raw: WorkPacketRaw) -> Result<Self, Self::Error> {
+        use authority_domain::PacketStatus;
+        // DB stores status as bare TEXT (e.g. "pending"), wrap as JSON string to deserialize.
+        let status: PacketStatus =
+            serde_json::from_value(serde_json::Value::String(raw.status.clone())).map_err(|e| {
+                StoreError::InvalidData(format!("invalid status '{}': {}", raw.status, e))
+            })?;
         Ok(AgentWorkPacket {
             id: PacketId::new(raw.id).map_err(|e| StoreError::InvalidData(e.to_string()))?,
             agent_id: ActorId::new(raw.agent_id)
@@ -39,22 +45,28 @@ impl TryFrom<WorkPacketRaw> for AgentWorkPacket {
             required_trace_points: serde_json::from_value(raw.required_trace_points)?,
             rollback_anchor: raw
                 .rollback_anchor
-                .map(|s| {
-                    SnapshotId::new(s).map_err(|e| StoreError::InvalidData(e.to_string()))
-                })
+                .map(|s| SnapshotId::new(s).map_err(|e| StoreError::InvalidData(e.to_string())))
                 .transpose()?,
             cost_budget: serde_json::from_value(raw.cost_budget)?,
             permission_scope: serde_json::from_value(raw.permission_scope)?,
             created_at: raw.created_at,
-            status: serde_json::from_value(raw.status)?,
+            status,
         })
     }
 }
 
-pub async fn insert_work_packet(
-    pool: &PgPool,
-    packet: &AgentWorkPacket,
-) -> Result<(), StoreError> {
+/// Helper: convert PacketStatus to its JSON string representation (bare, no JSON wrapping).
+fn status_to_db_string(status: &authority_domain::PacketStatus) -> String {
+    serde_json::to_value(status)
+        .ok()
+        .and_then(|v| match v {
+            serde_json::Value::String(s) => Some(s),
+            _ => None,
+        })
+        .unwrap_or_else(|| "pending".to_string())
+}
+
+pub async fn insert_work_packet(pool: &PgPool, packet: &AgentWorkPacket) -> Result<(), StoreError> {
     sqlx::query(
         "INSERT INTO work_packets (id, agent_id, work_path_node_id, objective, \
          allowed_file_paths, denied_file_paths, required_contracts, required_tests, \
@@ -75,7 +87,7 @@ pub async fn insert_work_packet(
     .bind(serde_json::to_value(&packet.cost_budget)?)
     .bind(serde_json::to_value(&packet.permission_scope)?)
     .bind(packet.created_at)
-    .bind(serde_json::to_value(&packet.status)?)
+    .bind(status_to_db_string(&packet.status))
     .execute(pool)
     .await?;
     Ok(())
@@ -97,4 +109,25 @@ pub async fn get_work_packet(
     .await?;
 
     row.map(AgentWorkPacket::try_from).transpose()
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new work packet.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_work_packet(&self, packet: &AgentWorkPacket) -> Result<(), StoreError> {
+        insert_work_packet(&self.pool, packet).await
+    }
+
+    /// Get a work packet by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_work_packet(
+        &self,
+        packet_id: &PacketId,
+    ) -> Result<Option<AgentWorkPacket>, StoreError> {
+        get_work_packet(&self.pool, packet_id).await
+    }
 }

@@ -29,18 +29,11 @@ pub enum BundleCommand {
         offset: i64,
     },
     /// Get a bundle by ID
-    Get {
-        bundle_id: String,
-    },
+    Get { bundle_id: String },
     /// Verify a bundle (update status)
-    Verify {
-        bundle_id: String,
-        status: String,
-    },
+    Verify { bundle_id: String, status: String },
     /// Deploy a bundle
-    Deploy {
-        bundle_id: String,
-    },
+    Deploy { bundle_id: String },
 }
 
 fn parse_hash(s: &str) -> Result<(String, String), String> {

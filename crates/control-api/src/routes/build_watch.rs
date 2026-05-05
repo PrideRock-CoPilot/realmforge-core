@@ -1,5 +1,5 @@
-use axum::{extract::State, Json};
 use authority_domain::{WatchEventType, WatchSeverity};
+use axum::{extract::State, Json};
 use control_service::ServiceContext;
 use serde::Deserialize;
 use serde_json::Value;
@@ -39,7 +39,13 @@ pub async fn record_event(
 
     match ctx
         .build_watch
-        .record_event(body.scope, event_type, severity, body.detail, body.evidence_ref)
+        .record_event(
+            body.scope,
+            event_type,
+            severity,
+            body.detail,
+            body.evidence_ref,
+        )
         .await
     {
         Ok(event) => Json(serde_json::json!({
@@ -90,9 +96,7 @@ pub async fn query_events(
 }
 
 /// GET /v1/watch/dashboard — get watch dashboard
-pub async fn get_dashboard(
-    State(ctx): State<ServiceContext>,
-) -> Json<Value> {
+pub async fn get_dashboard(State(ctx): State<ServiceContext>) -> Json<Value> {
     match ctx.build_watch.get_watch_dashboard().await {
         Ok(dashboard) => Json(serde_json::json!({
             "success": true,
@@ -106,9 +110,7 @@ pub async fn get_dashboard(
 }
 
 /// GET /v1/watch/cost-summary — get cost summary
-pub async fn get_cost_summary(
-    State(ctx): State<ServiceContext>,
-) -> Json<Value> {
+pub async fn get_cost_summary(State(ctx): State<ServiceContext>) -> Json<Value> {
     match ctx.build_watch.aggregate_cost_summary().await {
         Ok(summary) => Json(serde_json::json!({
             "success": true,

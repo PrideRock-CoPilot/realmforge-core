@@ -108,9 +108,7 @@ impl LoginHandler {
                         &config,
                         "exceeded max failed attempts",
                     );
-                    self.store
-                        .insert_login_block(&tenant_id, &block)
-                        .await?;
+                    self.store.insert_login_block(&tenant_id, &block).await?;
                     return Err(ServiceError::LoginBlocked(format!(
                         "actor blocked for {} seconds due to excessive failures",
                         config.block_duration_seconds
@@ -191,9 +189,7 @@ impl LoginHandler {
                         &config,
                         "exceeded max failed attempts",
                     );
-                    self.store
-                        .insert_login_block(&tenant_id, &block)
-                        .await?;
+                    self.store.insert_login_block(&tenant_id, &block).await?;
                     warn!(
                         actor_id = %actor_id,
                         failed_count = failed_count,
@@ -251,9 +247,7 @@ impl LoginHandler {
             timestamp: Utc::now(),
             outcome: outcome.to_string(),
         };
-        self.store
-            .insert_login_attempt(tenant_id, &record)
-            .await?;
+        self.store.insert_login_attempt(tenant_id, &record).await?;
         Ok(())
     }
 }

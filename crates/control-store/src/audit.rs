@@ -216,3 +216,70 @@ pub async fn get_chain_bounds(
 
     Ok((first_opt, last_opt, count as u64))
 }
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Append an audit event.
+    #[tracing::instrument(skip(self))]
+    pub async fn append_audit_event(&self, event: &AuditEvent) -> Result<(), StoreError> {
+        append_audit_event(&self.pool, event).await
+    }
+
+    /// Query audit events with optional filters and pagination.
+    #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(skip(self))]
+    pub async fn query_audit_events(
+        &self,
+        project_id: &ProjectId,
+        event_type: Option<&str>,
+        actor_id: Option<&ActorId>,
+        entity_type: Option<&str>,
+        from_time: Option<DateTime<Utc>>,
+        to_time: Option<DateTime<Utc>>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<(Vec<AuditEvent>, u64), StoreError> {
+        query_audit_events(
+            &self.pool,
+            project_id,
+            event_type,
+            actor_id,
+            entity_type,
+            from_time,
+            to_time,
+            limit,
+            offset,
+        )
+        .await
+    }
+
+    /// Get the latest event hash for a project (for chain linking).
+    #[tracing::instrument(skip(self))]
+    pub async fn get_latest_event_hash(
+        &self,
+        project_id: &ProjectId,
+    ) -> Result<Option<String>, StoreError> {
+        get_latest_event_hash(&self.pool, project_id).await
+    }
+
+    /// Get all events for a project ordered by occurrence (for chain verification).
+    #[tracing::instrument(skip(self))]
+    pub async fn get_all_audit_events(
+        &self,
+        project_id: &ProjectId,
+    ) -> Result<Vec<AuditEvent>, StoreError> {
+        get_all_events(&self.pool, project_id).await
+    }
+
+    /// Get chain bounds for a project.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_chain_bounds(
+        &self,
+        project_id: &ProjectId,
+    ) -> Result<crate::ChainBounds, StoreError> {
+        get_chain_bounds(&self.pool, project_id).await
+    }
+}

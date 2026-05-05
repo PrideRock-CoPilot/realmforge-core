@@ -1,10 +1,15 @@
 /target/
+/target-quality/
+/target-review/
 /.env
 /.env.*
 !.env.example
 /.realmforge/
 *.pdb
 *.log
+*.err
 # session/rollout logs
 docs/rollout-*.jsonl
 docs/*.jsonl
+# local test credential fixtures
+login_*.json

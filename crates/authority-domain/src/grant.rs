@@ -94,9 +94,7 @@ impl GrantId {
     pub fn new(value: impl Into<String>) -> Result<Self, crate::IdError> {
         let value = value.into();
         if value.trim().is_empty() {
-            return Err(crate::IdError::Empty {
-                kind: "GrantId",
-            });
+            return Err(crate::IdError::Empty { kind: "GrantId" });
         }
         Ok(Self(value))
     }

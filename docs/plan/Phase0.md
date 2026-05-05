@@ -6,7 +6,7 @@ status: draft
 owner: tech-writer
 reviewers: [pm, cto, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-DOCS-000]
@@ -71,7 +71,7 @@ approval_state: pending
 
 ## Deliverables
 
-- All 23 spec files under `docs/spec/` with valid front matter per `DOC-SPEC-004`
+- All 24 spec files under `docs/spec/` with valid front matter per `DOC-SPEC-004`
 - Every implementation file referenced has a registry entry in `04_METADATA_STANDARD.md`
 - Every unresolved product or architecture choice listed in `22_OPEN_DECISIONS.md`
 - Every product module has visual node and work path IDs
@@ -80,12 +80,12 @@ approval_state: pending
 
 ---
 
-## Completion Gates (Certified)
+## Completion Gates (Needs Re-Certification)
 
-- [x] `TEST-DOCS-METADATA-001` — Every spec doc has required front matter (✅ All 23 spec files populated)
-- [x] `TEST-DOCS-OPEN-DECISIONS-001` — All unresolved choices appear in `22_OPEN_DECISIONS.md` (✅ Verified: 5 decisions, correct markers)
-- [x] `TEST-DOCS-FILE-REGISTRY-001` — Every implementation file referenced by a spec has a registry entry (✅ 31 entries, 4 Codex docs added)
-- [x] `TEST-DOCS-VISUAL-MAP-001` — Every product module has visual node and work path IDs (✅ 22 modules mapped)
+- [ ] `TEST-DOCS-METADATA-001` — Every spec doc has required front matter (rerun required after `DOC-SPEC-023` was added)
+- [ ] `TEST-DOCS-OPEN-DECISIONS-001` — All unresolved choices appear in `22_OPEN_DECISIONS.md` (rerun required after decisions moved to the closed register)
+- [ ] `TEST-DOCS-FILE-REGISTRY-001` — Every implementation file referenced by a spec has a registry entry (rerun required against the current implementation surface)
+- [ ] `TEST-DOCS-VISUAL-MAP-001` — Every product module has visual node and work path IDs (rerun required after frontend vertical indexing)
 - [ ] QA certifies all documentation tests pass (pending human QA review)
 - [ ] Release Manager records Phase 0 completion (pending Release Manager signoff)
 

@@ -100,3 +100,44 @@ pub async fn get_rollback_preview(
         )
     }))
 }
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a rollback preview record.
+    #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_rollback_preview(
+        &self,
+        id: &str,
+        tenant_id: &authority_domain::TenantId,
+        project_id: &authority_domain::ProjectId,
+        from_snapshot_id: &authority_domain::SnapshotId,
+        to_snapshot_id: &authority_domain::SnapshotId,
+        status: &str,
+        preview_json: &serde_json::Value,
+    ) -> Result<(), StoreError> {
+        insert_rollback_preview(
+            &self.pool,
+            id,
+            tenant_id,
+            project_id,
+            from_snapshot_id,
+            to_snapshot_id,
+            status,
+            preview_json,
+        )
+        .await
+    }
+
+    /// Get a rollback preview by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_rollback_preview(
+        &self,
+        preview_id: &str,
+    ) -> Result<Option<crate::RollbackPreviewRow>, StoreError> {
+        get_rollback_preview(&self.pool, preview_id).await
+    }
+}

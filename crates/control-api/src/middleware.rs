@@ -12,7 +12,6 @@ use uuid::Uuid;
 
 pub(crate) static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(0);
 
-
 /// Middleware that adds request tracing and request ID.
 pub async fn request_tracing_middleware(mut request: Request, next: Next) -> Response {
     let request_id = Uuid::new_v4().to_string();

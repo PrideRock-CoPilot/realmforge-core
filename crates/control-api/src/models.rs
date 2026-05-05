@@ -1,6 +1,5 @@
 use authority_domain::{ActorId, ActorScope, CommandId, PacketId, ProjectId, SnapshotId, TenantId};
 use chrono::{DateTime, Utc};
-use utoipa::IntoParams;
 use control_service::{
     rollback_service::{RollbackPreview, RollbackResult, RollbackVerification},
     session_service::SessionData,
@@ -9,6 +8,7 @@ use control_service::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use utoipa::IntoParams;
 
 // ── Session endpoints ──
 

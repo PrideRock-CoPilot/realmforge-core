@@ -12,13 +12,18 @@ async fn test_session_issue_and_get() {
         Some(s) => s,
         None => return,
     };
+    let actor_id = ActorId::new("sess-api-test-actor").unwrap();
+    let tenant_id = TenantId::new("sess-api-test-tenant").unwrap();
+    let project_id = ProjectId::new("sess-api-test-project").unwrap();
+    common::seed_identity(store.pool(), &tenant_id, &project_id, &actor_id).await;
+
     let srv = common::TestServer::new(store).await;
 
     // Issue a session
     let body = json!({
-        "actor_id": ActorId::new("sess-api-test-actor").unwrap().as_str(),
-        "tenant_id": TenantId::new("sess-api-test-tenant").unwrap().as_str(),
-        "project_id": ProjectId::new("sess-api-test-project").unwrap().as_str(),
+        "actor_id": actor_id.as_str(),
+        "tenant_id": tenant_id.as_str(),
+        "project_id": project_id.as_str(),
         "ttl_seconds": 3600,
     });
 
@@ -43,13 +48,18 @@ async fn test_session_revoke() {
         Some(s) => s,
         None => return,
     };
+    let actor_id = ActorId::new("sess-revoke-actor").unwrap();
+    let tenant_id = TenantId::new("sess-revoke-tenant").unwrap();
+    let project_id = ProjectId::new("sess-revoke-project").unwrap();
+    common::seed_identity(store.pool(), &tenant_id, &project_id, &actor_id).await;
+
     let srv = common::TestServer::new(store).await;
 
     // Issue a session
     let body = json!({
-        "actor_id": ActorId::new("sess-revoke-actor").unwrap().as_str(),
-        "tenant_id": TenantId::new("sess-revoke-tenant").unwrap().as_str(),
-        "project_id": ProjectId::new("sess-revoke-project").unwrap().as_str(),
+        "actor_id": actor_id.as_str(),
+        "tenant_id": tenant_id.as_str(),
+        "project_id": project_id.as_str(),
         "ttl_seconds": 3600,
     });
 

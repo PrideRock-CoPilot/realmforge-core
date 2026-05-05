@@ -1,5 +1,5 @@
-use axum::{extract::Path, extract::State, Json};
 use authority_domain::{BundleId, BundleStatus};
+use axum::{extract::Path, extract::State, Json};
 use control_service::ServiceContext;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -37,8 +37,7 @@ pub async fn create_bundle(
     State(ctx): State<ServiceContext>,
     Json(body): Json<CreateBundleRequest>,
 ) -> Json<Value> {
-    let bundle_id =
-        BundleId::new(body.bundle_id).unwrap_or_else(|_| BundleId::generate());
+    let bundle_id = BundleId::new(body.bundle_id).unwrap_or_else(|_| BundleId::generate());
     let manifest = authority_domain::BundleManifest {
         bundle_id,
         version: body.version,
@@ -123,12 +122,8 @@ pub async fn list_bundles(
         (status = 500, description = "Internal error"),
     )
 )]
-pub async fn get_bundle(
-    State(ctx): State<ServiceContext>,
-    Path(id): Path<String>,
-) -> Json<Value> {
-    let bundle_id =
-        BundleId::new(id).unwrap_or_else(|_| BundleId::generate());
+pub async fn get_bundle(State(ctx): State<ServiceContext>, Path(id): Path<String>) -> Json<Value> {
+    let bundle_id = BundleId::new(id).unwrap_or_else(|_| BundleId::generate());
 
     match ctx.bundles.get_bundle(&bundle_id).await {
         Ok(manifest) => Json(json!({
@@ -169,8 +164,7 @@ pub async fn verify_bundle(
     Path(id): Path<String>,
     Json(body): Json<VerifyBundleRequest>,
 ) -> Json<Value> {
-    let bundle_id =
-        BundleId::new(id).unwrap_or_else(|_| BundleId::generate());
+    let bundle_id = BundleId::new(id).unwrap_or_else(|_| BundleId::generate());
     let status = match body.status.as_str() {
         "verified" => BundleStatus::Verified,
         "signed" => BundleStatus::Signed,
@@ -208,8 +202,7 @@ pub async fn deploy_bundle(
     State(ctx): State<ServiceContext>,
     Path(id): Path<String>,
 ) -> Json<Value> {
-    let bundle_id =
-        BundleId::new(id).unwrap_or_else(|_| BundleId::generate());
+    let bundle_id = BundleId::new(id).unwrap_or_else(|_| BundleId::generate());
 
     match ctx.bundles.get_bundle(&bundle_id).await {
         Ok(manifest) => {

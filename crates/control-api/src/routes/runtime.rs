@@ -1,5 +1,5 @@
-use axum::{extract::Path, extract::State, Json};
 use authority_domain::{BundleId, RuntimeId};
+use axum::{extract::Path, extract::State, Json};
 use control_service::ServiceContext;
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -24,11 +24,10 @@ pub async fn get_runtime_status(
     State(ctx): State<ServiceContext>,
     Path(id): Path<String>,
 ) -> Json<Value> {
-    let runtime_id =
-        RuntimeId::new(id).unwrap_or_else(|_| RuntimeId::generate());
+    let runtime_id = RuntimeId::new(id).unwrap_or_else(|_| RuntimeId::generate());
 
     match ctx.runtimes.get_runtime_status(&runtime_id).await {
-       Ok(instance) => Json(json!({
+        Ok(instance) => Json(json!({
             "success": true,
             "data": instance
         })),
@@ -150,8 +149,7 @@ pub async fn stop_runtime(
     State(ctx): State<ServiceContext>,
     Path(id): Path<String>,
 ) -> Json<Value> {
-    let runtime_id =
-        RuntimeId::new(id).unwrap_or_else(|_| RuntimeId::generate());
+    let runtime_id = RuntimeId::new(id).unwrap_or_else(|_| RuntimeId::generate());
 
     match ctx.runtimes.stop_runtime(&runtime_id).await {
         Ok(()) => Json(json!({

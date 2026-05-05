@@ -172,7 +172,10 @@ mod tests {
     #[test]
     fn work_path_node_type_display() {
         assert_eq!(WorkPathNodeType::Module.to_string(), "module");
-        assert_eq!(WorkPathNodeType::RuntimeContract.to_string(), "runtime_contract");
+        assert_eq!(
+            WorkPathNodeType::RuntimeContract.to_string(),
+            "runtime_contract"
+        );
         assert_eq!(WorkPathNodeType::Policy.to_string(), "policy");
         assert_eq!(WorkPathNodeType::Service.to_string(), "service");
         assert_eq!(WorkPathNodeType::WatchSignal.to_string(), "watch_signal");
@@ -192,9 +195,27 @@ mod tests {
             name: "Test WP".to_string(),
             description: "A test work path".to_string(),
             nodes: vec![
-                sample_node("n1", "wp-1", WorkPathNodeType::Module, "Module A", vec![n2.clone()]),
-                sample_node("n2", "wp-1", WorkPathNodeType::Policy, "Policy B", vec![n3.clone()]),
-                sample_node("n3", "wp-1", WorkPathNodeType::Evidence, "Evidence C", vec![]),
+                sample_node(
+                    "n1",
+                    "wp-1",
+                    WorkPathNodeType::Module,
+                    "Module A",
+                    vec![n2.clone()],
+                ),
+                sample_node(
+                    "n2",
+                    "wp-1",
+                    WorkPathNodeType::Policy,
+                    "Policy B",
+                    vec![n3.clone()],
+                ),
+                sample_node(
+                    "n3",
+                    "wp-1",
+                    WorkPathNodeType::Evidence,
+                    "Evidence C",
+                    vec![],
+                ),
             ],
             created_at: Utc::now(),
             updated_at: Utc::now(),
@@ -259,7 +280,13 @@ mod tests {
             id: WorkPathId::new("wp-1").unwrap(),
             name: "Test".to_string(),
             description: "".to_string(),
-            nodes: vec![sample_node("n1", "wp-1", WorkPathNodeType::Service, "Svc", vec![])],
+            nodes: vec![sample_node(
+                "n1",
+                "wp-1",
+                WorkPathNodeType::Service,
+                "Svc",
+                vec![],
+            )],
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };

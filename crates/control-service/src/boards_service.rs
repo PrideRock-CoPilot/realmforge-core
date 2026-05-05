@@ -46,10 +46,10 @@ impl BoardsService {
         &self,
         plan_id: &BoardPlanId,
     ) -> Result<BoardPlan, ServiceError> {
-        let plans = self.store.list_plans(Some(plan_id.as_str()), 1, 0).await?;
-        let mut plan = plans
-            .into_iter()
-            .next()
+        let mut plan = self
+            .store
+            .get_plan(plan_id)
+            .await?
             .ok_or_else(|| ServiceError::Validation(format!("plan {plan_id} not found")))?;
 
         if plan.status != PlanStatus::Draft {
@@ -59,9 +59,7 @@ impl BoardsService {
             )));
         }
 
-        self.store
-            .update_plan_status(plan_id, "in_review")
-            .await?;
+        self.store.update_plan_status(plan_id, "in_review").await?;
         plan.status = PlanStatus::InReview;
         plan.updated_at = Utc::now();
 
@@ -77,10 +75,10 @@ impl BoardsService {
         approver: String,
         comment: Option<String>,
     ) -> Result<BoardPlan, ServiceError> {
-        let plans = self.store.list_plans(Some(plan_id.as_str()), 1, 0).await?;
-        let mut plan = plans
-            .into_iter()
-            .next()
+        let mut plan = self
+            .store
+            .get_plan(plan_id)
+            .await?
             .ok_or_else(|| ServiceError::Validation(format!("plan {plan_id} not found")))?;
 
         if plan.status != PlanStatus::InReview {
@@ -115,10 +113,10 @@ impl BoardsService {
         approver: String,
         comment: String,
     ) -> Result<BoardPlan, ServiceError> {
-        let plans = self.store.list_plans(Some(plan_id.as_str()), 1, 0).await?;
-        let mut plan = plans
-            .into_iter()
-            .next()
+        let mut plan = self
+            .store
+            .get_plan(plan_id)
+            .await?
             .ok_or_else(|| ServiceError::Validation(format!("plan {plan_id} not found")))?;
 
         if plan.status != PlanStatus::InReview {
@@ -169,10 +167,10 @@ impl BoardsService {
         bundle_ref: String,
         approval_ref: String,
     ) -> Result<ReleaseCommand, ServiceError> {
-        let plans = self.store.list_plans(Some(plan_id.as_str()), 1, 0).await?;
-        let plan = plans
-            .into_iter()
-            .next()
+        let plan = self
+            .store
+            .get_plan(plan_id)
+            .await?
             .ok_or_else(|| ServiceError::Validation(format!("plan {plan_id} not found")))?;
 
         if plan.status != PlanStatus::Approved {

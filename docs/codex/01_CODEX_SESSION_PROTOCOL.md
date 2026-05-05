@@ -26,7 +26,7 @@ Every Codex session working on RealmForge must read:
 2. `AGENTS.md`
 3. `docs/realm_forge_ai_native_path_forward.md`
 4. `docs/spec/00_INDEX.md`
-5. Relevant skill docs from `docs/codex/skills-source/` or installed Codex skills
+5. Relevant skill docs from `skills/` or installed Codex skills (or `.claude/skills/` for Cline sessions)
 
 ## Operating Rules
 

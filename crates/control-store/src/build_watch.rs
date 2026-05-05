@@ -1,7 +1,5 @@
 use crate::StoreError;
-use authority_domain::{
-    CostRecord, ViolationId, ViolationRecord, WatchEvent, WatchEventId,
-};
+use authority_domain::{CostRecord, ViolationId, ViolationRecord, WatchEvent, WatchEventId};
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 
@@ -128,15 +126,13 @@ pub async fn insert_cost_record(pool: &PgPool, record: &CostRecord) -> Result<()
 }
 
 /// Get aggregated cost summary by scope.
-pub async fn get_cost_summary(
-    pool: &PgPool,
-) -> Result<Vec<CostSummaryRow>, StoreError> {
+pub async fn get_cost_summary(pool: &PgPool) -> Result<Vec<CostSummaryRow>, StoreError> {
     let rows: Vec<CostSummaryRow> = sqlx::query_as(
         "SELECT scope, \
-                SUM(token_cost) AS total_token_cost, \
-                SUM(build_time_ms) AS total_build_time_ms, \
-                SUM(storage_bytes) AS total_storage_bytes, \
-                SUM(rework_count) AS total_rework_count, \
+                SUM(token_cost)::BIGINT AS total_token_cost, \
+                SUM(build_time_ms)::BIGINT AS total_build_time_ms, \
+                SUM(storage_bytes)::BIGINT AS total_storage_bytes, \
+                SUM(rework_count)::BIGINT AS total_rework_count, \
                 COUNT(*) AS record_count \
          FROM cost_records \
          GROUP BY scope ORDER BY total_token_cost DESC",
@@ -164,8 +160,7 @@ impl TryInto<WatchEvent> for WatchEventRaw {
 
     fn try_into(self) -> Result<WatchEvent, Self::Error> {
         Ok(WatchEvent {
-            id: WatchEventId::new(self.id)
-                .map_err(|e| StoreError::invalid_data(e.to_string()))?,
+            id: WatchEventId::new(self.id).map_err(|e| StoreError::invalid_data(e.to_string()))?,
             scope: self.scope,
             event_type: parse_watch_event_type(&self.event_type)?,
             severity: parse_watch_severity(&self.severity)?,
@@ -191,8 +186,7 @@ impl TryInto<ViolationRecord> for ViolationRaw {
 
     fn try_into(self) -> Result<ViolationRecord, Self::Error> {
         Ok(ViolationRecord {
-            id: ViolationId::new(self.id)
-                .map_err(|e| StoreError::invalid_data(e.to_string()))?,
+            id: ViolationId::new(self.id).map_err(|e| StoreError::invalid_data(e.to_string()))?,
             rule: self.rule,
             severity: parse_watch_severity(&self.severity)?,
             evidence_ref: self.evidence_ref,
@@ -236,5 +230,57 @@ fn parse_watch_severity(s: &str) -> Result<authority_domain::WatchSeverity, Stor
         _ => Err(StoreError::invalid_data(format!(
             "unknown watch severity: {s}"
         ))),
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a watch event.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_watch_event(&self, event: &WatchEvent) -> Result<(), StoreError> {
+        insert_watch_event(&self.pool, event).await
+    }
+
+    /// Query watch events with optional filters.
+    #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(skip(self))]
+    pub async fn query_watch_events(
+        &self,
+        scope: Option<&str>,
+        event_type: Option<&str>,
+        severity: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<WatchEvent>, StoreError> {
+        query_watch_events(&self.pool, scope, event_type, severity, limit, offset).await
+    }
+
+    /// Get the total count of watch events (for dashboard).
+    #[tracing::instrument(skip(self))]
+    pub async fn count_watch_events(&self) -> Result<i64, StoreError> {
+        count_watch_events(&self.pool).await
+    }
+
+    /// Insert a violation record.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_violation(&self, violation: &ViolationRecord) -> Result<(), StoreError> {
+        insert_violation(&self.pool, violation).await
+    }
+
+    /// Insert a cost record.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_cost_record(&self, record: &CostRecord) -> Result<(), StoreError> {
+        insert_cost_record(&self.pool, record).await
+    }
+
+    /// Get aggregated cost summary by scope.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_cost_summary(
+        &self,
+    ) -> Result<Vec<crate::build_watch::CostSummaryRow>, StoreError> {
+        get_cost_summary(&self.pool).await
     }
 }

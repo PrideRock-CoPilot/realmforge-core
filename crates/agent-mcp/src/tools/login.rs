@@ -6,8 +6,8 @@ use crate::{error::McpError, types::LoginArgs};
 
 /// core_login — Authenticate an actor and issue a session token.
 pub async fn core_login(args: LoginArgs, ctx: &ServiceContext) -> Result<Value, McpError> {
-    let scope =
-        Scope::new(&args.scope).map_err(|e| McpError::InvalidArgs(format!("invalid scope: {}", e)))?;
+    let scope = Scope::new(&args.scope)
+        .map_err(|e| McpError::InvalidArgs(format!("invalid scope: {}", e)))?;
 
     let credentials = LoginCredentials {
         actor_id: args.actor_id,

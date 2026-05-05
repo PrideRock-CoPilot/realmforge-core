@@ -245,3 +245,99 @@ struct LoginPolicyRaw {
     tenant_id: String,
     config_json: serde_json::Value,
 }
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a login attempt record.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_login_attempt(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+        record: &authority_domain::login::LoginAttemptRecord,
+    ) -> Result<(), StoreError> {
+        insert_login_attempt(&self.pool, tenant_id, record).await
+    }
+
+    /// Get login attempts for an actor within a time window.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_login_attempts(
+        &self,
+        actor_id: &ActorId,
+        tenant_id: &authority_domain::TenantId,
+        since: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<authority_domain::login::LoginAttemptRecord>, StoreError> {
+        get_login_attempts(&self.pool, actor_id, tenant_id, since).await
+    }
+
+    /// Insert a block record for an actor.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_login_block(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+        record: &authority_domain::login::LoginBlockRecord,
+    ) -> Result<(), StoreError> {
+        insert_login_block(&self.pool, tenant_id, record).await
+    }
+
+    /// Get the current block record for an actor.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_login_block(
+        &self,
+        actor_id: &ActorId,
+        tenant_id: &authority_domain::TenantId,
+    ) -> Result<Option<authority_domain::login::LoginBlockRecord>, StoreError> {
+        get_login_block(&self.pool, actor_id, tenant_id).await
+    }
+
+    /// List all active blocks (for operator-cli).
+    #[tracing::instrument(skip(self))]
+    pub async fn list_active_blocks(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+    ) -> Result<Vec<authority_domain::login::LoginBlockRecord>, StoreError> {
+        list_active_blocks(&self.pool, tenant_id).await
+    }
+
+    /// Insert or update login policy configuration.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_login_policy(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+        config: &authority_domain::login::LoginPolicyConfig,
+    ) -> Result<(), StoreError> {
+        insert_login_policy(&self.pool, tenant_id, config).await
+    }
+
+    /// Get login policy configuration for a tenant.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_login_policy(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+    ) -> Result<Option<authority_domain::login::LoginPolicyConfig>, StoreError> {
+        get_login_policy(&self.pool, tenant_id).await
+    }
+
+    /// Store a credential hash for an actor.
+    #[tracing::instrument(skip(self))]
+    pub async fn upsert_credential(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+        actor_id: &ActorId,
+        credential_hash: &str,
+    ) -> Result<(), StoreError> {
+        upsert_credential(&self.pool, tenant_id, actor_id, credential_hash).await
+    }
+
+    /// Get stored credential hash for an actor.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_credential(
+        &self,
+        actor_id: &ActorId,
+        tenant_id: &authority_domain::TenantId,
+    ) -> Result<Option<String>, StoreError> {
+        get_credential(&self.pool, actor_id, tenant_id).await
+    }
+}

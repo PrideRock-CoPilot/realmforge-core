@@ -1,6 +1,4 @@
-use authority_domain::{
-    KnowledgeId, KnowledgeQuery, KnowledgeRecord, KnowledgeScope, SourceType,
-};
+use authority_domain::{KnowledgeId, KnowledgeQuery, KnowledgeRecord, KnowledgeScope, SourceType};
 use chrono::Utc;
 use clap::Subcommand;
 use control_service::ServiceContext;
@@ -43,10 +41,7 @@ pub enum KnowledgeCommand {
     Reconcile,
 }
 
-pub async fn handle_knowledge(
-    cmd: KnowledgeCommand,
-    ctx: &ServiceContext,
-) -> CliResult {
+pub async fn handle_knowledge(cmd: KnowledgeCommand, ctx: &ServiceContext) -> CliResult {
     match cmd {
         KnowledgeCommand::Ingest {
             id,
@@ -76,7 +71,11 @@ async fn ingest_knowledge(
         "tenant" => KnowledgeScope::Tenant,
         "app" => KnowledgeScope::App,
         "work_path" => KnowledgeScope::WorkPath,
-        _ => return Err(format!("invalid scope: {scope} — use: global, tenant, app, work_path").into()),
+        _ => {
+            return Err(
+                format!("invalid scope: {scope} — use: global, tenant, app, work_path").into(),
+            )
+        }
     };
 
     let parsed_st = match source_type.as_str() {
@@ -85,7 +84,12 @@ async fn ingest_knowledge(
         "decision" => SourceType::Decision,
         "evidence" => SourceType::Evidence,
         "trace" => SourceType::Trace,
-        _ => return Err(format!("invalid source type: {source_type} — use: catalog, file, decision, evidence, trace").into()),
+        _ => {
+            return Err(format!(
+            "invalid source type: {source_type} — use: catalog, file, decision, evidence, trace"
+        )
+            .into())
+        }
     };
 
     let record = KnowledgeRecord {
@@ -163,9 +167,15 @@ async fn query_knowledge(
         return Ok(());
     }
 
-    println!("Knowledge records ({} total, {} denied):", result.total_count, result.denied_record_count);
+    println!(
+        "Knowledge records ({} total, {} denied):",
+        result.total_count, result.denied_record_count
+    );
     for record in &result.records {
-        println!("  {} — scope: {}, type: {}", record.id, record.scope, record.source_type);
+        println!(
+            "  {} — scope: {}, type: {}",
+            record.id, record.scope, record.source_type
+        );
         println!("    Source: {}", record.source_id);
         println!("    Citations: {}", record.citations.len());
     }

@@ -129,8 +129,9 @@ pub async fn record_signal(
     Path(app_id): Path<String>,
     Json(body): Json<RecordSignalBody>,
 ) -> Result<Json<Value>, ApiError> {
-    let signal_type = parse_signal_type(&body.signal_type)
-        .ok_or_else(|| ApiError::BadRequest(format!("unknown signal_type: {}", body.signal_type)))?;
+    let signal_type = parse_signal_type(&body.signal_type).ok_or_else(|| {
+        ApiError::BadRequest(format!("unknown signal_type: {}", body.signal_type))
+    })?;
     let severity = parse_severity(&body.severity)
         .ok_or_else(|| ApiError::BadRequest(format!("unknown severity: {}", body.severity)))?;
 
@@ -227,7 +228,9 @@ pub async fn list_proposals(
             query.offset.unwrap_or(0),
         )
         .await?;
-    Ok(Json(json!({"proposals": proposals, "count": proposals.len()})))
+    Ok(Json(
+        json!({"proposals": proposals, "count": proposals.len()}),
+    ))
 }
 
 /// POST /v1/live-watch/:app_id/proposals/:id/approve

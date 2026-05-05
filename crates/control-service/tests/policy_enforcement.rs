@@ -8,12 +8,47 @@
 mod common;
 
 use authority_domain::{
-    ActorScope, ApprovalState, CommandStatus, ExecutionMode, ProjectId, SessionId, TenantId,
+    ActorId, ActorScope, ApprovalState, CommandStatus, ExecutionMode, ProjectId, SessionId,
+    TenantId,
 };
 use chrono::{Duration, Utc};
 use control_service::{AuditService, CommandService};
 use policy_engine::{authorize_command_action, DenialCode};
 use serde_json::json;
+use sqlx::PgPool;
+
+/// Seed FK targets (tenant, project, actor) so command proposals don't fail.
+async fn seed_fk_targets(pool: &PgPool, t: &TenantId, p: &ProjectId, a: &ActorId) {
+    sqlx::query(
+        "INSERT INTO tenants (id, name, status, created_at) \
+         VALUES ($1, $2, 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(t.as_str())
+    .bind(t.as_str())
+    .execute(pool)
+    .await
+    .expect("seed_fk_targets: tenant insert failed");
+    sqlx::query(
+        "INSERT INTO projects (id, tenant_id, name, status, created_at) \
+         VALUES ($1, $2, $3, 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(p.as_str())
+    .bind(t.as_str())
+    .bind(p.as_str())
+    .execute(pool)
+    .await
+    .expect("seed_fk_targets: project insert failed");
+    sqlx::query(
+        "INSERT INTO actors (id, tenant_id, display_name, actor_type, status, created_at) \
+         VALUES ($1, $2, $3, 'human', 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(a.as_str())
+    .bind(t.as_str())
+    .bind(a.as_str())
+    .execute(pool)
+    .await
+    .expect("seed_fk_targets: actor insert failed");
+}
 
 fn make_scope(
     tenant_id: TenantId,
@@ -118,14 +153,26 @@ async fn test_policy_approval_required() {
         None => return,
     };
 
+    let approve_tenant = TenantId::new("approval-tenant").unwrap();
+    let approve_project = ProjectId::new("approval-project").unwrap();
+    let approve_actor = common::test_actor();
+
+    seed_fk_targets(
+        store.pool(),
+        &approve_tenant,
+        &approve_project,
+        &approve_actor,
+    )
+    .await;
+
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store, audit_svc);
 
     // A scope where approval is required but not yet granted
     let scope = ActorScope {
-        tenant_id: TenantId::new("approval-tenant").unwrap(),
-        project_id: ProjectId::new("approval-project").unwrap(),
-        actor_id: common::test_actor(),
+        tenant_id: approve_tenant,
+        project_id: approve_project,
+        actor_id: approve_actor,
         roles: vec![],
         session_id: SessionId::generate(),
         skill_session_id: None,
@@ -133,8 +180,8 @@ async fn test_policy_approval_required() {
         active_skill_id: None,
         allowed_actions: vec!["*".to_string()],
         approval_id: None,
-        approval_state: ApprovalState::Required, // Still pending → Required actually
-        execution_mode: ExecutionMode::ReadOnly,
+        approval_state: ApprovalState::Required,
+        execution_mode: ExecutionMode::Approved,
         context_updated_at: Utc::now(),
         expires_at: Utc::now() + Duration::hours(1),
     };
@@ -206,6 +253,16 @@ async fn test_policy_full_command_lifecycle_denies_properly() {
         Some(s) => s,
         None => return,
     };
+
+    // Seed FK targets for the allow_all_scope tenant/project/actor
+    let policy_actor = common::test_actor();
+    seed_fk_targets(
+        store.pool(),
+        &TenantId::new("policy-test-tenant").unwrap(),
+        &ProjectId::new("policy-test-project").unwrap(),
+        &policy_actor,
+    )
+    .await;
 
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store, audit_svc);

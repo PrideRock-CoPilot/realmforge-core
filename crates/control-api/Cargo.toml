@@ -27,4 +27,5 @@ uuid.workspace = true
 reqwest = { version = "0.12", default-features = false, features = ["json", "blocking"] }
 control-store.workspace = true
 serde_json.workspace = true
+sqlx.workspace = true
 tokio.workspace = true

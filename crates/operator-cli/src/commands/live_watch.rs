@@ -82,9 +82,18 @@ pub async fn execute(cmd: LiveWatchCommands, ctx: &ServiceContext) -> CliResult 
         } => {
             let signals = ctx
                 .live_watch
-                .get_signals(&app_id, signal_type.as_deref(), severity.as_deref(), limit, offset)
+                .get_signals(
+                    &app_id,
+                    signal_type.as_deref(),
+                    severity.as_deref(),
+                    limit,
+                    offset,
+                )
                 .await?;
-            println!("{}", serde_json::to_string_pretty(&json!({ "signals": signals }))?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&json!({ "signals": signals }))?
+            );
             Ok(())
         }
         LiveWatchCommands::Propose { app_id } => {

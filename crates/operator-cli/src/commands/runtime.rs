@@ -18,9 +18,7 @@ pub enum RuntimeCommand {
         metadata: Option<String>,
     },
     /// Get runtime instance status
-    Status {
-        runtime_id: String,
-    },
+    Status { runtime_id: String },
     /// List all runtime instances
     List {
         #[arg(long, default_value = "20")]
@@ -29,9 +27,7 @@ pub enum RuntimeCommand {
         offset: i64,
     },
     /// Stop a runtime instance
-    Stop {
-        runtime_id: String,
-    },
+    Stop { runtime_id: String },
 }
 
 pub async fn handle_runtime(cmd: RuntimeCommand, ctx: &ServiceContext) -> CliResult {

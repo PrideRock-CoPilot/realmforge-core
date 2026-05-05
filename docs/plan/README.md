@@ -5,7 +5,7 @@ status: draft
 owner: pm
 reviewers: [ceo, cto, qa, release-manager]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-DOCS-000, WP-CORE-001, WP-CATALOG-001, WP-SKILL-001, WP-GATEWAY-001, WP-WORKPATH-001, WP-BOARDS-001, WP-KNOWLEDGE-001, WP-BUILD-WATCH-001, WP-RUNTIME-BUNDLE-001, WP-LIVE-RUNTIME-001, WP-LIVE-WATCH-001, WP-LOGIN-001]
@@ -53,12 +53,12 @@ Phase 0: Documentation Certification
 
 | Decision ID | Blocks | Required before | Current status |
 | --- | --- | --- | --- |
-| `DEC-COUNCIL-001` | Boards product surface, visual map rendering | Phase 6 start | `COUNCIL_DECISION_REQUIRED` |
+| `DEC-COUNCIL-001` | Boards product surface, visual map rendering | Phase 6 start | `ACCEPTED` (closed 2026-05-04 — ADR-0002) |
 | `DEC-COUNCIL-002` | Backend crate/package names | Phase 1 start | `ACCEPTED` (closed) |
-| `DEC-COUNCIL-003` | Parquet writer, Knowledge, snapshots | Phase 5 start | `COUNCIL_DECISION_REQUIRED` |
-| `DEC-USER-004` | Catalog modules beyond Login | Post-Phase 9 | `USER_APPROVAL_REQUIRED` |
-| `DEC-USER-005` | Brand removal threshold in naming | Throughout | `USER_APPROVAL_REQUIRED` |
-| `DEC-USER-006` | Live Watch auto-remediation authority | Phase 8 | `USER_APPROVAL_REQUIRED` |
+| `DEC-COUNCIL-003` | Parquet writer, Knowledge, snapshots | Phase 5 start | `ACCEPTED` (closed 2026-05-05 — ADR-0006) |
+| `DEC-USER-004` | Catalog modules beyond Login | Post-Phase 9 | `USER_APPROVED` (closed 2026-05-05) |
+| `DEC-USER-005` | Brand removal threshold in naming | Throughout | `USER_APPROVED` (closed 2026-05-04) |
+| `DEC-USER-006` | Live Watch auto-remediation authority | Phase 8 | `USER_APPROVED` (closed 2026-05-05 — ADR-0007) |
 
 ## Risk Assessment
 
@@ -69,8 +69,8 @@ Phase 0: Documentation Certification
 | Phase 2 (all subphases) | critical | Authority Core is the security foundation — errors cascade to all downstream phases |
 | Phase 3 | high | Catalog and work path data model affects every module's storage |
 | Phase 4 | critical | Gateway is the single agent mutation path — must be correct by construction |
-| Phase 5 | high | Parquet engine decision blocked on Council; data consistency risk |
-| Phase 6 | medium | Boards blocked on frontend Council decision; Build Watch is lower risk |
+| Phase 5 | high | Arrow/DataFusion path is decided; Parquet implementation and data consistency remain high risk |
+| Phase 6 | medium | Frontend stack is decided; Boards and Build Watch still require reproducible verification evidence |
 | Phase 7 | critical | Bundle signing governs what runs in production |
 | Phase 8 | medium | Live Watch monitors only — no auto-remediation in first release |
 | Phase 9 | high | First vertical slice touches every layer |

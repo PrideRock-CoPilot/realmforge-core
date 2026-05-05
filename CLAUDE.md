@@ -28,7 +28,7 @@ RealmForge runs on a skill system. These skills are the company — real colleag
 specific domains, scars, and pride in their work. You can say "hi" to any of them by
 name, or invoke their skill directly with `/skill-name`.
 
-**Always load `/skill-creator` first** when starting a new session or creating a new skill.
+**Always load `/realmforge-skill-creator` first** when starting a new session or creating a new skill.
 
 ---
 
@@ -36,7 +36,7 @@ name, or invoke their skill directly with `/skill-name`.
 
 | Invoke | Person | Role | Domain |
 |--------|--------|------|--------|
-| `/skill-creator` | The Builder | Meta-skill | Creates, validates, and registers all skills |
+| `/realmforge-skill-creator` | The Builder | Meta-skill | Creates, validates, and registers all skills |
 | `/ceo` | Victor Chen | CEO | Strategy, direction, investment approval |
 | `/pm` | Alex Rivera | Project Manager | Planning, scope, delivery, handoffs |
 | `/cto` | Dr. Rena Okafor | CTO | Architecture, technical risk, engineering contracts |
@@ -134,7 +134,7 @@ When a user's request matches a skill's domain, invoke the skill using `use_skil
 - User stories, business perspective → invoke `/biz-user` (Iris Park)
 - Workflow state, handoff discipline → invoke `/orchestrator`
 - Multi-stakeholder decision → invoke `/council`
-- Creating/auditing a new skill → invoke `/skill-creator` (ALWAYS first)
+- Creating/auditing a new skill → invoke `/realmforge-skill-creator` (ALWAYS first)
 
 ### 2. Orchestrator Invocation
 
@@ -147,7 +147,7 @@ When a user's request matches a skill's domain, invoke the skill using `use_skil
 
 Every session MUST begin with this sequence:
 
-1. **Invoke `/skill-creator`** — Register any new skills needed for this session.
+1. **Invoke `/realmforge-skill-creator`** — Register any new skills needed for this session.
 2. **Invoke `/orchestrator`** — Get current workflow state, in-flight items, and any stalled handoffs.
 3. **Read canonical documents** — Read `CLAUDE.md`, `AGENTS.md`, `docs/MASTER_BUILD_PLAN.md` before acting.
 
@@ -230,8 +230,8 @@ Typed IDs everywhere — never bare `Uuid`.
 
 ## Creating a New Skill
 
-Invoke `/skill-creator`. They run you through the six questions and draft the file.
-Skills live in `e:\realmforge\.claude\skills\<name>\SKILL.md`.
+Invoke `/realmforge-skill-creator`. They run you through the six questions and draft the file.
+Skills live in `e:\realmforge\skills\<name>\SKILL.md`.
 
 ---
 

@@ -145,7 +145,10 @@ pub fn secure_compare(credential: &[u8], stored_hash: &str) -> bool {
     use sha2::{Digest, Sha256};
     use subtle::ConstantTimeEq;
     let computed_hash = hex::encode(Sha256::digest(credential));
-    computed_hash.as_bytes().ct_eq(stored_hash.as_bytes()).into()
+    computed_hash
+        .as_bytes()
+        .ct_eq(stored_hash.as_bytes())
+        .into()
 }
 
 #[cfg(test)]
@@ -221,10 +224,7 @@ mod tests {
             .collect();
 
         let outcome = evaluate_login_attempt(&actor, &attempts, None, &config);
-        assert!(matches!(
-            outcome,
-            LoginAttemptOutcome::RateLimited { .. }
-        ));
+        assert!(matches!(outcome, LoginAttemptOutcome::RateLimited { .. }));
     }
 
     #[test]
@@ -267,10 +267,7 @@ mod tests {
 
         let outcome = evaluate_login_attempt(&actor, &attempts, None, &config);
         // 5 failures > 3 max, but all within window — should rate limit with block duration
-        assert!(matches!(
-            outcome,
-            LoginAttemptOutcome::RateLimited { .. }
-        ));
+        assert!(matches!(outcome, LoginAttemptOutcome::RateLimited { .. }));
     }
 
     #[test]

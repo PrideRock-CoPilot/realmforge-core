@@ -1,6 +1,6 @@
 use authority_domain::{
-    ActorId, AgentWorkPacket, CostBudget, PacketId, PacketPermissionScope, PacketScope, PacketStatus,
-    ProjectId, TenantId, WorkPathGraph, WorkPathId, WorkPathNode, WorkPathNodeId,
+    ActorId, AgentWorkPacket, CostBudget, PacketId, PacketPermissionScope, PacketScope,
+    PacketStatus, ProjectId, TenantId, WorkPathGraph, WorkPathId, WorkPathNode, WorkPathNodeId,
 };
 use chrono::Utc;
 use control_store::CoreStore;
@@ -53,9 +53,11 @@ impl WorkPacketService {
             .await?
             .ok_or(ServiceError::WorkPathNotFound)?;
 
-        let node = graph
-            .get_node(node_id)
-            .ok_or_else(|| ServiceError::Validation(format!("node {node_id} not found in work path {work_path_id}")))?;
+        let node = graph.get_node(node_id).ok_or_else(|| {
+            ServiceError::Validation(format!(
+                "node {node_id} not found in work path {work_path_id}"
+            ))
+        })?;
 
         // 2. Traverse from this node and aggregate scope from all descendants.
         let mut visited = std::collections::HashSet::new();
@@ -72,8 +74,11 @@ impl WorkPacketService {
             .iter()
             .flat_map(|n| n.file_ids.iter().cloned())
             .collect();
-        let allowed_set: std::collections::HashSet<&str> =
-            packet_scope.allowed_file_ids.iter().map(|s| s.as_str()).collect();
+        let allowed_set: std::collections::HashSet<&str> = packet_scope
+            .allowed_file_ids
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
         let mut denied_file_paths: Vec<String> = all_graph_file_ids
             .into_iter()
             .filter(|f| !allowed_set.contains(f.as_str()))
@@ -148,11 +153,16 @@ impl WorkPacketService {
         let mut issues: Vec<String> = Vec::new();
 
         // Check 1: no overlap between allowed and denied paths.
-        let denied_set: std::collections::HashSet<&str> =
-            packet.denied_file_paths.iter().map(|s| s.as_str()).collect();
+        let denied_set: std::collections::HashSet<&str> = packet
+            .denied_file_paths
+            .iter()
+            .map(|s| s.as_str())
+            .collect();
         for path in &packet.allowed_file_paths {
             if denied_set.contains(path.as_str()) {
-                issues.push(format!("file '{path}' appears in both allowed and denied lists"));
+                issues.push(format!(
+                    "file '{path}' appears in both allowed and denied lists"
+                ));
             }
         }
 
@@ -223,7 +233,7 @@ fn collect_subtree<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use authority_domain::{WorkPathNodeType};
+    use authority_domain::WorkPathNodeType;
 
     fn make_graph() -> WorkPathGraph {
         let wp_id = WorkPathId::new("wp-1").unwrap();

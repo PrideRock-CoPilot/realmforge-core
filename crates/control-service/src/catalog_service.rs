@@ -54,7 +54,14 @@ impl CatalogService {
     ) -> Result<CatalogEntry, ServiceError> {
         let entry = self
             .store
-            .copy_catalog_entry(source_id, new_id, new_name, new_parent_id, new_scope, copied_by)
+            .copy_catalog_entry(
+                source_id,
+                new_id,
+                new_name,
+                new_parent_id,
+                new_scope,
+                copied_by,
+            )
             .await?;
         info!("catalog module copied with provenance");
         Ok(entry)
@@ -86,9 +93,9 @@ impl CatalogService {
         id: &CatalogId,
     ) -> Result<CatalogCopyProvenance, ServiceError> {
         let entry = self.get_module(id).await?;
-        entry
-            .provenance
-            .ok_or_else(|| ServiceError::Validation(format!("catalog entry {id} has no provenance")))
+        entry.provenance.ok_or_else(|| {
+            ServiceError::Validation(format!("catalog entry {id} has no provenance"))
+        })
     }
 
     /// Build a catalog tree rooted at a given scope (returns all entries in tree form).

@@ -12,10 +12,11 @@ use chrono::Utc;
 use control_service::{error::ServiceError, WorkPacketService};
 
 /// Build a small test graph with 3 nodes: n1 → n2 (one branch), n3 (separate branch).
-fn make_test_graph(wp_id: &WorkPathId) -> WorkPathGraph {
-    let n1 = WorkPathNodeId::new("n1").unwrap();
-    let n2 = WorkPathNodeId::new("n2").unwrap();
-    let n3 = WorkPathNodeId::new("n3").unwrap();
+/// Uses a unique prefix for node IDs to avoid parallel test collisions.
+fn make_test_graph(wp_id: &WorkPathId, prefix: &str) -> WorkPathGraph {
+    let n1 = WorkPathNodeId::new(format!("{}-n1", prefix)).unwrap();
+    let n2 = WorkPathNodeId::new(format!("{}-n2", prefix)).unwrap();
+    let n3 = WorkPathNodeId::new(format!("{}-n3", prefix)).unwrap();
 
     WorkPathGraph {
         id: wp_id.clone(),
@@ -68,6 +69,11 @@ fn make_test_graph(wp_id: &WorkPathId) -> WorkPathGraph {
     }
 }
 
+/// Helper: construct a prefixed node ID for lookup after graph insertion.
+fn node_id(prefix: &str, suffix: &str) -> WorkPathNodeId {
+    WorkPathNodeId::new(format!("{}-{}", prefix, suffix)).unwrap()
+}
+
 #[tokio::test]
 async fn test_work_packet_generate() {
     let store = match common::get_store().await {
@@ -75,12 +81,14 @@ async fn test_work_packet_generate() {
         None => return,
     };
 
+    // Use a unique prefix derived from the WorkPathId to guarantee no collisions
     let wp_id = WorkPathId::generate();
-    let graph = make_test_graph(&wp_id);
+    let prefix = wp_id.as_str().to_string();
+    let graph = make_test_graph(&wp_id, &prefix);
     store.insert_work_path_graph(&graph).await.unwrap();
 
     let svc = WorkPacketService::new(store);
-    let node_id = WorkPathNodeId::new("n1").unwrap();
+    let nid = node_id(&prefix, "n1");
 
     let packet = svc
         .generate_work_packet(
@@ -88,7 +96,7 @@ async fn test_work_packet_generate() {
             &common::test_project(),
             &common::test_actor(),
             &wp_id,
-            &node_id,
+            &nid,
             "Implement feature X",
             None,
         )
@@ -100,11 +108,17 @@ async fn test_work_packet_generate() {
     assert_eq!(packet.agent_id, common::test_actor());
 
     // n1 + n2 (child) file IDs are allowed
-    assert!(packet.allowed_file_paths.contains(&"src/feature/mod.rs".to_string()));
-    assert!(packet.allowed_file_paths.contains(&"src/queries/service.rs".to_string()));
+    assert!(packet
+        .allowed_file_paths
+        .contains(&"src/feature/mod.rs".to_string()));
+    assert!(packet
+        .allowed_file_paths
+        .contains(&"src/queries/service.rs".to_string()));
 
     // n3 is out-of-scope: its files must be denied
-    assert!(packet.denied_file_paths.contains(&"src/other/policy.rs".to_string()));
+    assert!(packet
+        .denied_file_paths
+        .contains(&"src/other/policy.rs".to_string()));
 }
 
 #[tokio::test]
@@ -115,7 +129,8 @@ async fn test_work_packet_generate_with_budget() {
     };
 
     let wp_id = WorkPathId::generate();
-    let graph = make_test_graph(&wp_id);
+    let prefix = wp_id.as_str().to_string();
+    let graph = make_test_graph(&wp_id, &prefix);
     store.insert_work_path_graph(&graph).await.unwrap();
 
     let svc = WorkPacketService::new(store);
@@ -125,7 +140,7 @@ async fn test_work_packet_generate_with_budget() {
         max_seconds: 300,
     };
 
-    let node_id = WorkPathNodeId::new("n2").unwrap();
+    let nid = node_id(&prefix, "n2");
 
     let packet = svc
         .generate_work_packet(
@@ -133,7 +148,7 @@ async fn test_work_packet_generate_with_budget() {
             &common::test_project(),
             &common::test_actor(),
             &wp_id,
-            &node_id,
+            &nid,
             "Optimize query performance",
             Some(budget.clone()),
         )
@@ -162,7 +177,10 @@ async fn test_work_packet_validate_not_found() {
     let svc = WorkPacketService::new(store);
     let fake_id = PacketId::generate();
     let result = svc.validate_packet_boundaries(&fake_id).await;
-    assert!(matches!(result.unwrap_err(), ServiceError::WorkPacketNotFound));
+    assert!(matches!(
+        result.unwrap_err(),
+        ServiceError::WorkPacketNotFound
+    ));
 }
 
 #[tokio::test]
@@ -173,11 +191,12 @@ async fn test_work_packet_validate_persisted() {
     };
 
     let wp_id = WorkPathId::generate();
-    let graph = make_test_graph(&wp_id);
+    let prefix = wp_id.as_str().to_string();
+    let graph = make_test_graph(&wp_id, &prefix);
     store.insert_work_path_graph(&graph).await.unwrap();
 
     let svc = WorkPacketService::new(store);
-    let node_id = WorkPathNodeId::new("n1").unwrap();
+    let nid = node_id(&prefix, "n1");
 
     let packet = svc
         .generate_work_packet(
@@ -185,7 +204,7 @@ async fn test_work_packet_validate_persisted() {
             &common::test_project(),
             &common::test_actor(),
             &wp_id,
-            &node_id,
+            &nid,
             "Validate this packet",
             None,
         )
@@ -206,11 +225,12 @@ async fn test_work_packet_permission_scope() {
     };
 
     let wp_id = WorkPathId::generate();
-    let graph = make_test_graph(&wp_id);
+    let prefix = wp_id.as_str().to_string();
+    let graph = make_test_graph(&wp_id, &prefix);
     store.insert_work_path_graph(&graph).await.unwrap();
 
     let svc = WorkPacketService::new(store);
-    let node_id = WorkPathNodeId::new("n1").unwrap();
+    let nid = node_id(&prefix, "n1");
 
     let packet = svc
         .generate_work_packet(
@@ -218,7 +238,7 @@ async fn test_work_packet_permission_scope() {
             &common::test_project(),
             &common::test_actor(),
             &wp_id,
-            &node_id,
+            &nid,
             "Refactor module",
             None,
         )

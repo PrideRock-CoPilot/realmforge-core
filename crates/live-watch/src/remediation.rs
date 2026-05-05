@@ -63,12 +63,14 @@ impl RemediationGenerator {
                 authority_domain::SignalType::VersionSkew => {
                     proposed_actions.push(ProposedAction {
                         action_type: "schedule_bundle_update".to_string(),
-                        description: "Multiple bundle versions detected — schedule roll-forward to latest".to_string(),
+                        description:
+                            "Multiple bundle versions detected — schedule roll-forward to latest"
+                                .to_string(),
                         params: serde_json::json!({}),
                     });
-                    impact_lines
-                        .push("Bundle update is non-disruptive if rolling deployment is used"
-                            .to_string());
+                    impact_lines.push(
+                        "Bundle update is non-disruptive if rolling deployment is used".to_string(),
+                    );
                 }
                 authority_domain::SignalType::Latency => {
                     proposed_actions.push(ProposedAction {
@@ -81,7 +83,8 @@ impl RemediationGenerator {
                     });
                     impact_lines.push("Scaling runtime will increase resource usage".to_string());
                 }
-                authority_domain::SignalType::CostRate | authority_domain::SignalType::TokenUsage => {
+                authority_domain::SignalType::CostRate
+                | authority_domain::SignalType::TokenUsage => {
                     proposed_actions.push(ProposedAction {
                         action_type: "optimize_cost".to_string(),
                         description: format!(

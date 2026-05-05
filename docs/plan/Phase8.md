@@ -6,7 +6,7 @@ status: draft
 owner: backend
 reviewers: [cto, security-architect, biz-user, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-LIVE-WATCH-001]
@@ -28,11 +28,11 @@ approval_state: pending
 | Product module | Live Watch |
 | Owner | backend |
 | Risk | medium |
-| Decision blockers | `DEC-USER-006` (Live Watch auto-remediation authority) |
+| Decision blockers | none for Tier 0 monitoring/proposal behavior; Tier 1 requires per-app opt-in under `DEC-USER-006` |
 
 **Mandate:** Build the production monitoring and proposed remediation system. Live Watch monitors live runtime health signals, detects anomalies, and proposes remediation work packets. It does **not** auto-remediate in the first governed release.
 
-⚠️ **DECISION BLOCKER:** `DEC-USER-006` must be resolved before Live Watch can auto-remediate low-risk issues. The phase proceeds with monitoring and proposing only.
+**Decision resolution:** `DEC-USER-006` is closed. Live Watch defaults to Tier 0 monitoring and proposals only. Tier 1 low-risk remediation requires explicit per-app opt-in; higher autonomy remains deferred.
 
 ---
 
@@ -157,7 +157,7 @@ pub struct RemediationProposal {
 - [x] Remediation proposals include impact analysis (never auto-execute)
 - [x] Proposals can be approved via API, which routes to gateway for execution
 - [x] Watch profiles can be created, updated, and applied per app
-- [x] No auto-remediation occurs without `DEC-USER-006` resolution
+- [x] No auto-remediation occurs outside the `DEC-USER-006` tier rules
 - [x] API, CLI, and MCP surfaces all functional
 - [ ] `cargo test --workspace` passes with 0 failures
 - [ ] `cargo clippy --workspace -- -D warnings` passes
@@ -189,4 +189,4 @@ pub struct RemediationProposal {
 ## Dependencies
 
 - Phase 7 complete (Live Runtime — Live Watch monitors runtime health signals)
-- `DEC-USER-006` resolved (for auto-remediation authority)
+- `DEC-USER-006` resolved; Tier 0 is default and Tier 1 requires explicit per-app opt-in

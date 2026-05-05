@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "pwsh -NoProfile -Command \"Write-Host '--- SESSION DISCIPLINE CHECK ---'; Write-Host 'Required before acting: (1) Read CLAUDE.md + AGENTS.md + docs/MASTER_BUILD_PLAN.md  (2) Invoke /orchestrator for workflow state  (3) Route to the correct skill — do not solve outside your domain'; exit 0\""
+            "command": "pwsh -NoProfile -Command \"Write-Host '--- REALMFORGE SKILL GATE ---'; Write-Host 'Did you load the correct skill before acting?'; Write-Host 'Check: .clinerules/02-routing-and-skills.md for routing'; Write-Host 'Use: use_skill with the matching skill name'; Write-Host 'Violation policy: No action without a loaded skill'; Write-Host '---'; exit 0\""
           }
         ]
       }

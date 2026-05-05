@@ -44,7 +44,13 @@ pub async fn handle_rollback(cmd: RollbackCommand, ctx: &ServiceContext) -> CliR
         RollbackCommand::Execute(args) => {
             let result = ctx
                 .rollback
-                .execute_rollback(&args.from, &args.to, &args.tenant_id, &args.project_id, &args.actor_id)
+                .execute_rollback(
+                    &args.from,
+                    &args.to,
+                    &args.tenant_id,
+                    &args.project_id,
+                    &args.actor_id,
+                )
                 .await?;
             output_json(&result);
         }

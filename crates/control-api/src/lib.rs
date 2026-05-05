@@ -223,116 +223,198 @@ pub fn router(state: ServiceContext) -> Router {
     Router::new()
         // Observability
         .route("/metrics", get(metrics::get_metrics))
-
         // Health
         .route("/health", get(routes::health::health))
         .route("/v1/health/ready", get(routes::health::ready))
         .route("/v1/health/live", get(routes::health::live))
-
         // Session
         .route("/v1/session", post(routes::session::issue_session))
-        .route("/v1/session/{id}", get(routes::session::get_session))
-        .route("/v1/session/{id}", delete(routes::session::revoke_session))
-        .route("/v1/session/{id}/activate", post(routes::session::activate_session))
-        .route("/v1/session/{id}/renew", post(routes::session::renew_session))
-
+        .route("/v1/session/:id", get(routes::session::get_session))
+        .route("/v1/session/:id", delete(routes::session::revoke_session))
+        .route(
+            "/v1/session/:id/activate",
+            post(routes::session::activate_session),
+        )
+        .route(
+            "/v1/session/:id/renew",
+            post(routes::session::renew_session),
+        )
         // Commands
         .route("/v1/commands", post(routes::command::propose_command))
-        .route("/v1/commands/{id}", get(routes::command::get_command))
-        .route("/v1/commands/{id}/authorize", put(routes::command::authorize_command))
-        .route("/v1/commands/{id}/apply", put(routes::command::apply_command))
-        .route("/v1/commands/{id}/deny", post(routes::command::deny_command))
-
+        .route("/v1/commands/:id", get(routes::command::get_command))
+        .route(
+            "/v1/commands/:id/authorize",
+            put(routes::command::authorize_command),
+        )
+        .route(
+            "/v1/commands/:id/apply",
+            put(routes::command::apply_command),
+        )
+        .route("/v1/commands/:id/deny", post(routes::command::deny_command))
         // Audit
         .route("/v1/audit/events", get(routes::audit::query_events))
         .route("/v1/audit/chain/verify", get(routes::audit::verify_chain))
         .route("/v1/audit/stream", get(routes::audit::stream_audit_events))
-
         // Snapshots — literal routes before parameterized routes
         .route("/v1/snapshots", post(routes::snapshot::create_snapshot))
         .route("/v1/snapshots", get(routes::snapshot::list_snapshots))
-        .route("/v1/snapshots/compare", get(routes::snapshot::compare_snapshots))
-        .route("/v1/snapshots/{id}", get(routes::snapshot::get_snapshot))
-        .route("/v1/snapshots/{id}/validate", post(routes::snapshot::validate_snapshot))
-
+        .route(
+            "/v1/snapshots/compare",
+            get(routes::snapshot::compare_snapshots),
+        )
+        .route("/v1/snapshots/:id", get(routes::snapshot::get_snapshot))
+        .route(
+            "/v1/snapshots/:id/validate",
+            post(routes::snapshot::validate_snapshot),
+        )
         // Rollback
-        .route("/v1/rollback/preview", post(routes::rollback::preview_rollback))
-        .route("/v1/rollback/execute", post(routes::rollback::execute_rollback))
-        .route("/v1/rollback/{id}/verify", get(routes::rollback::verify_rollback))
-
+        .route(
+            "/v1/rollback/preview",
+            post(routes::rollback::preview_rollback),
+        )
+        .route(
+            "/v1/rollback/execute",
+            post(routes::rollback::execute_rollback),
+        )
+        .route(
+            "/v1/rollback/:id/verify",
+            get(routes::rollback::verify_rollback),
+        )
         // Actors
-        .route("/v1/actors/{id}/scope", get(routes::actor::get_actor_scope))
-
+        .route("/v1/actors/:id/scope", get(routes::actor::get_actor_scope))
         // Work Packets
-        .route("/v1/work-packets/generate", post(routes::work_packet::generate_work_packet))
-        .route("/v1/work-packets/{id}/validate", post(routes::work_packet::validate_work_packet))
-
+        .route(
+            "/v1/work-packets/generate",
+            post(routes::work_packet::generate_work_packet),
+        )
+        .route(
+            "/v1/work-packets/:id/validate",
+            post(routes::work_packet::validate_work_packet),
+        )
         // Boards (previously unregistered — wired in as part of utoipa annotation work)
         .route("/v1/boards/plans", post(routes::boards::create_plan))
         .route("/v1/boards/plans", get(routes::boards::list_plans))
-        .route("/v1/boards/plans/{id}/submit", post(routes::boards::submit_plan))
-        .route("/v1/boards/plans/{id}/approve", post(routes::boards::approve_plan))
-        .route("/v1/boards/plans/{id}/reject", post(routes::boards::reject_plan))
+        .route(
+            "/v1/boards/plans/:id/submit",
+            post(routes::boards::submit_plan),
+        )
+        .route(
+            "/v1/boards/plans/:id/approve",
+            post(routes::boards::approve_plan),
+        )
+        .route(
+            "/v1/boards/plans/:id/reject",
+            post(routes::boards::reject_plan),
+        )
         .route("/v1/boards/releases", post(routes::boards::submit_release))
-
         // Catalog
         .route("/v1/catalog", get(routes::catalog::list_catalog))
         .route("/v1/catalog/copy", post(routes::catalog::copy_catalog))
-        .route("/v1/catalog/{id}/provenance", get(routes::catalog::get_catalog_provenance))
-
+        .route(
+            "/v1/catalog/:id/provenance",
+            get(routes::catalog::get_catalog_provenance),
+        )
         // Gateway
-        .route("/v1/gateway/execute", post(routes::gateway::execute_gateway))
-
+        .route(
+            "/v1/gateway/execute",
+            post(routes::gateway::execute_gateway),
+        )
         // Knowledge
-        .route("/v1/knowledge/datasets", get(routes::knowledge::list_datasets))
-        .route("/v1/knowledge/datasets/{id}", get(routes::knowledge::get_dataset))
-        .route("/v1/knowledge/query", post(routes::knowledge::query_knowledge))
-
+        .route(
+            "/v1/knowledge/datasets",
+            get(routes::knowledge::list_datasets),
+        )
+        .route(
+            "/v1/knowledge/datasets/:id",
+            get(routes::knowledge::get_dataset),
+        )
+        .route(
+            "/v1/knowledge/query",
+            post(routes::knowledge::query_knowledge),
+        )
         // Work Paths
         .route("/v1/work-paths", post(routes::work_path::create_work_path))
-        .route("/v1/work-paths/{id}", get(routes::work_path::get_work_path))
-        .route("/v1/work-paths/{id}/traverse", post(routes::work_path::traverse_work_path))
-
+        .route("/v1/work-paths/:id", get(routes::work_path::get_work_path))
+        .route(
+            "/v1/work-paths/:id/traverse",
+            post(routes::work_path::traverse_work_path),
+        )
         // Bundles
         .route("/v1/bundles", post(routes::bundle::create_bundle))
         .route("/v1/bundles", get(routes::bundle::list_bundles))
-        .route("/v1/bundles/{id}", get(routes::bundle::get_bundle))
-        .route("/v1/bundles/{id}/verify", post(routes::bundle::verify_bundle))
-        .route("/v1/bundles/{id}/deploy", post(routes::bundle::deploy_bundle))
-
+        .route("/v1/bundles/:id", get(routes::bundle::get_bundle))
+        .route(
+            "/v1/bundles/:id/verify",
+            post(routes::bundle::verify_bundle),
+        )
+        .route(
+            "/v1/bundles/:id/deploy",
+            post(routes::bundle::deploy_bundle),
+        )
         // Runtime
         .route("/v1/runtime", get(routes::runtime::list_runtimes))
         .route("/v1/runtime/deploy", post(routes::runtime::deploy_runtime))
-        .route("/v1/runtime/{id}", get(routes::runtime::get_runtime_status))
-        .route("/v1/runtime/{id}/stop", post(routes::runtime::stop_runtime))
-
+        .route("/v1/runtime/:id", get(routes::runtime::get_runtime_status))
+        .route("/v1/runtime/:id/stop", post(routes::runtime::stop_runtime))
         // Login
         .route("/v1/login", post(routes::login::login))
         .route("/v1/login/policy", post(routes::login::set_login_policy))
-        .route("/v1/login/policy/{tenant_id}", get(routes::login::get_login_policy))
-        .route("/v1/login/blocks/{tenant_id}", get(routes::login::list_login_blocks))
-
+        .route(
+            "/v1/login/policy/:tenant_id",
+            get(routes::login::get_login_policy),
+        )
+        .route(
+            "/v1/login/blocks/:tenant_id",
+            get(routes::login::list_login_blocks),
+        )
         // Live Watch
-        .route("/v1/live-watch/{app_id}/start", post(routes::live_watch::start_monitoring))
-        .route("/v1/live-watch/{app_id}/stop", post(routes::live_watch::stop_monitoring))
-        .route("/v1/live-watch/{app_id}/signals", post(routes::live_watch::record_signal))
-        .route("/v1/live-watch/{app_id}/signals", get(routes::live_watch::get_signals))
-        .route("/v1/live-watch/{app_id}/propose", post(routes::live_watch::propose_remediation))
-        .route("/v1/live-watch/{app_id}/proposals", get(routes::live_watch::list_proposals))
-        .route("/v1/live-watch/{app_id}/proposals/{id}/approve", post(routes::live_watch::approve_proposal))
-        .route("/v1/live-watch/profiles/{app_id}", get(routes::live_watch::get_profile))
-        .route("/v1/live-watch/profiles/{app_id}", put(routes::live_watch::update_profile))
-
+        .route(
+            "/v1/live-watch/:app_id/start",
+            post(routes::live_watch::start_monitoring),
+        )
+        .route(
+            "/v1/live-watch/:app_id/stop",
+            post(routes::live_watch::stop_monitoring),
+        )
+        .route(
+            "/v1/live-watch/:app_id/signals",
+            post(routes::live_watch::record_signal),
+        )
+        .route(
+            "/v1/live-watch/:app_id/signals",
+            get(routes::live_watch::get_signals),
+        )
+        .route(
+            "/v1/live-watch/:app_id/propose",
+            post(routes::live_watch::propose_remediation),
+        )
+        .route(
+            "/v1/live-watch/:app_id/proposals",
+            get(routes::live_watch::list_proposals),
+        )
+        .route(
+            "/v1/live-watch/:app_id/proposals/:id/approve",
+            post(routes::live_watch::approve_proposal),
+        )
+        .route(
+            "/v1/live-watch/profiles/:app_id",
+            get(routes::live_watch::get_profile),
+        )
+        .route(
+            "/v1/live-watch/profiles/:app_id",
+            put(routes::live_watch::update_profile),
+        )
         // Static frontend assets (Phase 1: same-origin hosting, ADR-0005)
         // frontend/dist/ is served at / — catch-all for client-side routing
         .fallback_service(ServeDir::new("frontend/dist").append_index_html_on_directories(true))
-
         // Middleware — order matters: bearer runs after tracing so request_id is set
         .layer(axum_middleware::from_fn_with_state(
             state.clone(),
             middleware::bearer_auth_middleware,
         ))
-        .layer(axum_middleware::from_fn(middleware::request_tracing_middleware))
+        .layer(axum_middleware::from_fn(
+            middleware::request_tracing_middleware,
+        ))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
 }

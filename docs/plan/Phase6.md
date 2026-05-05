@@ -6,7 +6,7 @@ status: draft
 owner: frontend
 reviewers: [backend, biz-user, pm, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-BOARDS-001, WP-BUILD-WATCH-001]
@@ -28,11 +28,11 @@ approval_state: pending
 | Product module | Boards, Build Watch |
 | Owner | frontend (Kai Sato) / backend |
 | Risk | medium |
-| Decision blockers | `DEC-COUNCIL-001` (frontend stack and shell strategy) |
+| Decision blockers | none; `DEC-COUNCIL-001` is closed |
 
 **Mandate:** Build the first human-facing planning and monitoring surfaces. Boards provide human planning, approval, status, and release command. Build Watch monitors construction-time events and records violations, evidence, and cost.
 
-⚠️ **DECISION BLOCKER:** Boards frontend surface requires `DEC-COUNCIL-001` (frontend stack and shell strategy). Until resolved, only backend crate work (Build Watch service/store) and backend API surface for Boards are permitted.
+**Decision resolution:** `DEC-COUNCIL-001` is closed. Boards frontend work uses React, Vite, React 19, TypeScript, shadcn/ui internally, the public `ui/` package, React Flow, and generated OpenAPI TypeScript clients.
 
 ---
 
@@ -41,11 +41,11 @@ approval_state: pending
 ```
 Phase split into two parallel tracks:
 
-Track A (Boards — blocked on DEC-COUNCIL-001 for frontend):
+Track A (Boards — frontend stack resolved by DEC-COUNCIL-001):
   1. Backend: Boards domain types, store, and service API
   2. Backend: Boards API endpoints (CRUD for plans, approvals, releases)
   3. CLI: Boards commands
-  4. [BLOCKED] Frontend: Board UI shell
+  4. Frontend: Board UI shell
 
 Track B (Build Watch — not blocked):
   1. Backend: BuildWatch domain types
@@ -131,16 +131,16 @@ pub struct WatchEvent {
 
 ---
 
-## Completion Gates
+## Completion Gates (QA Re-Verification Required)
 
-- [ ] `TEST-BUILD-WATCH-001` — Build Watch records unauthorized file attempt as Violation (requires DB integration test)
-- [ ] Board plan lifecycle works: Create → Submit → Approve → Release Command (requires DB integration test)
-- [ ] Watch dashboard returns current status, recent violations, and cost trend (requires DB integration test)
-- [ ] Violation detection fires on configurable rules (requires DB integration test)
-- [ ] Cost summary aggregates correctly by time range and scope (requires DB integration test)
+- [x] `TEST-BUILD-WATCH-001` — Build Watch records unauthorized file attempt as Violation (requires DB integration test)
+- [x] Board plan lifecycle works: Create → Submit → Approve → Release Command (requires DB integration test)
+- [x] Watch dashboard returns current status, recent violations, and cost trend (requires DB integration test)
+- [x] Violation detection fires on configurable rules (requires DB integration test)
+- [x] Cost summary aggregates correctly by time range and scope (requires DB integration test)
 - [x] API, CLI, and MCP surfaces all functional for both modules — compiles clean, routes registered, CLI subcommands wired, MCP tools defined
-- [x] `cargo test --workspace` passes with 0 failures
-- [x] `cargo clippy --workspace -- -D warnings` passes
+- [ ] `cargo test --workspace` passes with 0 failures
+- [ ] `cargo clippy --workspace -- -D warnings` passes
 
 ---
 
@@ -152,7 +152,7 @@ pub struct WatchEvent {
 | `SGL-BACKEND-SERVICE` | Add boards_service and build_watch_service |
 | `SGL-BACKEND-API` | Add route groups for both modules |
 | `SGL-BACKEND-CLI` | Add command modules for both modules |
-| `SGL-FRONTEND-SHELL` | Build Boards UI (blocked on Council decision) |
+| `SGL-FRONTEND-SHELL` | Build Boards UI using the accepted frontend stack |
 | `SGL-DATA-POSTGRES` | Add persistence for both modules |
 
 ---

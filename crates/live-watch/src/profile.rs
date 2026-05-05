@@ -25,10 +25,7 @@ impl ProfileManager {
 
     /// Upsert a watch profile for an app.
     #[instrument(skip(self, profile), fields(app_id = %profile.app_id))]
-    pub async fn save(
-        &self,
-        profile: &WatchProfile,
-    ) -> Result<(), String> {
+    pub async fn save(&self, profile: &WatchProfile) -> Result<(), String> {
         self.store
             .upsert_watch_profile(profile)
             .await
@@ -43,22 +40,22 @@ fn default_profile_for(app_id: &str) -> WatchProfile {
         signal_thresholds: vec![
             SignalThreshold {
                 signal_type: authority_domain::SignalType::Latency,
-                warning_threshold: 200.0,     // ms
-                critical_threshold: 1000.0,   // ms
+                warning_threshold: 200.0,   // ms
+                critical_threshold: 1000.0, // ms
             },
             SignalThreshold {
                 signal_type: authority_domain::SignalType::ErrorRate,
-                warning_threshold: 0.05,       // 5%
-                critical_threshold: 0.20,      // 20%
+                warning_threshold: 0.05,  // 5%
+                critical_threshold: 0.20, // 20%
             },
             SignalThreshold {
                 signal_type: authority_domain::SignalType::MissingHeartbeat,
                 warning_threshold: 0.0,
-                critical_threshold: 1.0,       // binary — any missed heartbeat is critical
+                critical_threshold: 1.0, // binary — any missed heartbeat is critical
             },
             SignalThreshold {
                 signal_type: authority_domain::SignalType::CostRate,
-                warning_threshold: 100.0,      // cost units per hour
+                warning_threshold: 100.0, // cost units per hour
                 critical_threshold: 500.0,
             },
         ],

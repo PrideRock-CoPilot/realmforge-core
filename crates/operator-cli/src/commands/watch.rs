@@ -101,7 +101,13 @@ pub async fn handle_watch(cmd: WatchCommand, ctx: &ServiceContext) -> CliResult 
         } => {
             let record = ctx
                 .build_watch
-                .get_cost_summary(scope, token_cost, build_time_ms, storage_bytes, rework_count)
+                .get_cost_summary(
+                    scope,
+                    token_cost,
+                    build_time_ms,
+                    storage_bytes,
+                    rework_count,
+                )
                 .await?;
             println!("{}", serde_json::to_string_pretty(&record)?);
         }

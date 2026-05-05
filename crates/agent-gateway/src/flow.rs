@@ -1,8 +1,6 @@
 use crate::error::{DenialCode, GatewayError};
 use crate::scope_validator::{validate_file_scope, validate_schema_scope};
-use authority_domain::{
-    ActorId, AgentWorkPacket, PacketId, SessionId, SkillGrant,
-};
+use authority_domain::{ActorId, AgentWorkPacket, PacketId, SessionId, SkillGrant};
 use chrono::{DateTime, Utc};
 use control_store::CoreStore;
 use serde::{Deserialize, Serialize};
@@ -86,7 +84,10 @@ pub async fn execute_gateway_flow(
         .await
         .map_err(|e| GatewayError::Internal(format!("failed to load session: {}", e)))?;
     let session = session.ok_or_else(|| {
-        GatewayError::deny(DenialCode::PacketMissing, format!("session {} not found", request.session_id))
+        GatewayError::deny(
+            DenialCode::PacketMissing,
+            format!("session {} not found", request.session_id),
+        )
     })?;
     if session.state != "active" {
         return Err(GatewayError::deny(
@@ -126,7 +127,12 @@ pub async fn execute_gateway_flow(
     ctx.trace_id = trace_id.clone();
 
     // ── Step 3: Load Packet ──
-    if let Some(packet_id_str) = ctx.request.payload.get("packet_id").and_then(|v| v.as_str()) {
+    if let Some(packet_id_str) = ctx
+        .request
+        .payload
+        .get("packet_id")
+        .and_then(|v| v.as_str())
+    {
         if let Ok(packet_id) = PacketId::new(packet_id_str) {
             let packet = store
                 .get_work_packet(&packet_id)
@@ -134,20 +140,29 @@ pub async fn execute_gateway_flow(
                 .map_err(|e| GatewayError::Internal(format!("failed to load packet: {}", e)))?;
 
             let packet = packet.ok_or_else(|| {
-                GatewayError::deny(DenialCode::PacketMissing, format!("packet {} not found", packet_id_str))
+                GatewayError::deny(
+                    DenialCode::PacketMissing,
+                    format!("packet {} not found", packet_id_str),
+                )
             })?;
 
             if packet.agent_id != ctx.request.actor_id {
                 return Err(GatewayError::deny(
                     DenialCode::PacketNotAssigned,
-                    format!("packet {} is not assigned to actor {}", packet_id, ctx.request.actor_id),
+                    format!(
+                        "packet {} is not assigned to actor {}",
+                        packet_id, ctx.request.actor_id
+                    ),
                 ));
             }
 
             if packet.status != authority_domain::PacketStatus::Active {
                 return Err(GatewayError::deny(
                     DenialCode::PacketScopeDenied,
-                    format!("packet {} is not active (status: {:?})", packet_id, packet.status),
+                    format!(
+                        "packet {} is not active (status: {:?})",
+                        packet_id, packet.status
+                    ),
                 ));
             }
 
@@ -169,7 +184,10 @@ pub async fn execute_gateway_flow(
     if !ctx.grant.allows_action(&ctx.request.action) {
         return Err(GatewayError::deny(
             DenialCode::ActionDenied,
-            format!("action '{}' is not in grant {} allowed_actions", ctx.request.action, ctx.grant.id),
+            format!(
+                "action '{}' is not in grant {} allowed_actions",
+                ctx.request.action, ctx.grant.id
+            ),
         ));
     }
 
@@ -210,7 +228,10 @@ pub async fn execute_gateway_flow(
         if operation_count > budget {
             return Err(GatewayError::deny(
                 DenialCode::BudgetExceeded,
-                format!("operation count {} exceeds budget {}", operation_count, budget),
+                format!(
+                    "operation count {} exceeds budget {}",
+                    operation_count, budget
+                ),
             ));
         }
     }
@@ -225,7 +246,8 @@ pub async fn execute_gateway_flow(
         "gateway-operation",
         ctx.request.payload.clone(),
         None,
-    ).map_err(|e| GatewayError::Internal(format!("failed to create audit event: {}", e)))?;
+    )
+    .map_err(|e| GatewayError::Internal(format!("failed to create audit event: {}", e)))?;
 
     let audit_event_id = audit_event.id.to_string();
 
@@ -242,7 +264,8 @@ pub async fn execute_gateway_flow(
         vec![],
         vec![],
         None,
-    ).map_err(|e| GatewayError::Internal(format!("failed to create snapshot: {}", e)))?;
+    )
+    .map_err(|e| GatewayError::Internal(format!("failed to create snapshot: {}", e)))?;
 
     let snapshot_id = snapshot.id.to_string();
     store

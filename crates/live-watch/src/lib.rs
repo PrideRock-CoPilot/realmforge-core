@@ -7,9 +7,9 @@ use profile::ProfileManager;
 use remediation::RemediationGenerator;
 use signals::{AnomalyDetector, SignalCollector};
 use std::collections::HashMap;
-use tracing::{info, instrument, warn};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use tracing::{info, instrument, warn};
 
 /// Configuration for the Live Watch monitoring engine.
 #[derive(Clone, Debug)]
@@ -100,7 +100,10 @@ impl LiveWatchEngine {
     ///
     /// Does NOT sleep — the caller is responsible for pacing (e.g., via the background monitoring loop).
     #[instrument(skip(self), fields(app_id = %app_id))]
-    pub async fn run_cycle_for_app(&mut self, app_id: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn run_cycle_for_app(
+        &mut self,
+        app_id: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let profile = self.profiles.get_or_default(app_id).await?;
 
         // Collect signals

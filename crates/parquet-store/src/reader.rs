@@ -39,7 +39,9 @@ impl KnowledgeReader {
     }
 
     // Helper: collect all Parquet files recursively under a directory
-    fn collect_parquet_files(dir: &std::path::Path) -> Result<Vec<std::path::PathBuf>, ParquetStoreError> {
+    fn collect_parquet_files(
+        dir: &std::path::Path,
+    ) -> Result<Vec<std::path::PathBuf>, ParquetStoreError> {
         let mut files = Vec::new();
         if !dir.is_dir() {
             return Ok(files);
@@ -66,7 +68,10 @@ impl KnowledgeReader {
     /// Uses DataFusion to register the Parquet directory as a table and
     /// runs a filtered SQL query to return results with pagination.
     #[instrument(skip(self), fields(query = ?query))]
-    pub async fn query(&self, query: &ParquetKnowledgeQuery) -> Result<Vec<KnowledgeRecord>, ParquetStoreError> {
+    pub async fn query(
+        &self,
+        query: &ParquetKnowledgeQuery,
+    ) -> Result<Vec<KnowledgeRecord>, ParquetStoreError> {
         let ctx = SessionContext::new();
 
         let knowledge_dir = self.base_path.join("knowledge");
@@ -91,8 +96,7 @@ impl KnowledgeReader {
 
         // Build SQL query across all tables using UNION ALL
         let num_tables = parquet_files.len();
-        let select_expr =
-            r#"SELECT record_id, "scope", source_type, source_id, content_hash, indexed_at, citations_json"#;
+        let select_expr = r#"SELECT record_id, "scope", source_type, source_id, content_hash, indexed_at, citations_json"#;
 
         let mut sql = if num_tables == 1 {
             format!("{select_expr} FROM knowledge_0 WHERE 1=1")
@@ -163,7 +167,9 @@ impl KnowledgeReader {
     }
 
     /// Cast an Arrow array column to an owned `StringArray`, handling dictionary encoding from Parquet.
-    fn cast_to_string_array(col: &arrow::array::ArrayRef) -> Result<StringArray, ParquetStoreError> {
+    fn cast_to_string_array(
+        col: &arrow::array::ArrayRef,
+    ) -> Result<StringArray, ParquetStoreError> {
         // If it's already a StringArray, clone it (cheap — Arc-backed buffers)
         if let Some(sa) = col.as_any().downcast_ref::<StringArray>() {
             return Ok(sa.clone());
@@ -175,11 +181,15 @@ impl KnowledgeReader {
             .as_any()
             .downcast_ref::<StringArray>()
             .cloned()
-            .ok_or_else(|| ParquetStoreError::Read("cast to Utf8 did not produce StringArray".into()))
+            .ok_or_else(|| {
+                ParquetStoreError::Read("cast to Utf8 did not produce StringArray".into())
+            })
     }
 
     /// Convert Arrow `RecordBatch`es to `KnowledgeRecord` values.
-    fn batches_to_records(batches: Vec<arrow::record_batch::RecordBatch>) -> Result<Vec<KnowledgeRecord>, ParquetStoreError> {
+    fn batches_to_records(
+        batches: Vec<arrow::record_batch::RecordBatch>,
+    ) -> Result<Vec<KnowledgeRecord>, ParquetStoreError> {
         let mut records = Vec::new();
 
         // Pre-alloc to minimize reallocs
@@ -209,15 +219,20 @@ impl KnowledgeReader {
                 .column_by_name("citations_json")
                 .ok_or_else(|| ParquetStoreError::Read("missing citations_json column".into()))?;
 
-            let string_array_ids = Self::cast_to_string_array(&record_ids)?;
-            let string_array_scopes = Self::cast_to_string_array(&scopes)?;
-            let string_array_st = Self::cast_to_string_array(&source_types_col)?;
-            let string_array_sids = Self::cast_to_string_array(&source_ids)?;
-            let string_array_ch = Self::cast_to_string_array(&content_hashes)?;
-            let ts_array = indexed_ats.as_any().downcast_ref::<arrow::array::TimestampNanosecondArray>().ok_or_else(|| {
-                ParquetStoreError::Read("indexed_at column is not TimestampNanosecondArray".into())
-            })?;
-            let string_array_cits = Self::cast_to_string_array(&citations_jsons)?;
+            let string_array_ids = Self::cast_to_string_array(record_ids)?;
+            let string_array_scopes = Self::cast_to_string_array(scopes)?;
+            let string_array_st = Self::cast_to_string_array(source_types_col)?;
+            let string_array_sids = Self::cast_to_string_array(source_ids)?;
+            let string_array_ch = Self::cast_to_string_array(content_hashes)?;
+            let ts_array = indexed_ats
+                .as_any()
+                .downcast_ref::<arrow::array::TimestampNanosecondArray>()
+                .ok_or_else(|| {
+                    ParquetStoreError::Read(
+                        "indexed_at column is not TimestampNanosecondArray".into(),
+                    )
+                })?;
+            let string_array_cits = Self::cast_to_string_array(citations_jsons)?;
 
             for i in 0..batch.num_rows() {
                 let id_str = string_array_ids.value(i);
@@ -229,13 +244,16 @@ impl KnowledgeReader {
                 let citations_json = string_array_cits.value(i);
 
                 // Parse KnowledgeId from string
-                let id = authority_domain::KnowledgeId::new(id_str.to_string())
-                    .map_err(|_| ParquetStoreError::Read(format!("invalid knowledge id: {id_str}")))?;
+                let id = authority_domain::KnowledgeId::new(id_str.to_string()).map_err(|_| {
+                    ParquetStoreError::Read(format!("invalid knowledge id: {id_str}"))
+                })?;
 
-                let scope = str_to_scope(scope_str)
-                    .ok_or_else(|| ParquetStoreError::Read(format!("unknown scope: {scope_str}")))?;
-                let source_type = str_to_source_type(st_str)
-                    .ok_or_else(|| ParquetStoreError::Read(format!("unknown source_type: {st_str}")))?;
+                let scope = str_to_scope(scope_str).ok_or_else(|| {
+                    ParquetStoreError::Read(format!("unknown scope: {scope_str}"))
+                })?;
+                let source_type = str_to_source_type(st_str).ok_or_else(|| {
+                    ParquetStoreError::Read(format!("unknown source_type: {st_str}"))
+                })?;
 
                 // Parse timestamp from nanoseconds
                 let indexed_at = DateTime::from_timestamp_nanos(ts_nanos);

@@ -234,8 +234,7 @@ impl RollbackService {
         };
         info!(
             all_hashes_match = hash_valid,
-            entity_counts_match,
-            "rollback verified"
+            entity_counts_match, "rollback verified"
         );
         Ok(result)
     }

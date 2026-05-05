@@ -1,5 +1,5 @@
-use axum::{extract::Path, extract::Query, extract::State, http::StatusCode, Json};
 use authority_domain::{BoardPlanId, PlanStatus};
+use axum::{extract::Path, extract::Query, extract::State, http::StatusCode, Json};
 use control_service::ServiceContext;
 
 use crate::{
@@ -14,8 +14,7 @@ fn plan_to_response(plan: impl serde::Serialize) -> Result<BoardPlanResponse, Ap
     // Service layer returns a serializable plan type; round-trip through Value to extract fields.
     let v = serde_json::to_value(&plan)
         .map_err(|e| ApiError::Internal(format!("plan serialization: {e}")))?;
-    serde_json::from_value(v)
-        .map_err(|e| ApiError::Internal(format!("plan deserialization: {e}")))
+    serde_json::from_value(v).map_err(|e| ApiError::Internal(format!("plan deserialization: {e}")))
 }
 
 /// POST /v1/boards/plans
@@ -76,7 +75,11 @@ pub async fn list_plans(
 
     let plans = ctx
         .boards
-        .list_plans(status_filter, query.limit.unwrap_or(20), query.offset.unwrap_or(0))
+        .list_plans(
+            status_filter,
+            query.limit.unwrap_or(20),
+            query.offset.unwrap_or(0),
+        )
         .await
         .map_err(|e| ApiError::Internal(e.to_string()))?;
 
@@ -86,7 +89,10 @@ pub async fn list_plans(
         .collect::<Result<_, _>>()?;
 
     let total = items.len() as u64;
-    Ok(Json(BoardPlanListResponse { plans: items, total }))
+    Ok(Json(BoardPlanListResponse {
+        plans: items,
+        total,
+    }))
 }
 
 /// POST /v1/boards/plans/:id/submit
@@ -108,8 +114,8 @@ pub async fn submit_plan(
     State(ctx): State<ServiceContext>,
     Path(id): Path<String>,
 ) -> Result<Json<BoardPlanResponse>, ApiError> {
-    let plan_id = BoardPlanId::new(&id)
-        .map_err(|e| ApiError::BadRequest(format!("invalid plan id: {e}")))?;
+    let plan_id =
+        BoardPlanId::new(&id).map_err(|e| ApiError::BadRequest(format!("invalid plan id: {e}")))?;
     let plan = ctx
         .boards
         .submit_for_approval(&plan_id)
@@ -139,8 +145,8 @@ pub async fn approve_plan(
     Path(id): Path<String>,
     Json(body): Json<BoardApprovalRequest>,
 ) -> Result<Json<BoardPlanResponse>, ApiError> {
-    let plan_id = BoardPlanId::new(&id)
-        .map_err(|e| ApiError::BadRequest(format!("invalid plan id: {e}")))?;
+    let plan_id =
+        BoardPlanId::new(&id).map_err(|e| ApiError::BadRequest(format!("invalid plan id: {e}")))?;
     let plan = ctx
         .boards
         .approve_plan(&plan_id, body.approver, body.comment)
@@ -170,8 +176,8 @@ pub async fn reject_plan(
     Path(id): Path<String>,
     Json(body): Json<BoardApprovalRequest>,
 ) -> Result<Json<BoardPlanResponse>, ApiError> {
-    let plan_id = BoardPlanId::new(&id)
-        .map_err(|e| ApiError::BadRequest(format!("invalid plan id: {e}")))?;
+    let plan_id =
+        BoardPlanId::new(&id).map_err(|e| ApiError::BadRequest(format!("invalid plan id: {e}")))?;
     let plan = ctx
         .boards
         .reject_plan(&plan_id, body.approver, body.comment.unwrap_or_default())

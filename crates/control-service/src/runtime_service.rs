@@ -16,21 +16,17 @@ impl RuntimeService {
 
     /// Deploy a bundle by creating a runtime instance.
     #[instrument(skip(self))]
-    pub async fn deploy_bundle(
-        &self,
-        instance: &RuntimeInstance,
-    ) -> Result<(), ServiceError> {
+    pub async fn deploy_bundle(&self, instance: &RuntimeInstance) -> Result<(), ServiceError> {
         self.store.insert_runtime_instance(instance).await?;
         Ok(())
     }
 
     /// Stop a runtime instance (update status to "stopped").
     #[instrument(skip(self))]
-    pub async fn stop_runtime(
-        &self,
-        runtime_id: &RuntimeId,
-    ) -> Result<(), ServiceError> {
-        self.store.update_runtime_status(runtime_id, "stopped").await?;
+    pub async fn stop_runtime(&self, runtime_id: &RuntimeId) -> Result<(), ServiceError> {
+        self.store
+            .update_runtime_status(runtime_id, "stopped")
+            .await?;
         Ok(())
     }
 

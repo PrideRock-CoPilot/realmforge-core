@@ -58,7 +58,13 @@ pub async fn core_record_watch_event(
 
     let event = ctx
         .build_watch
-        .record_event(args.scope, event_type, severity, args.detail, args.evidence_ref)
+        .record_event(
+            args.scope,
+            event_type,
+            severity,
+            args.detail,
+            args.evidence_ref,
+        )
         .await?;
     Ok(json!({
         "id": event.id,

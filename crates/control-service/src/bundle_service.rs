@@ -16,20 +16,14 @@ impl BundleService {
 
     /// Create a new bundle manifest entry in the store.
     #[instrument(skip(self))]
-    pub async fn record_bundle(
-        &self,
-        manifest: &BundleManifest,
-    ) -> Result<(), ServiceError> {
+    pub async fn record_bundle(&self, manifest: &BundleManifest) -> Result<(), ServiceError> {
         self.store.insert_bundle_manifest(manifest).await?;
         Ok(())
     }
 
     /// Get a bundle manifest by ID.
     #[instrument(skip(self))]
-    pub async fn get_bundle(
-        &self,
-        bundle_id: &BundleId,
-    ) -> Result<BundleManifest, ServiceError> {
+    pub async fn get_bundle(&self, bundle_id: &BundleId) -> Result<BundleManifest, ServiceError> {
         self.store
             .get_bundle(bundle_id)
             .await?

@@ -4,12 +4,11 @@ mod util;
 use clap::{Parser, Subcommand};
 use commands::{
     actor::ActorCommand, audit::AuditCommand, boards::BoardsCommand, bundle::BundleCommand,
-    catalog::CatalogCommand, command::CommandCommand, config::ConfigCommand,
-    grant::GrantCommand, knowledge::KnowledgeCommand, live_watch::LiveWatchCommands,
-    login::LoginCommand, migrate::MigrateCommand, rollback::RollbackCommand,
-    runtime::RuntimeCommand, session::SessionCommand, skill::SkillCommand,
-    snapshot::SnapshotCommand, watch::WatchCommand, work_packet::WorkPacketCommand,
-    work_path::WorkPathCommand,
+    catalog::CatalogCommand, command::CommandCommand, config::ConfigCommand, grant::GrantCommand,
+    knowledge::KnowledgeCommand, live_watch::LiveWatchCommands, login::LoginCommand,
+    migrate::MigrateCommand, rollback::RollbackCommand, runtime::RuntimeCommand,
+    session::SessionCommand, skill::SkillCommand, snapshot::SnapshotCommand, watch::WatchCommand,
+    work_packet::WorkPacketCommand, work_path::WorkPathCommand,
 };
 
 use control_service::ServiceContext;

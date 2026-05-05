@@ -5,7 +5,7 @@
 //! It tests the in-memory anomaly detection and remediation proposal generation logic.
 
 use authority_domain::{
-    ProposedAction, ProposalStatus, SignalSeverity, SignalThreshold, SignalType, WatchProfile,
+    ProposalStatus, ProposedAction, SignalSeverity, SignalThreshold, SignalType, WatchProfile,
     WatchSignal, WatchSignalId,
 };
 use chrono::Utc;
@@ -82,7 +82,9 @@ fn repeated_latency_triggers_remediation() {
 
     // All signals should be Latency type — remediation should generate scale_runtime action
     assert!(
-        signal_types.iter().all(|t| matches!(t, SignalType::Latency)),
+        signal_types
+            .iter()
+            .all(|t| matches!(t, SignalType::Latency)),
         "all signals should be Latency type"
     );
 
@@ -101,8 +103,7 @@ fn repeated_latency_triggers_remediation() {
         params: serde_json::json!({"scale_factor": 2}),
     }];
 
-    let impact_analysis =
-        "Scaling runtime will increase resource usage".to_string();
+    let impact_analysis = "Scaling runtime will increase resource usage".to_string();
 
     // Step 5: Verify proposal structure
     assert!(!proposed_actions.is_empty(), "should have proposed actions");
@@ -118,7 +119,11 @@ fn repeated_latency_triggers_remediation() {
 
     // Verify the proposal wouldn't be auto-executed (it would have Proposed status)
     let status = ProposalStatus::Proposed;
-    assert_eq!(status, ProposalStatus::Proposed, "proposals start as Proposed, never auto-executed");
+    assert_eq!(
+        status,
+        ProposalStatus::Proposed,
+        "proposals start as Proposed, never auto-executed"
+    );
 }
 
 // ── Test: Mixed signals generate multi-action proposals ──
@@ -161,7 +166,11 @@ fn mixed_signals_generate_multi_action_proposals() {
     // After dedup (both ErrorRate + MissingHeartbeat → restart_runtime), should be 1 unique action
     action_types.sort();
     action_types.dedup();
-    assert_eq!(action_types.len(), 1, "both error_rate and missing_heartbeat map to restart_runtime");
+    assert_eq!(
+        action_types.len(),
+        1,
+        "both error_rate and missing_heartbeat map to restart_runtime"
+    );
     assert_eq!(action_types[0], "restart_runtime");
 }
 
@@ -171,7 +180,7 @@ fn mixed_signals_generate_multi_action_proposals() {
 fn no_auto_remediation_without_decision() {
     // Verify that every proposal starts with status 'Proposed' — never auto-executed
     let status = ProposalStatus::Proposed;
-    
+
     // The status must be Proposed initially
     assert_eq!(status, ProposalStatus::Proposed);
 
@@ -236,8 +245,7 @@ fn normal_signals_do_not_trigger_remediation() {
 
     for signal in &signals {
         let is_anomalous = profile.signal_thresholds.iter().any(|t| {
-            if std::mem::discriminant(&t.signal_type)
-                == std::mem::discriminant(&signal.signal_type)
+            if std::mem::discriminant(&t.signal_type) == std::mem::discriminant(&signal.signal_type)
             {
                 signal.value > t.warning_threshold || signal.value > t.critical_threshold
             } else {
@@ -276,11 +284,16 @@ fn threshold_fallback_without_profile() {
 
     // No matching threshold in profile → fallback to signal.threshold
     let matching = profile.signal_thresholds.iter().find(|t| {
-        std::mem::discriminant(&t.signal_type)
-            == std::mem::discriminant(&signal.signal_type)
+        std::mem::discriminant(&t.signal_type) == std::mem::discriminant(&signal.signal_type)
     });
-    assert!(matching.is_none(), "ActionCount should have no matching threshold");
+    assert!(
+        matching.is_none(),
+        "ActionCount should have no matching threshold"
+    );
 
     // Fallback: signal.value > signal.threshold
-    assert!(signal.value > signal.threshold, "150.0 > 100.0 should be true");
+    assert!(
+        signal.value > signal.threshold,
+        "150.0 > 100.0 should be true"
+    );
 }

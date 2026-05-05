@@ -6,8 +6,43 @@
 
 mod common;
 
+use authority_domain::{ActorId, ProjectId, TenantId};
 use control_service::AuditService;
 use serde_json::json;
+
+/// Each test uses unique IDs so tests can run in parallel without conflict,
+/// AND cleans up any events for that project from previous runs.
+fn make_ids(label: &str) -> (TenantId, ProjectId, ActorId) {
+    (
+        TenantId::new(format!("audit-t{label}")).unwrap(),
+        ProjectId::new(format!("audit-p{label}")).unwrap(),
+        ActorId::new(format!("audit-a{label}")).unwrap(),
+    )
+}
+
+/// Seed tenant, project, and actor so FK constraints are satisfied.
+async fn seed_env(store: &control_store::CoreStore, t: &TenantId, p: &ProjectId, a: &ActorId) {
+    let pool = store.pool();
+    sqlx::query("INSERT INTO tenants (id, name, status) VALUES ($1, $2, 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(t.as_str()).bind(t.as_str())
+        .execute(pool).await.unwrap();
+    sqlx::query("INSERT INTO projects (id, tenant_id, name, status) VALUES ($1, $2, $3, 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(p.as_str()).bind(t.as_str()).bind(p.as_str())
+        .execute(pool).await.unwrap();
+    sqlx::query("INSERT INTO actors (id, tenant_id, display_name, actor_type, status) VALUES ($1, $2, $3, 'human', 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(a.as_str()).bind(t.as_str()).bind(a.as_str())
+        .execute(pool).await.unwrap();
+}
+
+/// Clear audit events for the given project so chain starts fresh.
+async fn clear_events(store: &control_store::CoreStore, project_id: &ProjectId) {
+    let pool = store.pool();
+    sqlx::query("DELETE FROM core_audit_events WHERE project_id = $1")
+        .bind(project_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+}
 
 #[tokio::test]
 async fn test_audit_chain_basic_integrity() {
@@ -16,14 +51,18 @@ async fn test_audit_chain_basic_integrity() {
         None => return,
     };
 
+    let (tenant, project, actor) = make_ids("basic");
+    seed_env(&store, &tenant, &project, &actor).await;
+    clear_events(&store, &project).await;
+
     let svc = AuditService::new(store);
 
     // Append two chained events
     let event1 = svc
         .append_chained_event(
-            &common::test_tenant(),
-            &common::test_project(),
-            &common::test_actor(),
+            &tenant,
+            &project,
+            &actor,
             "test.integrity.1",
             "entity",
             "e1",
@@ -32,14 +71,16 @@ async fn test_audit_chain_basic_integrity() {
         .await
         .unwrap();
     assert!(!event1.event_hash.is_empty());
-    // First event should have no previous_hash
-    assert!(event1.previous_hash.is_none());
+    assert!(
+        event1.previous_hash.is_none(),
+        "first event should have no previous_hash"
+    );
 
     let event2 = svc
         .append_chained_event(
-            &common::test_tenant(),
-            &common::test_project(),
-            &common::test_actor(),
+            &tenant,
+            &project,
+            &actor,
             "test.integrity.2",
             "entity",
             "e2",
@@ -48,7 +89,6 @@ async fn test_audit_chain_basic_integrity() {
         .await
         .unwrap();
     assert!(!event2.event_hash.is_empty());
-    // Second event should link to first
     assert_eq!(
         event2.previous_hash,
         Some(event1.event_hash.clone()),
@@ -56,7 +96,7 @@ async fn test_audit_chain_basic_integrity() {
     );
 
     // Verify chain integrity
-    let anchor = svc.verify_chain(&common::test_project()).await.unwrap();
+    let anchor = svc.verify_chain(&project).await.unwrap();
     assert!(anchor.chain_integrity);
     assert!(anchor.event_count >= 2);
 }
@@ -68,14 +108,18 @@ async fn test_audit_chain_long_chain() {
         None => return,
     };
 
+    let (tenant, project, actor) = make_ids("long");
+    seed_env(&store, &tenant, &project, &actor).await;
+    clear_events(&store, &project).await;
+
     let svc = AuditService::new(store);
 
     // Append 10 events in sequence
     for i in 0..10 {
         svc.append_chained_event(
-            &common::test_tenant(),
-            &common::test_project(),
-            &common::test_actor(),
+            &tenant,
+            &project,
+            &actor,
             &format!("test.long_chain.{}", i),
             "entity",
             &format!("e{}", i),
@@ -86,7 +130,7 @@ async fn test_audit_chain_long_chain() {
     }
 
     // Verify the entire chain
-    let anchor = svc.verify_chain(&common::test_project()).await.unwrap();
+    let anchor = svc.verify_chain(&project).await.unwrap();
     assert!(anchor.chain_integrity);
     assert!(
         anchor.event_count >= 10,
@@ -102,13 +146,17 @@ async fn test_audit_query_with_filters() {
         None => return,
     };
 
+    let (tenant, project, actor) = make_ids("filter");
+    seed_env(&store, &tenant, &project, &actor).await;
+    clear_events(&store, &project).await;
+
     let svc = AuditService::new(store);
 
     // Append events with distinct types
     svc.append_chained_event(
-        &common::test_tenant(),
-        &common::test_project(),
-        &common::test_actor(),
+        &tenant,
+        &project,
+        &actor,
         "filter.test.type_a",
         "order",
         "ord-1",
@@ -118,9 +166,9 @@ async fn test_audit_query_with_filters() {
     .unwrap();
 
     svc.append_chained_event(
-        &common::test_tenant(),
-        &common::test_project(),
-        &common::test_actor(),
+        &tenant,
+        &project,
+        &actor,
         "filter.test.type_b",
         "order",
         "ord-2",
@@ -132,7 +180,7 @@ async fn test_audit_query_with_filters() {
     // Query with event_type filter
     let (events_a, _total_a) = svc
         .query_events(
-            &common::test_project(),
+            &project,
             Some("filter.test.type_a"),
             None,
             None,
@@ -163,7 +211,7 @@ async fn test_audit_empty_project() {
     let svc = AuditService::new(store);
 
     // Use a unique project that should have no events
-    let empty_project = authority_domain::ProjectId::new("empty-project-audit-test").unwrap();
+    let empty_project = ProjectId::new("empty-project-audit-test").unwrap();
 
     let anchor = svc.verify_chain(&empty_project).await.unwrap();
     assert!(
@@ -187,13 +235,17 @@ async fn test_audit_get_chain_anchors() {
         None => return,
     };
 
+    let (tenant, project, actor) = make_ids("anchor");
+    seed_env(&store, &tenant, &project, &actor).await;
+    clear_events(&store, &project).await;
+
     let svc = AuditService::new(store);
 
     // Append events
     svc.append_chained_event(
-        &common::test_tenant(),
-        &common::test_project(),
-        &common::test_actor(),
+        &tenant,
+        &project,
+        &actor,
         "anchor.test.1",
         "entity",
         "ae1",
@@ -203,9 +255,9 @@ async fn test_audit_get_chain_anchors() {
     .unwrap();
 
     svc.append_chained_event(
-        &common::test_tenant(),
-        &common::test_project(),
-        &common::test_actor(),
+        &tenant,
+        &project,
+        &actor,
         "anchor.test.2",
         "entity",
         "ae2",
@@ -214,10 +266,7 @@ async fn test_audit_get_chain_anchors() {
     .await
     .unwrap();
 
-    let anchor = svc
-        .get_chain_anchors(&common::test_project())
-        .await
-        .unwrap();
+    let anchor = svc.get_chain_anchors(&project).await.unwrap();
     assert!(!anchor.first_event_id.to_string().is_empty());
     assert!(!anchor.last_event_id.to_string().is_empty());
     assert!(anchor.event_count >= 2);

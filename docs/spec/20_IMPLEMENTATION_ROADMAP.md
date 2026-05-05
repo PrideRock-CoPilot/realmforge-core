@@ -5,7 +5,7 @@ status: draft
 owner: pm
 reviewers: [ceo, cto, qa, release-manager]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: true
 product_area: roadmap
 work_path_ids: [WP-DOCS-000, WP-CORE-001, WP-CATALOG-001, WP-SKILL-001, WP-GATEWAY-001, WP-WORKPATH-001, WP-BOARDS-001, WP-KNOWLEDGE-001, WP-BUILD-WATCH-001, WP-RUNTIME-BUNDLE-001, WP-LIVE-RUNTIME-001, WP-LIVE-WATCH-001, WP-LOGIN-001]
@@ -49,10 +49,10 @@ Phase 0: Documentation Certification
 |-------------|--------|-----------------|--------|
 | `DEC-COUNCIL-001` | Boards product surface | Phase 6 | `ACCEPTED` (closed 2026-05-04 — ADR-0002) |
 | `DEC-COUNCIL-002` | Backend crate names | Phase 1 | `ACCEPTED` (closed) |
-| `DEC-COUNCIL-003` | Parquet library/engine | Phase 5 | `COUNCIL_DECISION_REQUIRED` |
-| `DEC-USER-004` | Catalog modules beyond Login | Post-Phase 9 | `USER_APPROVAL_REQUIRED` |
-| `DEC-USER-005` | Brand removal threshold | Throughout | `USER_APPROVAL_REQUIRED` |
-| `DEC-USER-006` | Live Watch auto-remediation | Phase 8 | `USER_APPROVAL_REQUIRED` |
+| `DEC-COUNCIL-003` | Parquet library/engine | Phase 5 | `ACCEPTED` (closed 2026-05-05 — ADR-0006) |
+| `DEC-USER-004` | Catalog modules beyond Login | Post-Phase 9 | `USER_APPROVED` (closed 2026-05-05) |
+| `DEC-USER-005` | Brand removal threshold | Throughout | `USER_APPROVED` (closed 2026-05-04) |
+| `DEC-USER-006` | Live Watch auto-remediation | Phase 8 | `USER_APPROVED` (closed 2026-05-05 — ADR-0007) |
 
 ---
 
@@ -84,8 +84,8 @@ Phase 0: Documentation Certification
 2. **Workspace (Phase 1).** Every crate depends on workspace compilation and Postgres access.
 3. **Authority Core (Phase 2).** Policy, audit, snapshot, rollback are foundational. Phase 2 is subdivided into 6 subphases for file-size discipline.
 4. **Catalogs parallel to Grants (Phase 3 & Phase 4).** Independent of each other, both depend on Phase 2.
-5. **Knowledge after both (Phase 5).** Needs catalogs (sources) and gateway (scoped access). Blocked on `DEC-COUNCIL-003`.
-6. **Boards & Build Watch (Phase 6).** Watch needs evidence storage. Boards blocked on `DEC-COUNCIL-001`.
+5. **Knowledge after both (Phase 5).** Needs catalogs (sources), gateway (scoped access), and the accepted Arrow/DataFusion Parquet path from `DEC-COUNCIL-003`.
+6. **Boards & Build Watch (Phase 6).** Watch needs evidence storage. Boards use the accepted React/TypeScript frontend stack from `DEC-COUNCIL-001`.
 7. **Runtime & Live Runtime (Phase 7).** Bundles package everything into signed deployables.
 8. **Live Watch (Phase 8).** Monitors deployed bundles. No auto-remediation in first release.
 9. **Login vertical (Phase 9).** Integration proof — every layer end-to-end.

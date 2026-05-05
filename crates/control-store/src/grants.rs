@@ -121,8 +121,7 @@ impl TryInto<SkillGrant> for GrantRaw {
         let denied_actions: Vec<String> = serde_json::from_value(self.denied_actions)?;
         let allowed_file_patterns: Vec<String> =
             serde_json::from_value(self.allowed_file_patterns)?;
-        let denied_file_patterns: Vec<String> =
-            serde_json::from_value(self.denied_file_patterns)?;
+        let denied_file_patterns: Vec<String> = serde_json::from_value(self.denied_file_patterns)?;
 
         let state = match self.state.as_str() {
             "active" => GrantState::Active,
@@ -138,8 +137,7 @@ impl TryInto<SkillGrant> for GrantRaw {
         };
 
         Ok(SkillGrant {
-            id: GrantId::new(self.id)
-                .map_err(|e| StoreError::invalid_data(e.to_string()))?,
+            id: GrantId::new(self.id).map_err(|e| StoreError::invalid_data(e.to_string()))?,
             actor_id: ActorId::new(self.actor_id)
                 .map_err(|e| StoreError::invalid_data(e.to_string()))?,
             tenant_id: authority_domain::TenantId::new(self.tenant_id)
@@ -155,6 +153,49 @@ impl TryInto<SkillGrant> for GrantRaw {
             expires_at: self.expires_at,
             created_at: self.created_at,
         })
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new skill grant.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_grant(&self, grant: &SkillGrant) -> Result<(), StoreError> {
+        insert_grant(&self.pool, grant).await
+    }
+
+    /// Get a grant by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_grant(&self, grant_id: &GrantId) -> Result<Option<SkillGrant>, StoreError> {
+        get_grant(&self.pool, grant_id).await
+    }
+
+    /// List all grants for an actor.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_grants_for_actor(
+        &self,
+        actor_id: &ActorId,
+    ) -> Result<Vec<SkillGrant>, StoreError> {
+        list_grants_for_actor(&self.pool, actor_id).await
+    }
+
+    /// Revoke a grant (set state to Revoked).
+    #[tracing::instrument(skip(self))]
+    pub async fn revoke_grant(&self, grant_id: &GrantId) -> Result<(), StoreError> {
+        revoke_grant(&self.pool, grant_id).await
+    }
+
+    /// Update grant state.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_grant_state(
+        &self,
+        grant_id: &GrantId,
+        state: &authority_domain::GrantState,
+    ) -> Result<(), StoreError> {
+        update_grant_state(&self.pool, grant_id, state).await
     }
 }
 

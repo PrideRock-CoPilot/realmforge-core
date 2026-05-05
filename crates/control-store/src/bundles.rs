@@ -21,8 +21,7 @@ impl TryInto<BundleManifest> for BundleManifestRaw {
     type Error = StoreError;
 
     fn try_into(self) -> Result<BundleManifest, Self::Error> {
-        let artifact_hashes: Vec<(String, String)> =
-            serde_json::from_value(self.artifact_hashes)?;
+        let artifact_hashes: Vec<(String, String)> = serde_json::from_value(self.artifact_hashes)?;
         let status = parse_bundle_status(&self.status)?;
         let bundle_id = BundleId::new(&self.id)?;
 
@@ -81,7 +80,9 @@ fn parse_bundle_status(s: &str) -> Result<BundleStatus, StoreError> {
         "verified" => Ok(BundleStatus::Verified),
         "deployed" => Ok(BundleStatus::Deployed),
         "running" => Ok(BundleStatus::Running),
-        _ => Ok(BundleStatus::Failed(s.trim_start_matches("failed: ").to_string())),
+        _ => Ok(BundleStatus::Failed(
+            s.trim_start_matches("failed: ").to_string(),
+        )),
     }
 }
 
@@ -159,6 +160,89 @@ pub async fn list_bundles(
     rows.into_iter().map(|r| r.try_into()).collect()
 }
 
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new bundle manifest.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_bundle_manifest(
+        &self,
+        manifest: &BundleManifest,
+    ) -> Result<(), StoreError> {
+        insert_bundle_manifest(&self.pool, manifest).await
+    }
+
+    /// Get a bundle manifest by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_bundle(
+        &self,
+        bundle_id: &BundleId,
+    ) -> Result<Option<BundleManifest>, StoreError> {
+        get_bundle(&self.pool, bundle_id).await
+    }
+
+    /// List bundles for a given app, ordered by built_at DESC.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_bundles(
+        &self,
+        app_id: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<BundleManifest>, StoreError> {
+        list_bundles(&self.pool, app_id, limit, offset).await
+    }
+
+    /// Update a bundle's status.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_bundle_status(
+        &self,
+        bundle_id: &BundleId,
+        status: &BundleStatus,
+    ) -> Result<(), StoreError> {
+        update_bundle_status(&self.pool, bundle_id, status).await
+    }
+
+    /// Insert a new runtime instance.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_runtime_instance(
+        &self,
+        instance: &RuntimeInstance,
+    ) -> Result<(), StoreError> {
+        insert_runtime_instance(&self.pool, instance).await
+    }
+
+    /// Update a runtime instance's status.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_runtime_status(
+        &self,
+        runtime_id: &RuntimeId,
+        status: &str,
+    ) -> Result<(), StoreError> {
+        update_runtime_status(&self.pool, runtime_id, status).await
+    }
+
+    /// Get runtime health data for an instance.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_runtime_health(
+        &self,
+        runtime_id: &RuntimeId,
+    ) -> Result<Option<RuntimeInstance>, StoreError> {
+        get_runtime_health(&self.pool, runtime_id).await
+    }
+
+    /// List all runtime instances, ordered by started_at DESC.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_runtime_instances(
+        &self,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<RuntimeInstance>, StoreError> {
+        list_runtime_instances(&self.pool, limit, offset).await
+    }
+}
+
 /// Update a bundle's status.
 pub async fn update_bundle_status(
     pool: &PgPool,
@@ -202,13 +286,11 @@ pub async fn update_runtime_status(
     runtime_id: &RuntimeId,
     status: &str,
 ) -> Result<(), StoreError> {
-    sqlx::query(
-        "UPDATE runtime_instances SET status = $1, last_heartbeat = NOW() WHERE id = $2",
-    )
-    .bind(status)
-    .bind(runtime_id.as_str())
-    .execute(pool)
-    .await?;
+    sqlx::query("UPDATE runtime_instances SET status = $1, last_heartbeat = NOW() WHERE id = $2")
+        .bind(status)
+        .bind(runtime_id.as_str())
+        .execute(pool)
+        .await?;
     Ok(())
 }
 

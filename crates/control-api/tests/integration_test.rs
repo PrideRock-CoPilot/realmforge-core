@@ -4,11 +4,13 @@
 mod common;
 
 use authority_domain::{
-    ActorId, ActorScope, ApprovalState, ExecutionMode, ProjectId, SessionId, TenantId,
+    ActorId, ActorScope, ApprovalState, CommandStatus, ExecutionMode, ProjectId, SessionId,
+    TenantId,
 };
 use control_service::{AuditService, CommandService, RollbackService, SnapshotService};
 use control_store::CoreStore;
 use serde_json::json;
+use sqlx::PgPool;
 
 /// Build a full scope for testing.
 fn full_scope(project_id: ProjectId) -> ActorScope {
@@ -30,6 +32,64 @@ fn full_scope(project_id: ProjectId) -> ActorScope {
     }
 }
 
+async fn seed_test_env(pool: &PgPool, scope: &ActorScope) {
+    sqlx::query(
+        "INSERT INTO tenants (id, name, status, created_at) \
+         VALUES ($1, $2, 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(scope.tenant_id.as_str())
+    .bind(scope.tenant_id.as_str())
+    .execute(pool)
+    .await
+    .expect("failed to seed tenant");
+
+    sqlx::query(
+        "INSERT INTO projects (id, tenant_id, name, status, created_at) \
+         VALUES ($1, $2, $3, 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(scope.project_id.as_str())
+    .bind(scope.tenant_id.as_str())
+    .bind(scope.project_id.as_str())
+    .execute(pool)
+    .await
+    .expect("failed to seed project");
+
+    sqlx::query(
+        "INSERT INTO actors (id, tenant_id, display_name, actor_type, status, created_at) \
+         VALUES ($1, $2, $3, 'human', 'active', now()) ON CONFLICT (id) DO NOTHING",
+    )
+    .bind(scope.actor_id.as_str())
+    .bind(scope.tenant_id.as_str())
+    .bind(scope.actor_id.as_str())
+    .execute(pool)
+    .await
+    .expect("failed to seed actor");
+
+    sqlx::query("DELETE FROM rollback_previews WHERE project_id = $1")
+        .bind(scope.project_id.as_str())
+        .execute(pool)
+        .await
+        .expect("failed to clear rollback previews");
+
+    sqlx::query("DELETE FROM snapshot_manifests WHERE project_id = $1")
+        .bind(scope.project_id.as_str())
+        .execute(pool)
+        .await
+        .expect("failed to clear snapshot manifests");
+
+    sqlx::query("DELETE FROM core_audit_events WHERE project_id = $1")
+        .bind(scope.project_id.as_str())
+        .execute(pool)
+        .await
+        .expect("failed to clear audit events");
+
+    sqlx::query("DELETE FROM bounded_commands WHERE project_id = $1")
+        .bind(scope.project_id.as_str())
+        .execute(pool)
+        .await
+        .expect("failed to clear bounded commands");
+}
+
 #[tokio::test]
 async fn test_cross_crate_happy_path() {
     let store: CoreStore = match common::get_store().await {
@@ -39,6 +99,7 @@ async fn test_cross_crate_happy_path() {
 
     let project_id = ProjectId::new("x-crate-test-project").unwrap();
     let scope = full_scope(project_id.clone());
+    seed_test_env(store.pool(), &scope).await;
 
     let audit_svc = AuditService::new(store.clone());
     let cmd_svc = CommandService::new(store.clone(), audit_svc.clone());
@@ -56,21 +117,21 @@ async fn test_cross_crate_happy_path() {
         )
         .await
         .expect("propose should succeed");
-    assert_eq!(command.status.to_string(), "Proposed");
+    assert_eq!(command.status, CommandStatus::Proposed);
 
     // 2. Authorize the command
     let authorized = cmd_svc
         .authorize_command(&command.id, &scope)
         .await
         .expect("authorize should succeed");
-    assert_eq!(authorized.status.to_string(), "Authorized");
+    assert_eq!(authorized.status, CommandStatus::Authorized);
 
     // 3. Apply the command
     let applied = cmd_svc
         .apply_command(&command.id, &scope)
         .await
         .expect("apply should succeed");
-    assert_eq!(applied.status.to_string(), "Applied");
+    assert_eq!(applied.status, CommandStatus::Applied);
 
     // 4. Verify audit chain integrity
     let anchor = audit_svc

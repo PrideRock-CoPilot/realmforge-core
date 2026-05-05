@@ -1,6 +1,4 @@
-use authority_domain::{
-    DatasetInfo, KnowledgeQuery, KnowledgeRecord, KnowledgeScope,
-};
+use authority_domain::{DatasetInfo, KnowledgeQuery, KnowledgeRecord, KnowledgeScope};
 use chrono::Utc;
 use control_store::CoreStore;
 use parquet_store::{ParquetDataset, ParquetKnowledgeQuery};
@@ -66,11 +64,7 @@ impl KnowledgeService {
 
         // 2. Write Parquet (if configured)
         if let Some(parquet) = &self.parquet {
-            let next_version = parquet
-                .latest_version_number()
-                .await?
-                .unwrap_or(0)
-                + 1;
+            let next_version = parquet.latest_version_number().await?.unwrap_or(0) + 1;
             parquet
                 .write_version(next_version, &[record.clone()])
                 .await?;
@@ -145,10 +139,7 @@ impl KnowledgeService {
 
     /// Get dataset info for a specific dataset.
     #[instrument(skip(self), fields(dataset_id = %dataset_id))]
-    pub async fn get_dataset_info(
-        &self,
-        dataset_id: &str,
-    ) -> Result<DatasetInfo, ServiceError> {
+    pub async fn get_dataset_info(&self, dataset_id: &str) -> Result<DatasetInfo, ServiceError> {
         self.store
             .get_dataset_info(dataset_id)
             .await?

@@ -1,9 +1,5 @@
 use authority_domain::login::{LoginCredentials, Scope};
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, Json};
 use control_service::ServiceContext;
 use serde::Deserialize;
 
@@ -72,9 +68,7 @@ pub async fn set_login_policy(
     State(ctx): State<ServiceContext>,
     Json(req): Json<SetPolicyRequest>,
 ) -> Result<(StatusCode, Json<serde_json::Value>), ApiError> {
-    ctx.login
-        .set_policy(&req.tenant_id, &req.config)
-        .await?;
+    ctx.login.set_policy(&req.tenant_id, &req.config).await?;
     Ok((
         StatusCode::OK,
         Json(serde_json::json!({"status": "policy updated", "tenant_id": req.tenant_id.as_str()})),

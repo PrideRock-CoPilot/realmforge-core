@@ -98,10 +98,7 @@ mod tests {
             tenant_id: TenantId::new("tenant").unwrap(),
             allowed_actions: vec!["file.read".to_string()],
             denied_actions: vec![],
-            allowed_file_patterns: vec![
-                "/workspace/src".to_string(),
-                "data/".to_string(),
-            ],
+            allowed_file_patterns: vec!["/workspace/src".to_string(), "data/".to_string()],
             denied_file_patterns: vec![
                 "/workspace/src/secret".to_string(),
                 "data/private/".to_string(),

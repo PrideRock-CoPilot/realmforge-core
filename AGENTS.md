@@ -9,7 +9,7 @@ Every agent working in `E:\realmforge` must read these files before changing cod
 3. `docs/realm_forge_ai_native_path_forward.md`
 4. `docs/spec/00_INDEX.md`
 5. Relevant docs under `docs/spec/`
-6. Relevant skills under `docs/codex/skills-source/` or installed Codex skills
+6. Relevant skills under `skills/` or installed `.claude/skills/`
 
 ## Docs-First Law
 
@@ -31,11 +31,12 @@ Use the RealmForge company skills installed in Codex when their domain applies:
 - `data-architect` and `data-engineer` for Postgres, Parquet, and object store contracts
 - `backend`, `frontend`, `qa`, `release-manager`, `tech-writer`, `pm`, `ceo`, `biz-user`, and `accountant` for their documented domains
 
-## Current Phase 0 Constraints
+## Current Baseline Certification Constraints
 
-- Allowed: docs, instructions, skill setup, and unambiguous Rust hardening that already matches approved docs.
-- Blocked pending Council: frontend stack, Parquet engine/library.
-- Blocked pending user approval: modules beyond Login, exact brand-removal threshold, Live Watch auto-remediation.
+- Allowed: docs, instructions, skill setup, verification, and narrow Rust hardening required to restore `cargo fmt`, `cargo clippy`, and `cargo test` evidence for already specified work.
+- Decision register is authoritative: frontend stack, Parquet engine/library, catalog order beyond Login, brand-removal threshold, and Live Watch remediation tiers are closed in `docs/spec/22_OPEN_DECISIONS.md`.
+- Do not claim phase completion until the relevant plan gates are reproducibly green and QA plus release-manager signoff are recorded.
+- Live Watch defaults to Tier 0: report and suggest only. Tier 1 remediation requires explicit per-app opt-in under `DEC-USER-006`; higher autonomy remains deferred.
 
 ## Rust Rules
 

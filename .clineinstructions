@@ -1,0 +1,100 @@
+# RealmForge Cline Instructions — Mandatory Skill Enforcement
+
+This file is the gatekeeper. Every session, every action, every tool invocation
+in this workspace is governed by the RealmForge skill system. Nothing happens
+without a skill.
+
+## ⚠️ ABSOLUTE RULES
+
+### 1. No Action Without a Skill
+
+You MUST NOT perform any productive work — including reading code, writing code,
+running tools, making decisions, or answering questions — without first:
+
+1. Identifying which RealmForge skill owns the domain (see `.clinerules/02-routing-and-skills.md`)
+2. Loading that skill using `use_skill` with the exact skill name
+3. Following the skill's workflow instructions
+
+This includes:
+- Writing or editing Rust code
+- Creating or editing documentation
+- Running tests or builds
+- Making architectural decisions
+- Planning or scoping work
+- Reviewing code or specs
+- Writing ADRs or API docs
+- Any financial analysis or cost modeling
+- Any security review or threat modeling
+- Any deployment or release decisions
+- Any user-facing requirement definition
+
+### 2. Session Start Protocol
+
+Every new session MUST begin with this sequence BEFORE any tools are used:
+
+```
+1. Read .clinerules/00-company-index.md     — know the company skill deck
+2. Read .clinerules/01-session-protocol.md  — follow session protocol
+3. Read .clinerules/02-routing-and-skills.md — match request to skill
+4. Use_skill to load the matching skill      — adopt persona and workflow
+```
+
+### 3. No Bypassing the Handoff Chain
+
+Work must flow through: CEO → PM → CTO → Architects (as needed) → Engineering → QA → Release Manager.
+Direct engineering-to-release without QA is a violation.
+Direct engineering-to-deployment without Release Manager is a violation.
+Any handoff must have a named deliverable and a named receiver.
+
+### 4. Skill Routing (Quick Reference)
+
+| Domain | Skill to Load | File |
+|--------|--------------|------|
+| Architecture, layer boundaries | `cto` | `skills/cto/SKILL.md` |
+| Planning, scope, handoffs | `pm` | `skills/pm/SKILL.md` |
+| Strategy, investment | `ceo` | `skills/ceo/SKILL.md` |
+| Domain model, bounded context | `domain-architect` | `skills/domain-architect/SKILL.md` |
+| Threat model, security | `security-architect` | `skills/security-architect/SKILL.md` |
+| API/MCP/CLI contract design | `api-architect` | `skills/api-architect/SKILL.md` |
+| Infrastructure, DB, deployment | `infra-architect` | `skills/infra-architect/SKILL.md` |
+| Data governance, Parquet | `data-architect` | `skills/data-architect/SKILL.md` |
+| Rust crate implementation | `backend` | `skills/backend/SKILL.md` |
+| Frontend UI, accessibility | `frontend` | `skills/frontend/SKILL.md` |
+| Data pipelines, Parquet | `data-engineer` | `skills/data-engineer/SKILL.md` |
+| Verification, defect docs | `qa` | `skills/qa/SKILL.md` |
+| Financial reconciliation | `accountant` | `skills/accountant/SKILL.md` |
+| Deployment, rollback | `release-manager` | `skills/release-manager/SKILL.md` |
+| ADRs, API docs, crate docs | `tech-writer` | `skills/tech-writer/SKILL.md` |
+| User stories, biz perspective | `biz-user` | `skills/biz-user/SKILL.md` |
+| Workflow state, handoffs | `orchestrator` | `skills/orchestrator/SKILL.md` |
+| Multi-stakeholder decisions | `council` | `skills/council/SKILL.md` |
+| Creating/auditing skills | `realmforge-skill-creator` | `skills/realmforge-skill-creator/SKILL.md` |
+
+### 5. Domain Categorization Test
+
+If you can't immediately identify which skill owns a request:
+- Check `.clinerules/02-routing-and-skills.md` routing table
+- Check `.clinerules/00-company-index.md` domain lookup
+- Load `orchestrator` first for multi-skill tasks (spans 3+ domains)
+- If still uncertain, ask the user to specify the domain
+
+### 6. Violation Consequences
+
+Any violation of these rules is a breach of workspace protocol:
+- First violation: acknowledge, reload the correct skill, redo the work
+- Repeated violation: the session should be stopped and the user notified
+
+## Configuration File Locations
+
+| Concern | File |
+|---------|------|
+| Skill definitions (canonical) | `skills/<name>/SKILL.md` |
+| Skill definitions (Cline installed) | `.claude/skills/<name>/SKILL.md` |
+| Company skill index | `.clinerules/00-company-index.md` |
+| Routing rules | `.clinerules/02-routing-and-skills.md` |
+| Session protocol | `.clinerules/01-session-protocol.md` |
+| Docs-first law | `.clinerules/03-docs-first-law.md` |
+| Architecture laws | `.clinerules/04-architecture-laws.md` |
+| Workflow & handoffs | `.clinerules/05-workflow-and-handoffs.md` |
+| Cline workspace settings | `.claude/settings.local.json` |
+| Workspace instructions | `CLAUDE.md`, `AGENTS.md` |

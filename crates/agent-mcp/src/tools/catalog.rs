@@ -56,9 +56,9 @@ fn parse_scope(scope_str: &str, scope_id: &Option<String>) -> Result<CatalogScop
     match scope_str {
         "global" => Ok(CatalogScope::Global),
         "tenant" => {
-            let id = scope_id
-                .clone()
-                .ok_or_else(|| McpError::InvalidArgs("scope_id required for tenant scope".into()))?;
+            let id = scope_id.clone().ok_or_else(|| {
+                McpError::InvalidArgs("scope_id required for tenant scope".into())
+            })?;
             Ok(CatalogScope::Tenant(id))
         }
         "app" => {

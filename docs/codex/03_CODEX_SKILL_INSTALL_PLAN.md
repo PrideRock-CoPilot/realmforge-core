@@ -28,11 +28,16 @@ C:\Users\amari\.codex\skills\
 
 ## Source
 
-Project-owned source:
+Project-owned source (canonical):
 
 ```text
-docs/codex/skills-source/
+skills/
 ```
+
+> **⚠️ DEPRECATED:** The old `docs/codex/skills-source/` location is deprecated.
+> The canonical skill definition path is now `skills/<name>/SKILL.md`.
+> The `docs/codex/skills-source/` directory will be removed after the next install cycle.
+> All changes should be made to `skills/<name>/SKILL.md`.
 
 ## Manual Install Command
 
@@ -40,7 +45,7 @@ From `E:\realmforge`:
 
 ```powershell
 $target = "C:\Users\amari\.codex\skills"
-Get-ChildItem docs\codex\skills-source -Directory | ForEach-Object {
+Get-ChildItem skills -Directory | ForEach-Object {
   Copy-Item $_.FullName (Join-Path $target $_.Name) -Recurse -Force
 }
 ```
@@ -51,4 +56,4 @@ After install, start a fresh Codex session and confirm these skill names appear:
 
 ## Update Rule
 
-Update `docs/codex/skills-source/` first. Then reinstall. Do not edit installed copies directly unless the change is copied back into source.
+Update `skills/` first. Then reinstall. Do not edit installed copies directly unless the change is copied back into source.

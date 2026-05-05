@@ -17,10 +17,9 @@ impl Scope {
             return Err(LoginDomainError::ScopeTooLong(s.len()));
         }
         // Basic allowlist: alphanumeric, dots, colons, hyphens, underscores, slashes
-        if !s
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '.' || c == ':' || c == '-' || c == '_' || c == '/')
-        {
+        if !s.chars().all(|c| {
+            c.is_alphanumeric() || c == '.' || c == ':' || c == '-' || c == '_' || c == '/'
+        }) {
             return Err(LoginDomainError::InvalidScope(s));
         }
         Ok(Self(s))

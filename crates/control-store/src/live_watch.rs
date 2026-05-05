@@ -109,14 +109,12 @@ pub async fn update_proposal_status(
     proposal_id: &ProposalId,
     status: &ProposalStatus,
 ) -> Result<(), StoreError> {
-    let n = sqlx::query(
-        "UPDATE remediation_proposals SET status = $1 WHERE id = $2",
-    )
-    .bind(format!("{}", status))
-    .bind(proposal_id.as_str())
-    .execute(pool)
-    .await?
-    .rows_affected();
+    let n = sqlx::query("UPDATE remediation_proposals SET status = $1 WHERE id = $2")
+        .bind(format!("{}", status))
+        .bind(proposal_id.as_str())
+        .execute(pool)
+        .await?
+        .rows_affected();
 
     if n == 0 {
         return Err(StoreError::invalid_data(format!(
@@ -292,5 +290,77 @@ fn parse_proposal_status(s: &str) -> Result<ProposalStatus, StoreError> {
         other => Err(StoreError::invalid_data(format!(
             "unknown proposal status: {other}"
         ))),
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a watch signal.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_watch_signal(&self, signal: &WatchSignal) -> Result<(), StoreError> {
+        insert_watch_signal(&self.pool, signal).await
+    }
+
+    /// Query watch signals with optional filters.
+    #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(skip(self))]
+    pub async fn query_watch_signals(
+        &self,
+        app_id: &str,
+        signal_type: Option<&str>,
+        severity: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<WatchSignal>, StoreError> {
+        query_watch_signals(&self.pool, app_id, signal_type, severity, limit, offset).await
+    }
+
+    /// Insert a remediation proposal.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_remediation_proposal(
+        &self,
+        proposal: &RemediationProposal,
+    ) -> Result<(), StoreError> {
+        insert_remediation_proposal(&self.pool, proposal).await
+    }
+
+    /// List remediation proposals for an app, optionally filtered by status.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_remediation_proposals(
+        &self,
+        app_id: &str,
+        status_filter: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<RemediationProposal>, StoreError> {
+        list_remediation_proposals(&self.pool, app_id, status_filter, limit, offset).await
+    }
+
+    /// Update the status of a remediation proposal.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_proposal_status(
+        &self,
+        proposal_id: &ProposalId,
+        status: &ProposalStatus,
+    ) -> Result<(), StoreError> {
+        update_proposal_status(&self.pool, proposal_id, status).await
+    }
+
+    /// Get a watch profile for an app.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_watch_profile(
+        &self,
+        app_id: &str,
+    ) -> Result<Option<WatchProfile>, StoreError> {
+        get_watch_profile(&self.pool, app_id).await
+    }
+
+    /// Upsert a watch profile (insert or update).
+    #[tracing::instrument(skip(self))]
+    pub async fn upsert_watch_profile(&self, profile: &WatchProfile) -> Result<(), StoreError> {
+        upsert_watch_profile(&self.pool, profile).await
     }
 }

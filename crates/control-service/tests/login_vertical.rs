@@ -22,15 +22,15 @@ use sha2::{Digest, Sha256};
 // ── Helpers ──
 
 fn test_tenant(name: &str) -> TenantId {
-    TenantId::new(&format!("login-test-{name}")).unwrap()
+    TenantId::new(format!("login-test-{name}")).unwrap()
 }
 
 fn test_project(name: &str) -> ProjectId {
-    ProjectId::new(&format!("login-test-{name}")).unwrap()
+    ProjectId::new(format!("login-test-{name}")).unwrap()
 }
 
 fn test_actor(name: &str) -> ActorId {
-    ActorId::new(&format!("login-test-actor-{name}")).unwrap()
+    ActorId::new(format!("login-test-actor-{name}")).unwrap()
 }
 
 fn make_handler(store: &control_store::CoreStore) -> LoginHandler {
@@ -42,6 +42,56 @@ fn make_handler(store: &control_store::CoreStore) -> LoginHandler {
 /// Compute hex-encoded SHA-256 hash for a credential string.
 fn hash_credential(credential: &str) -> String {
     hex::encode(Sha256::digest(credential.as_bytes()))
+}
+
+/// Seed a test tenant, project, and actor so FK constraints are satisfied.
+async fn seed_test_environment(
+    store: &control_store::CoreStore,
+    tenant_id: &TenantId,
+    project_id: &ProjectId,
+    actor_id: &ActorId,
+) {
+    let pool = store.pool();
+    sqlx::query("INSERT INTO tenants (id, name, status) VALUES ($1, $2, 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(tenant_id.as_str())
+        .bind(tenant_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO projects (id, tenant_id, name, status) VALUES ($1, $2, $3, 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(project_id.as_str())
+        .bind(tenant_id.as_str())
+        .bind(project_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO actors (id, tenant_id, display_name, actor_type, status) VALUES ($1, $2, $3, 'human', 'active') ON CONFLICT (id) DO NOTHING")
+        .bind(actor_id.as_str())
+        .bind(tenant_id.as_str())
+        .bind(actor_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+}
+
+/// Remove stale blocks and policies for a tenant, so repeated test runs are isolated.
+async fn cleanup_test_data(store: &control_store::CoreStore, tenant_id: &TenantId) {
+    let pool = store.pool();
+    sqlx::query("DELETE FROM login_blocks WHERE tenant_id = $1")
+        .bind(tenant_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+    sqlx::query("DELETE FROM login_policies WHERE tenant_id = $1")
+        .bind(tenant_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
+    sqlx::query("DELETE FROM login_attempts WHERE tenant_id = $1")
+        .bind(tenant_id.as_str())
+        .execute(pool)
+        .await
+        .unwrap();
 }
 
 /// Set up a credential for an actor so login can succeed.
@@ -83,6 +133,7 @@ async fn test_login_success() {
     let actor = test_actor("success");
     let password = "correct-password-123";
 
+    seed_test_environment(&store, &tenant, &project, &actor).await;
     setup_credential(&store, &tenant, &actor, password).await;
     let handler = make_handler(&store);
 
@@ -99,11 +150,20 @@ async fn test_login_success() {
         .unwrap();
 
     // Verify the response
-    assert!(!result.session_token.is_empty(), "session token should be populated");
+    assert!(
+        !result.session_token.is_empty(),
+        "session token should be populated"
+    );
     assert_eq!(result.actor_id, actor);
     assert_eq!(result.scope, "read:write");
-    assert!(result.expires_at > chrono::Utc::now(), "expires_at should be in the future");
-    assert!(!result.audit_event_id.is_empty(), "audit event should be recorded");
+    assert!(
+        result.expires_at > chrono::Utc::now(),
+        "expires_at should be in the future"
+    );
+    assert!(
+        !result.audit_event_id.is_empty(),
+        "audit event should be recorded"
+    );
 }
 
 #[tokio::test]
@@ -119,6 +179,7 @@ async fn test_login_invalid_credentials() {
     let correct_password = "correct-password";
     let wrong_password = "wrong-password";
 
+    seed_test_environment(&store, &tenant, &project, &actor).await;
     // Store the correct credential
     setup_credential(&store, &tenant, &actor, correct_password).await;
     let handler = make_handler(&store);
@@ -152,8 +213,14 @@ async fn test_login_rate_limited() {
     let project = test_project("ratelimit");
     let actor = test_actor("ratelimit");
 
-    // Set a strict policy
-    let policy = strict_policy();
+    seed_test_environment(&store, &tenant, &project, &actor).await;
+    // Clear any stale blocks/policies from previous test runs
+    cleanup_test_data(&store, &tenant).await;
+
+    // Set a strict policy with NO auto-block — high max_failed_attempts so
+    // the test hits the rate limit before reaching the block threshold.
+    let mut policy = strict_policy();
+    policy.max_failed_attempts = 100; // don't auto-block during rate limit test
     store.insert_login_policy(&tenant, &policy).await.unwrap();
 
     // Don't set up a credential — all attempts will be invalid, but the rate
@@ -212,6 +279,8 @@ async fn test_login_auto_block() {
     let tenant = test_tenant("autoblock");
     let project = test_project("autoblock");
     let actor = test_actor("autoblock");
+
+    seed_test_environment(&store, &tenant, &project, &actor).await;
 
     // Set a policy with low max_failed_attempts
     let mut policy = strict_policy();
@@ -301,6 +370,9 @@ async fn test_login_policy_set_and_get() {
 
     let tenant = test_tenant("policy");
     let handler = make_handler(&store);
+
+    // Clear any stale policy from previous runs
+    cleanup_test_data(&store, &tenant).await;
 
     // Initially should be None
     let initial = handler.get_policy(&tenant).await.unwrap();
@@ -405,6 +477,8 @@ async fn test_login_default_policy_is_applied() {
     let tenant = test_tenant("defaultpolicy");
     let project = test_project("defaultpolicy");
     let actor = test_actor("defaultpolicy");
+
+    seed_test_environment(&store, &tenant, &project, &actor).await;
 
     // Set up a correct credential
     setup_credential(&store, &tenant, &actor, "my-password").await;

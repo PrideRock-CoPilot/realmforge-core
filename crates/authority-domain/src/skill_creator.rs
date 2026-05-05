@@ -295,10 +295,7 @@ mod tests {
             .contains(&"new.action".to_string()));
 
         // Second bump: v2 → v3
-        registration = creator.update_skill_grants(
-            &registration,
-            vec!["third.action".to_string()],
-        );
+        registration = creator.update_skill_grants(&registration, vec!["third.action".to_string()]);
         assert_eq!(registration.version_id, SkillVersionId::new("v3").unwrap());
         assert!(registration
             .allowed_actions

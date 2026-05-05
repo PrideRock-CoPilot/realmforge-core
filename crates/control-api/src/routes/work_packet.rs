@@ -1,4 +1,6 @@
-use authority_domain::{work_packet::CostBudget, ActorId, PacketId, ProjectId, TenantId, WorkPathId, WorkPathNodeId};
+use authority_domain::{
+    work_packet::CostBudget, ActorId, PacketId, ProjectId, TenantId, WorkPathId, WorkPathNodeId,
+};
 use axum::{
     extract::{Path, State},
     http::StatusCode,

@@ -640,7 +640,7 @@ Read the crate's existing source files
 
 ### 2. Plan Verification
 ```
-Load /skill-creator (to register any new skills needed)
+Load /realmforge-skill-creator (to register any new skills needed)
 Convene /cto (Rena Okafor) for architecture review
 Map affected crate dependencies
 Identify any new types or enums needed in authority-domain

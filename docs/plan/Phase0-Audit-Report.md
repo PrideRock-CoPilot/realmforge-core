@@ -6,7 +6,7 @@ status: draft
 owner: tech-writer
 reviewers: [pm, cto, qa]
 created_at: 2026-05-04
-last_reviewed_at: 2026-05-04
+last_reviewed_at: 2026-05-05
 source_of_truth: false
 product_area: roadmap
 work_path_ids: [WP-DOCS-000]
@@ -19,7 +19,11 @@ approval_state: pending
 
 # Phase 0 — Documentation Certification Audit Report
 
-## Summary (Post-Fix)
+## Superseded Status
+
+This report is historical evidence from the earlier Phase 0 audit. It is not current certification evidence after `DOC-SPEC-023` was added and the decision register moved `DEC-COUNCIL-001`, `DEC-COUNCIL-003`, `DEC-USER-004`, `DEC-USER-005`, and `DEC-USER-006` to the closed register. Use `docs/plan/Phase0.md` for the current re-certification gates.
+
+## Historical Summary (Post-Fix)
 
 | Gate | Status | Findings |
 |------|--------|----------|

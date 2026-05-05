@@ -82,6 +82,49 @@ pub async fn insert_command(pool: &PgPool, row: &CommandRow) -> Result<(), Store
     Ok(())
 }
 
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new command record.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_command(&self, row: &CommandRow) -> Result<(), StoreError> {
+        insert_command(&self.pool, row).await
+    }
+
+    /// Get a command by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_command(
+        &self,
+        command_id: &CommandId,
+    ) -> Result<Option<CommandRow>, StoreError> {
+        get_command(&self.pool, command_id).await
+    }
+
+    /// Update a command's status.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_command_status(
+        &self,
+        command_id: &CommandId,
+        new_status: &str,
+    ) -> Result<(), StoreError> {
+        update_command_status(&self.pool, command_id, new_status).await
+    }
+
+    /// List commands for a project with optional status filter and pagination.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_commands(
+        &self,
+        project_id: &ProjectId,
+        status_filter: Option<&str>,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<CommandRow>, StoreError> {
+        list_commands(&self.pool, project_id, status_filter, limit, offset).await
+    }
+}
+
 /// Get a command by ID.
 #[instrument(skip(pool), fields(command_id = %command_id))]
 pub async fn get_command(

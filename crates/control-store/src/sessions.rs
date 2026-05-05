@@ -138,3 +138,56 @@ pub async fn update_session_expiry(
         .await?;
     Ok(())
 }
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new session record.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_session(&self, row: &SessionRow) -> Result<(), StoreError> {
+        insert_session(&self.pool, row).await
+    }
+
+    /// Get a session by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_session(
+        &self,
+        session_id: &SessionId,
+    ) -> Result<Option<SessionRow>, StoreError> {
+        get_session(&self.pool, session_id).await
+    }
+
+    /// Update a session's state.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_session_state(
+        &self,
+        session_id: &SessionId,
+        new_state: &str,
+    ) -> Result<(), StoreError> {
+        update_session_state(&self.pool, session_id, new_state).await
+    }
+
+    /// Update a session's expiry timestamp.
+    #[tracing::instrument(skip(self))]
+    pub async fn update_session_expiry(
+        &self,
+        session_id: &SessionId,
+        expires_at: chrono::DateTime<chrono::Utc>,
+    ) -> Result<(), StoreError> {
+        update_session_expiry(&self.pool, session_id, expires_at).await
+    }
+
+    /// List sessions for a tenant/project with pagination.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_sessions(
+        &self,
+        tenant_id: &authority_domain::TenantId,
+        project_id: &ProjectId,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<SessionRow>, StoreError> {
+        list_sessions(&self.pool, tenant_id, project_id, limit, offset).await
+    }
+}

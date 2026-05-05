@@ -113,7 +113,9 @@ impl BuildWatchService {
 
     /// Get the aggregated cost summary.
     #[instrument(skip(self))]
-    pub async fn aggregate_cost_summary(&self) -> Result<Vec<control_store::build_watch::CostSummaryRow>, ServiceError> {
+    pub async fn aggregate_cost_summary(
+        &self,
+    ) -> Result<Vec<control_store::build_watch::CostSummaryRow>, ServiceError> {
         Ok(self.store.get_cost_summary().await?)
     }
 

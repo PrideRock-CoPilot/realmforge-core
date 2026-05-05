@@ -174,10 +174,7 @@ pub async fn deny_command(
         allowed: false,
         denial: None,
     };
-    let command = ctx
-        .commands
-        .deny_command(&id, &req.scope, &denial)
-        .await?;
+    let command = ctx.commands.deny_command(&id, &req.scope, &denial).await?;
 
     Ok(Json(CommandResponse {
         command_id: command.id,

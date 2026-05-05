@@ -1,6 +1,4 @@
-use authority_domain::{
-    SignalSeverity, SignalType, WatchProfile, WatchSignal, WatchSignalId,
-};
+use authority_domain::{SignalSeverity, SignalType, WatchProfile, WatchSignal, WatchSignalId};
 use chrono::{Duration, Utc};
 use control_store::CoreStore;
 use std::collections::HashMap;
@@ -187,8 +185,7 @@ impl AnomalyDetector {
 
         // Find the matching threshold from the profile
         let matching_threshold = profile.signal_thresholds.iter().find(|t| {
-            std::mem::discriminant(&t.signal_type)
-                == std::mem::discriminant(&signal.signal_type)
+            std::mem::discriminant(&t.signal_type) == std::mem::discriminant(&signal.signal_type)
         });
 
         // Threshold check — does the signal exceed profile thresholds?
@@ -331,7 +328,11 @@ mod tests {
         ];
 
         let anomalies = detector.evaluate_batch(&signals, &profile);
-        assert_eq!(anomalies.len(), 1, "only 0.3 should exceed warning threshold");
+        assert_eq!(
+            anomalies.len(),
+            1,
+            "only 0.3 should exceed warning threshold"
+        );
         assert!((anomalies[0].value - 0.3).abs() < f64::EPSILON);
     }
 }

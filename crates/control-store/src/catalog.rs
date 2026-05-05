@@ -9,10 +9,7 @@ use crate::StoreError;
 
 /// Insert a new catalog entry into the database.
 #[instrument(skip(pool))]
-pub async fn insert_catalog_entry(
-    pool: &PgPool,
-    entry: &CatalogEntry,
-) -> Result<(), StoreError> {
+pub async fn insert_catalog_entry(pool: &PgPool, entry: &CatalogEntry) -> Result<(), StoreError> {
     let (scope_str, scope_tenant_id, scope_app_id) = match &entry.scope {
         CatalogScope::Global => ("global", None::<String>, None::<String>),
         CatalogScope::Tenant(t) => ("tenant", Some(t.clone()), None),
@@ -167,7 +164,11 @@ impl CatalogEntryRow {
             "policy" => CatalogModuleType::Policy,
             "handler" => CatalogModuleType::Handler,
             "watch" => CatalogModuleType::Watch,
-            other => return Err(StoreError::invalid_data(format!("invalid module_type: {other}"))),
+            other => {
+                return Err(StoreError::invalid_data(format!(
+                    "invalid module_type: {other}"
+                )))
+            }
         };
 
         let provenance = self
@@ -187,5 +188,61 @@ impl CatalogEntryRow {
             provenance,
             created_at: self.created_at,
         })
+    }
+}
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a new catalog entry.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_catalog_entry(
+        &self,
+        entry: &authority_domain::CatalogEntry,
+    ) -> Result<(), StoreError> {
+        insert_catalog_entry(&self.pool, entry).await
+    }
+
+    /// Get a single catalog entry by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_catalog_entry(
+        &self,
+        id: &authority_domain::CatalogId,
+    ) -> Result<Option<authority_domain::CatalogEntry>, StoreError> {
+        get_catalog_entry(&self.pool, id).await
+    }
+
+    /// List catalog entries matching a given scope.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_catalog_entries(
+        &self,
+        scope: &authority_domain::CatalogScope,
+    ) -> Result<Vec<authority_domain::CatalogEntry>, StoreError> {
+        list_catalog_entries(&self.pool, scope).await
+    }
+
+    /// Copy a catalog entry with provenance tracking.
+    #[tracing::instrument(skip(self))]
+    pub async fn copy_catalog_entry(
+        &self,
+        source_id: &authority_domain::CatalogId,
+        new_id: &authority_domain::CatalogId,
+        new_name: &str,
+        new_parent_id: Option<&authority_domain::CatalogId>,
+        new_scope: &authority_domain::CatalogScope,
+        copied_by: &authority_domain::ActorId,
+    ) -> Result<authority_domain::CatalogEntry, StoreError> {
+        copy_catalog_entry(
+            &self.pool,
+            source_id,
+            new_id,
+            new_name,
+            new_parent_id,
+            new_scope,
+            copied_by,
+        )
+        .await
     }
 }

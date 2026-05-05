@@ -76,3 +76,38 @@ pub async fn list_snapshot_manifests(
 
     Ok(rows.into_iter().map(|r| r.manifest_json.0).collect())
 }
+
+// ── CoreStore impl ───────────────────────────────────────────────────────────
+
+use crate::CoreStore;
+
+impl CoreStore {
+    /// Insert a snapshot manifest.
+    #[tracing::instrument(skip(self))]
+    pub async fn insert_snapshot_manifest(
+        &self,
+        manifest: &SnapshotManifest,
+    ) -> Result<(), StoreError> {
+        insert_snapshot_manifest(&self.pool, manifest).await
+    }
+
+    /// Get a snapshot manifest by ID.
+    #[tracing::instrument(skip(self))]
+    pub async fn get_snapshot_manifest(
+        &self,
+        snapshot_id: &SnapshotId,
+    ) -> Result<Option<SnapshotManifest>, StoreError> {
+        get_snapshot_manifest(&self.pool, snapshot_id).await
+    }
+
+    /// List snapshot manifests for a project with pagination.
+    #[tracing::instrument(skip(self))]
+    pub async fn list_snapshot_manifests(
+        &self,
+        project_id: &ProjectId,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<SnapshotManifest>, StoreError> {
+        list_snapshot_manifests(&self.pool, project_id, limit, offset).await
+    }
+}

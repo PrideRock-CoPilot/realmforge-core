@@ -1,0 +1,254 @@
+{
+  "application_type_id": "01_static_website",
+  "version": 1,
+  "metadata": {
+    "created_by": "system",
+    "last_updated": "2025-01-30T00:00:00Z",
+    "total_questions": 8,
+    "average_completion_time_minutes": 4
+  },
+  "questions": [
+    {
+      "id": "q1_purpose",
+      "text": "What is the primary purpose of your website?",
+      "type": "single_select",
+      "help_text": "This helps us understand what features and hosting you'll need.",
+      "options": [
+        {
+          "value": "portfolio",
+          "label": "Portfolio - Showcase work/projects",
+          "add_modules": ["static_hosting", "responsive_design"],
+          "add_personas": ["frontend"]
+        },
+        {
+          "value": "documentation",
+          "label": "Documentation - Technical docs/guides",
+          "add_modules": ["static_hosting", "search", "versioning"],
+          "add_personas": ["frontend", "tech-writer"]
+        },
+        {
+          "value": "marketing",
+          "label": "Marketing - Product landing page",
+          "add_modules": ["static_hosting", "analytics", "seo"],
+          "add_personas": ["frontend", "marketing"]
+        },
+        {
+          "value": "blog",
+          "label": "Blog - Content publishing",
+          "add_modules": ["static_hosting", "cms_integration", "rss"],
+          "add_personas": ["frontend", "content-editor"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q2_source"
+    },
+    {
+      "id": "q2_source",
+      "text": "How will you create the website content?",
+      "type": "single_select",
+      "help_text": "Choose the tool or framework you'll use to build the site.",
+      "options": [
+        {
+          "value": "html_css",
+          "label": "Raw HTML/CSS - Hand-coded",
+          "add_modules": ["static_file_serving"],
+          "add_personas": ["frontend"]
+        },
+        {
+          "value": "static_generator",
+          "label": "Static Site Generator - Hugo, Jekyll, 11ty",
+          "add_modules": ["build_pipeline", "git_integration"],
+          "add_personas": ["frontend", "devops"]
+        },
+        {
+          "value": "react_vue",
+          "label": "SPA Framework - React, Vue, Svelte",
+          "add_modules": ["spa_build", "client_routing"],
+          "add_personas": ["frontend"]
+        },
+        {
+          "value": "cms",
+          "label": "Headless CMS - Contentful, Strapi",
+          "add_modules": ["cms_integration", "build_pipeline"],
+          "add_personas": ["frontend", "content-editor"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q3_hosting"
+    },
+    {
+      "id": "q3_hosting",
+      "text": "Where do you want to host the website?",
+      "type": "single_select",
+      "help_text": "Hosting choice affects deployment process and costs.",
+      "options": [
+        {
+          "value": "github_pages",
+          "label": "GitHub Pages - Free static hosting",
+          "add_modules": ["github_actions", "custom_domain"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "netlify",
+          "label": "Netlify - Automated deployments + CDN",
+          "add_modules": ["netlify_integration", "cd_pipeline"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "vercel",
+          "label": "Vercel - Optimized for frameworks",
+          "add_modules": ["vercel_integration", "preview_deployments"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "s3_cloudfront",
+          "label": "AWS S3 + CloudFront - Custom infrastructure",
+          "add_modules": ["s3_hosting", "cloudfront_cdn", "terraform"],
+          "add_personas": ["devops", "infra-architect"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q4_domain"
+    },
+    {
+      "id": "q4_domain",
+      "text": "Do you need a custom domain name?",
+      "type": "boolean",
+      "help_text": "Custom domains (e.g., example.com) require DNS configuration.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["dns_configuration", "ssl_certificate"],
+        "add_personas": ["devops"],
+        "next_question": "q5_ssl"
+      },
+      "on_false": {
+        "next_question": "q6_forms"
+      }
+    },
+    {
+      "id": "q5_ssl",
+      "text": "SSL/HTTPS is required for custom domains. Do you need help setting this up?",
+      "type": "boolean",
+      "help_text": "Most hosting providers offer free SSL via Let's Encrypt.",
+      "default": true,
+      "show_if": {
+        "question": "q4_domain",
+        "equals": true
+      },
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["letsencrypt", "ssl_automation"],
+        "add_personas": ["devops"]
+      },
+      "next_question": "q6_forms"
+    },
+    {
+      "id": "q6_forms",
+      "text": "Do you need contact forms or user input?",
+      "type": "boolean",
+      "help_text": "Static sites can integrate with form services like Formspree or Netlify Forms.",
+      "default": false,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["form_service", "email_notifications"],
+        "add_personas": ["frontend"],
+        "next_question": "q7_analytics"
+      },
+      "on_false": {
+        "next_question": "q7_analytics"
+      }
+    },
+    {
+      "id": "q7_analytics",
+      "text": "Do you need visitor analytics?",
+      "type": "boolean",
+      "help_text": "Track page views, traffic sources, and user behavior.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["analytics", "privacy_policy"],
+        "add_personas": ["frontend", "marketing"],
+        "next_question": "q8_seo"
+      },
+      "on_false": {
+        "next_question": "q8_seo"
+      }
+    },
+    {
+      "id": "q8_seo",
+      "text": "Do you need search engine optimization (SEO)?",
+      "type": "boolean",
+      "help_text": "SEO helps your site rank in Google search results.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["seo_optimization", "sitemap", "meta_tags"],
+        "add_personas": ["frontend", "marketing"]
+      },
+      "on_false": {}
+    }
+  ],
+  "feature_mappings": {
+    "static_hosting": {
+      "modules": ["hosting", "deployment"],
+      "personas": ["devops"],
+      "deliverables": ["hosting_config", "deployment_script"]
+    },
+    "responsive_design": {
+      "modules": ["frontend"],
+      "personas": ["frontend"],
+      "deliverables": ["responsive_css", "mobile_testing"]
+    },
+    "build_pipeline": {
+      "modules": ["ci_cd"],
+      "personas": ["devops"],
+      "deliverables": ["build_script", "ci_config"]
+    },
+    "custom_domain": {
+      "modules": ["dns"],
+      "personas": ["devops"],
+      "deliverables": ["dns_records", "domain_verification"]
+    },
+    "ssl_certificate": {
+      "modules": ["security"],
+      "personas": ["devops"],
+      "deliverables": ["ssl_cert", "https_redirect"]
+    },
+    "form_service": {
+      "modules": ["forms"],
+      "personas": ["frontend"],
+      "deliverables": ["form_integration", "email_template"]
+    },
+    "analytics": {
+      "modules": ["monitoring"],
+      "personas": ["frontend", "marketing"],
+      "deliverables": ["analytics_script", "tracking_config"]
+    },
+    "seo_optimization": {
+      "modules": ["seo"],
+      "personas": ["frontend", "marketing"],
+      "deliverables": ["meta_tags", "sitemap_xml", "robots_txt"]
+    }
+  },
+  "completion_rules": {
+    "required_questions": ["q1_purpose", "q2_source", "q3_hosting"],
+    "minimum_modules": 2
+  }
+}

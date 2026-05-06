@@ -1,0 +1,348 @@
+{
+  "application_type_id": "02_rest_api",
+  "version": 1,
+  "metadata": {
+    "created_by": "system",
+    "last_updated": "2025-01-30T00:00:00Z",
+    "total_questions": 11,
+    "average_completion_time_minutes": 6
+  },
+  "questions": [
+    {
+      "id": "q1_auth",
+      "text": "Does your API require authentication?",
+      "type": "boolean",
+      "help_text": "Authentication controls who can access your API endpoints.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["authentication", "session_management"],
+        "add_personas": ["backend", "security-architect"],
+        "next_question": "q2_auth_type"
+      },
+      "on_false": {
+        "next_question": "q3_data_storage"
+      }
+    },
+    {
+      "id": "q2_auth_type",
+      "text": "What authentication method do you need?",
+      "type": "multi_select",
+      "help_text": "You can select multiple authentication methods.",
+      "show_if": {
+        "question": "q1_auth",
+        "equals": true
+      },
+      "options": [
+        {
+          "value": "api_key",
+          "label": "API Keys - Simple token-based auth",
+          "add_modules": ["api_key_management"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "jwt",
+          "label": "JWT Tokens - Stateless authentication",
+          "add_modules": ["jwt_auth", "token_refresh"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "oauth2",
+          "label": "OAuth 2.0 - Third-party authentication",
+          "add_modules": ["oauth_provider", "oauth_client"],
+          "add_personas": ["backend", "security-architect"]
+        },
+        {
+          "value": "basic",
+          "label": "Basic Auth - Username/password (not recommended for production)",
+          "add_modules": ["basic_auth"],
+          "add_personas": ["backend"]
+        }
+      ],
+      "validation": {
+        "required": true,
+        "min_selections": 1
+      },
+      "next_question": "q3_data_storage"
+    },
+    {
+      "id": "q3_data_storage",
+      "text": "What type of data will your API manage?",
+      "type": "multi_select",
+      "help_text": "This determines which database and storage solutions you'll need.",
+      "options": [
+        {
+          "value": "relational",
+          "label": "Structured data - Users, orders, transactions",
+          "add_modules": ["relational_db", "orm", "migrations"],
+          "add_personas": ["backend", "data-architect"]
+        },
+        {
+          "value": "documents",
+          "label": "Document data - JSON, flexible schemas",
+          "add_modules": ["document_db", "json_validation"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "files",
+          "label": "File uploads - Images, documents, media",
+          "add_modules": ["object_store", "file_upload", "cdn"],
+          "add_personas": ["backend", "devops"]
+        },
+        {
+          "value": "cache",
+          "label": "Cached data - Session state, frequently accessed data",
+          "add_modules": ["redis", "caching_layer"],
+          "add_personas": ["backend"]
+        }
+      ],
+      "validation": {
+        "required": true,
+        "min_selections": 1
+      },
+      "next_question": "q4_crud"
+    },
+    {
+      "id": "q4_crud",
+      "text": "What operations will your API support?",
+      "type": "multi_select",
+      "help_text": "Select all CRUD operations your API needs to handle.",
+      "options": [
+        {
+          "value": "create",
+          "label": "Create - POST requests to create resources",
+          "add_modules": ["input_validation", "error_handling"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "read",
+          "label": "Read - GET requests to retrieve data",
+          "add_modules": ["pagination", "filtering", "sorting"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "update",
+          "label": "Update - PUT/PATCH to modify resources",
+          "add_modules": ["validation", "partial_updates"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "delete",
+          "label": "Delete - DELETE to remove resources",
+          "add_modules": ["soft_delete", "cascade_logic"],
+          "add_personas": ["backend"]
+        }
+      ],
+      "validation": {
+        "required": true,
+        "min_selections": 1
+      },
+      "next_question": "q5_rate_limiting"
+    },
+    {
+      "id": "q5_rate_limiting",
+      "text": "Do you need rate limiting to prevent abuse?",
+      "type": "boolean",
+      "help_text": "Rate limiting restricts how many requests a user can make per time period.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["rate_limiting", "throttling"],
+        "add_personas": ["backend", "security-architect"],
+        "next_question": "q6_versioning"
+      },
+      "on_false": {
+        "next_question": "q6_versioning"
+      }
+    },
+    {
+      "id": "q6_versioning",
+      "text": "Will your API need versioning (e.g., /v1/, /v2/)?",
+      "type": "boolean",
+      "help_text": "API versioning allows you to make breaking changes without disrupting existing clients.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["api_versioning", "deprecation_policy"],
+        "add_personas": ["backend"],
+        "next_question": "q7_documentation"
+      },
+      "on_false": {
+        "next_question": "q7_documentation"
+      }
+    },
+    {
+      "id": "q7_documentation",
+      "text": "Do you need API documentation (OpenAPI/Swagger)?",
+      "type": "boolean",
+      "help_text": "Auto-generated API docs help developers understand and test your endpoints.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["openapi_spec", "swagger_ui", "api_docs"],
+        "add_personas": ["backend", "tech-writer"],
+        "next_question": "q8_testing"
+      },
+      "on_false": {
+        "next_question": "q8_testing"
+      }
+    },
+    {
+      "id": "q8_testing",
+      "text": "What level of testing do you need?",
+      "type": "single_select",
+      "help_text": "Testing ensures your API works correctly and catches bugs early.",
+      "options": [
+        {
+          "value": "basic",
+          "label": "Basic - Unit tests only",
+          "add_modules": ["unit_tests"],
+          "add_personas": ["backend", "qa"]
+        },
+        {
+          "value": "standard",
+          "label": "Standard - Unit + integration tests",
+          "add_modules": ["unit_tests", "integration_tests", "test_db"],
+          "add_personas": ["backend", "qa"]
+        },
+        {
+          "value": "comprehensive",
+          "label": "Comprehensive - Unit + integration + E2E",
+          "add_modules": ["unit_tests", "integration_tests", "e2e_tests", "test_fixtures"],
+          "add_personas": ["backend", "qa"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q9_monitoring"
+    },
+    {
+      "id": "q9_monitoring",
+      "text": "Do you need monitoring and logging?",
+      "type": "boolean",
+      "help_text": "Monitoring helps track API health, performance, and errors in production.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["structured_logging", "metrics", "health_checks", "alerting"],
+        "add_personas": ["backend", "devops"],
+        "next_question": "q10_deployment"
+      },
+      "on_false": {
+        "next_question": "q10_deployment"
+      }
+    },
+    {
+      "id": "q10_deployment",
+      "text": "How will you deploy your API?",
+      "type": "single_select",
+      "help_text": "Deployment method affects infrastructure and operational complexity.",
+      "options": [
+        {
+          "value": "container",
+          "label": "Docker Container - Kubernetes, ECS, Cloud Run",
+          "add_modules": ["docker", "container_registry", "k8s_deployment"],
+          "add_personas": ["devops", "backend"]
+        },
+        {
+          "value": "serverless",
+          "label": "Serverless - AWS Lambda, Azure Functions",
+          "add_modules": ["serverless_framework", "cold_start_optimization"],
+          "add_personas": ["devops", "backend"]
+        },
+        {
+          "value": "vm",
+          "label": "Virtual Machine - EC2, Compute Engine",
+          "add_modules": ["vm_provisioning", "load_balancer"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "paas",
+          "label": "Platform-as-a-Service - Heroku, Railway, Render",
+          "add_modules": ["paas_config", "buildpack"],
+          "add_personas": ["devops"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q11_environment"
+    },
+    {
+      "id": "q11_environment",
+      "text": "How many environments do you need?",
+      "type": "single_select",
+      "help_text": "Multiple environments help test changes before production deployment.",
+      "options": [
+        {
+          "value": "single",
+          "label": "Production only - Simple, but risky",
+          "add_modules": ["production_config"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "two",
+          "label": "Staging + Production - Standard setup",
+          "add_modules": ["staging_env", "production_env", "env_parity"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "three",
+          "label": "Dev + Staging + Production - Full pipeline",
+          "add_modules": ["dev_env", "staging_env", "production_env", "env_promotion"],
+          "add_personas": ["devops"]
+        }
+      ],
+      "validation": {
+        "required": true
+      }
+    }
+  ],
+  "feature_mappings": {
+    "authentication": {
+      "modules": ["auth"],
+      "personas": ["backend", "security-architect"],
+      "deliverables": ["auth_middleware", "user_model", "password_hashing"]
+    },
+    "relational_db": {
+      "modules": ["database"],
+      "personas": ["backend", "data-architect"],
+      "deliverables": ["schema_design", "migrations", "orm_models"]
+    },
+    "rate_limiting": {
+      "modules": ["middleware"],
+      "personas": ["backend"],
+      "deliverables": ["rate_limiter", "quota_config"]
+    },
+    "openapi_spec": {
+      "modules": ["documentation"],
+      "personas": ["backend", "tech-writer"],
+      "deliverables": ["openapi_yaml", "swagger_ui"]
+    },
+    "docker": {
+      "modules": ["deployment"],
+      "personas": ["devops"],
+      "deliverables": ["dockerfile", "docker_compose"]
+    },
+    "structured_logging": {
+      "modules": ["observability"],
+      "personas": ["backend", "devops"],
+      "deliverables": ["logger_config", "log_format"]
+    }
+  },
+  "completion_rules": {
+    "required_questions": ["q1_auth", "q3_data_storage", "q4_crud", "q10_deployment"],
+    "minimum_modules": 3
+  }
+}

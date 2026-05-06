@@ -1,0 +1,429 @@
+{
+  "application_type_id": "03_dynamic_web_app",
+  "version": 1,
+  "metadata": {
+    "created_by": "system",
+    "last_updated": "2025-01-30T00:00:00Z",
+    "total_questions": 14,
+    "average_completion_time_minutes": 8
+  },
+  "questions": [
+    {
+      "id": "q1_app_purpose",
+      "text": "What is the primary purpose of your web application?",
+      "type": "single_select",
+      "help_text": "This helps us understand your core functionality and recommended features.",
+      "options": [
+        {
+          "value": "saas",
+          "label": "SaaS Product - Multi-tenant application with subscriptions",
+          "add_modules": ["multi_tenancy", "billing", "subscription_management"],
+          "add_personas": ["backend", "frontend", "data-architect"]
+        },
+        {
+          "value": "marketplace",
+          "label": "Marketplace - Connect buyers and sellers",
+          "add_modules": ["user_profiles", "listings", "transactions", "reviews"],
+          "add_personas": ["backend", "frontend", "payments-specialist"]
+        },
+        {
+          "value": "social",
+          "label": "Social Platform - User-generated content and interactions",
+          "add_modules": ["social_graph", "feed", "notifications", "messaging"],
+          "add_personas": ["backend", "frontend"]
+        },
+        {
+          "value": "dashboard",
+          "label": "Admin Dashboard - Internal data management tool",
+          "add_modules": ["crud_interface", "data_visualization", "reporting"],
+          "add_personas": ["backend", "frontend", "data-analyst"]
+        },
+        {
+          "value": "ecommerce",
+          "label": "E-Commerce - Online store with shopping cart",
+          "add_modules": ["product_catalog", "shopping_cart", "checkout", "inventory"],
+          "add_personas": ["backend", "frontend", "payments-specialist"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q2_auth"
+    },
+    {
+      "id": "q2_auth",
+      "text": "How will users authenticate?",
+      "type": "multi_select",
+      "help_text": "You can support multiple authentication methods.",
+      "options": [
+        {
+          "value": "email_password",
+          "label": "Email + Password - Traditional authentication",
+          "add_modules": ["password_auth", "email_verification", "password_reset"],
+          "add_personas": ["backend", "frontend"]
+        },
+        {
+          "value": "social",
+          "label": "Social Login - Google, GitHub, Facebook",
+          "add_modules": ["oauth_provider", "social_auth"],
+          "add_personas": ["backend", "frontend"]
+        },
+        {
+          "value": "magic_link",
+          "label": "Magic Link - Passwordless email authentication",
+          "add_modules": ["magic_link_auth", "email_service"],
+          "add_personas": ["backend", "frontend"]
+        },
+        {
+          "value": "sso",
+          "label": "SSO/SAML - Enterprise single sign-on",
+          "add_modules": ["saml_integration", "sso_provider"],
+          "add_personas": ["backend", "security-architect"]
+        }
+      ],
+      "validation": {
+        "required": true,
+        "min_selections": 1
+      },
+      "next_question": "q3_user_roles"
+    },
+    {
+      "id": "q3_user_roles",
+      "text": "Do you need different user roles and permissions?",
+      "type": "boolean",
+      "help_text": "Role-based access control (RBAC) restricts features based on user type.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["rbac", "permissions", "role_management"],
+        "add_personas": ["backend", "security-architect"],
+        "next_question": "q4_database"
+      },
+      "on_false": {
+        "next_question": "q4_database"
+      }
+    },
+    {
+      "id": "q4_database",
+      "text": "What type of database do you need?",
+      "type": "single_select",
+      "help_text": "Database choice affects scalability, query patterns, and development speed.",
+      "options": [
+        {
+          "value": "postgresql",
+          "label": "PostgreSQL - Relational, feature-rich, ACID compliant",
+          "add_modules": ["postgresql", "orm", "migrations", "connection_pool"],
+          "add_personas": ["backend", "data-architect"]
+        },
+        {
+          "value": "mysql",
+          "label": "MySQL - Relational, widely supported",
+          "add_modules": ["mysql", "orm", "migrations"],
+          "add_personas": ["backend", "data-architect"]
+        },
+        {
+          "value": "mongodb",
+          "label": "MongoDB - Document database, flexible schema",
+          "add_modules": ["mongodb", "document_validation"],
+          "add_personas": ["backend"]
+        },
+        {
+          "value": "hybrid",
+          "label": "Hybrid - PostgreSQL + Redis for caching",
+          "add_modules": ["postgresql", "redis", "cache_strategy", "orm"],
+          "add_personas": ["backend", "data-architect"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q5_frontend"
+    },
+    {
+      "id": "q5_frontend",
+      "text": "What frontend framework will you use?",
+      "type": "single_select",
+      "help_text": "Frontend framework affects development speed, performance, and ecosystem.",
+      "options": [
+        {
+          "value": "react",
+          "label": "React - Most popular, large ecosystem",
+          "add_modules": ["react", "react_router", "state_management"],
+          "add_personas": ["frontend"]
+        },
+        {
+          "value": "nextjs",
+          "label": "Next.js - React with SSR/SSG, full-stack",
+          "add_modules": ["nextjs", "ssr", "api_routes"],
+          "add_personas": ["frontend", "backend"]
+        },
+        {
+          "value": "vue",
+          "label": "Vue 3 - Progressive, easy to learn",
+          "add_modules": ["vue", "vue_router", "pinia"],
+          "add_personas": ["frontend"]
+        },
+        {
+          "value": "svelte",
+          "label": "Svelte/SvelteKit - Compile-time, fast",
+          "add_modules": ["svelte", "sveltekit"],
+          "add_personas": ["frontend"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q6_realtime"
+    },
+    {
+      "id": "q6_realtime",
+      "text": "Do you need real-time features?",
+      "type": "boolean",
+      "help_text": "Real-time updates via WebSockets for live notifications, chat, or collaborative features.",
+      "default": false,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["websockets", "socket_io", "realtime_sync"],
+        "add_personas": ["backend", "frontend"],
+        "next_question": "q7_file_uploads"
+      },
+      "on_false": {
+        "next_question": "q7_file_uploads"
+      }
+    },
+    {
+      "id": "q7_file_uploads",
+      "text": "Will users upload files (images, documents, etc.)?",
+      "type": "boolean",
+      "help_text": "File uploads require storage, processing, and security considerations.",
+      "default": false,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["file_upload", "object_store", "image_processing", "cdn"],
+        "add_personas": ["backend", "devops"],
+        "next_question": "q8_email"
+      },
+      "on_false": {
+        "next_question": "q8_email"
+      }
+    },
+    {
+      "id": "q8_email",
+      "text": "Do you need to send emails (notifications, newsletters, etc.)?",
+      "type": "boolean",
+      "help_text": "Email service for transactional emails and user communications.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["email_service", "email_templates", "email_queue"],
+        "add_personas": ["backend"],
+        "next_question": "q9_search"
+      },
+      "on_false": {
+        "next_question": "q9_search"
+      }
+    },
+    {
+      "id": "q9_search",
+      "text": "Do you need advanced search functionality?",
+      "type": "boolean",
+      "help_text": "Full-text search with filters, ranking, and relevance scoring.",
+      "default": false,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["search_engine", "elasticsearch", "search_indexing"],
+        "add_personas": ["backend", "data-architect"],
+        "next_question": "q10_payments"
+      },
+      "on_false": {
+        "next_question": "q10_payments"
+      }
+    },
+    {
+      "id": "q10_payments",
+      "text": "Will you process payments?",
+      "type": "boolean",
+      "help_text": "Payment processing requires PCI compliance and secure integration.",
+      "default": false,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["payment_gateway", "stripe_integration", "webhooks", "invoice_management"],
+        "add_personas": ["backend", "payments-specialist", "security-architect"],
+        "next_question": "q11_analytics"
+      },
+      "on_false": {
+        "next_question": "q11_analytics"
+      }
+    },
+    {
+      "id": "q11_analytics",
+      "text": "Do you need user analytics and tracking?",
+      "type": "boolean",
+      "help_text": "Track user behavior, page views, and conversion funnels.",
+      "default": true,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["analytics", "event_tracking", "privacy_compliance"],
+        "add_personas": ["frontend", "marketing"],
+        "next_question": "q12_api"
+      },
+      "on_false": {
+        "next_question": "q12_api"
+      }
+    },
+    {
+      "id": "q12_api",
+      "text": "Will you expose a public API for developers?",
+      "type": "boolean",
+      "help_text": "Public API allows third-party developers to integrate with your platform.",
+      "default": false,
+      "validation": {
+        "required": true
+      },
+      "on_true": {
+        "add_modules": ["public_api", "api_keys", "api_docs", "rate_limiting"],
+        "add_personas": ["backend", "api-architect"],
+        "next_question": "q13_deployment"
+      },
+      "on_false": {
+        "next_question": "q13_deployment"
+      }
+    },
+    {
+      "id": "q13_deployment",
+      "text": "How will you deploy your application?",
+      "type": "single_select",
+      "help_text": "Deployment method affects cost, scalability, and operational complexity.",
+      "options": [
+        {
+          "value": "vercel",
+          "label": "Vercel - Optimized for Next.js, easy deployment",
+          "add_modules": ["vercel_integration", "edge_functions"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "netlify",
+          "label": "Netlify - Great for Jamstack, serverless functions",
+          "add_modules": ["netlify_integration", "serverless_functions"],
+          "add_personas": ["devops"]
+        },
+        {
+          "value": "docker",
+          "label": "Docker + Kubernetes - Full control, container orchestration",
+          "add_modules": ["docker", "kubernetes", "helm_charts"],
+          "add_personas": ["devops", "infra-architect"]
+        },
+        {
+          "value": "aws",
+          "label": "AWS - EC2, ECS, or Elastic Beanstalk",
+          "add_modules": ["aws_deployment", "load_balancer", "auto_scaling"],
+          "add_personas": ["devops", "cloud-architect"]
+        },
+        {
+          "value": "paas",
+          "label": "Platform-as-a-Service - Heroku, Railway, Render",
+          "add_modules": ["paas_config", "managed_database"],
+          "add_personas": ["devops"]
+        }
+      ],
+      "validation": {
+        "required": true
+      },
+      "next_question": "q14_testing"
+    },
+    {
+      "id": "q14_testing",
+      "text": "What testing strategy do you want?",
+      "type": "single_select",
+      "help_text": "Testing ensures code quality and prevents regressions.",
+      "options": [
+        {
+          "value": "minimal",
+          "label": "Minimal - Critical paths only",
+          "add_modules": ["unit_tests"],
+          "add_personas": ["backend", "frontend", "qa"]
+        },
+        {
+          "value": "standard",
+          "label": "Standard - Unit + integration tests",
+          "add_modules": ["unit_tests", "integration_tests", "test_db"],
+          "add_personas": ["backend", "frontend", "qa"]
+        },
+        {
+          "value": "comprehensive",
+          "label": "Comprehensive - Unit + integration + E2E",
+          "add_modules": ["unit_tests", "integration_tests", "e2e_tests", "ci_cd_tests"],
+          "add_personas": ["backend", "frontend", "qa"]
+        }
+      ],
+      "validation": {
+        "required": true
+      }
+    }
+  ],
+  "feature_mappings": {
+    "multi_tenancy": {
+      "modules": ["tenancy"],
+      "personas": ["backend", "data-architect"],
+      "deliverables": ["tenant_isolation", "tenant_model", "tenant_middleware"]
+    },
+    "password_auth": {
+      "modules": ["authentication"],
+      "personas": ["backend", "frontend"],
+      "deliverables": ["login_form", "password_hashing", "session_management"]
+    },
+    "rbac": {
+      "modules": ["authorization"],
+      "personas": ["backend", "security-architect"],
+      "deliverables": ["role_model", "permission_middleware", "policy_engine"]
+    },
+    "postgresql": {
+      "modules": ["database"],
+      "personas": ["backend", "data-architect"],
+      "deliverables": ["schema_design", "migrations", "connection_pool"]
+    },
+    "react": {
+      "modules": ["frontend"],
+      "personas": ["frontend"],
+      "deliverables": ["component_library", "routing", "state_management"]
+    },
+    "websockets": {
+      "modules": ["realtime"],
+      "personas": ["backend", "frontend"],
+      "deliverables": ["websocket_server", "client_connection", "event_handlers"]
+    },
+    "file_upload": {
+      "modules": ["storage"],
+      "personas": ["backend", "devops"],
+      "deliverables": ["upload_endpoint", "file_validation", "storage_config"]
+    },
+    "payment_gateway": {
+      "modules": ["payments"],
+      "personas": ["backend", "payments-specialist"],
+      "deliverables": ["stripe_integration", "payment_flow", "webhook_handler"]
+    },
+    "docker": {
+      "modules": ["deployment"],
+      "personas": ["devops"],
+      "deliverables": ["dockerfile", "docker_compose", "deployment_config"]
+    }
+  },
+  "completion_rules": {
+    "required_questions": ["q1_app_purpose", "q2_auth", "q4_database", "q5_frontend", "q13_deployment"],
+    "minimum_modules": 4
+  }
+}

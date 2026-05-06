@@ -5,6 +5,7 @@ pub mod bundle;
 pub mod catalog;
 pub mod command;
 pub mod gateway;
+pub mod intake;
 pub mod knowledge;
 pub mod live_watch;
 pub mod login;

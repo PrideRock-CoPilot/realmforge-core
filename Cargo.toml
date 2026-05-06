@@ -7,6 +7,7 @@ members = [
   "crates/authority-domain",
   "crates/audit-log",
   "crates/agent-mcp",
+  "crates/ai-provider",
   "crates/policy-engine",
   "crates/control-service",
   "crates/snapshot-ledger",
@@ -15,6 +16,7 @@ members = [
   "crates/live-runtime",
   "crates/live-watch",
   "crates/parquet-store",
+  "crates/intake-engine",
 ]
 
 [workspace.package]
@@ -47,11 +49,13 @@ operator-cli = { path = "crates/operator-cli" }
 authority-domain = { path = "crates/authority-domain" }
 audit-log = { path = "crates/audit-log" }
 agent-mcp = { path = "crates/agent-mcp" }
+ai-provider = { path = "crates/ai-provider" }
 policy-engine = { path = "crates/policy-engine" }
 control-service = { path = "crates/control-service" }
 snapshot-ledger = { path = "crates/snapshot-ledger" }
 control-store = { path = "crates/control-store" }
 parquet-store = { path = "crates/parquet-store" }
+intake-engine = { path = "crates/intake-engine" }
 assert_cmd = "2"
 predicates = "3"
 tower = { version = "0.5", features = ["util"] }

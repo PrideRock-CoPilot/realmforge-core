@@ -1,0 +1,1187 @@
+# Backend Gap Analysis: Workflow Support
+
+**Date:** 2025-01-30  
+**Status:** Analysis Complete  
+**Purpose:** Map 9-phase workflow system + 15 application types to current backend capabilities
+
+---
+
+## Executive Summary
+
+**Critical Finding:** The current backend (14 crates, 37 MCP tools) provides **foundational infrastructure** (auth, audit, commands, snapshots) but lacks **workflow orchestration** and **project lifecycle management** capabilities.
+
+**Gap Severity:**
+- 🔴 **Blocking:** 6 missing core systems (no workaround)
+- 🟡 **High Impact:** 8 missing modules (workflow degraded)
+- 🟢 **Enhancement:** 4 missing features (nice-to-have)
+
+**Estimated Scope:**
+- New Crates: **6-9**
+- Database Migrations: **8-12**
+- New MCP Tools: **35-45**
+- Service Layer Functions: **50-70**
+
+---
+
+## Part 1: Current Backend Inventory
+
+### Existing Crates (14)
+
+| Crate | Purpose | Workflow Support |
+|-------|---------|------------------|
+| `authority-domain` | Domain types (ActorScope, BoundedCommand, SkillGrant) | ✅ Actor/skill model |
+| `policy-engine` | Policy evaluation (authorize_action) | ✅ Permission checks |
+| `audit-log` | Audit event types, hashing | ✅ Change tracking |
+| `snapshot-ledger` | Snapshot manifests, content addressing | ✅ Version control |
+| `control-store` | PostgreSQL persistence (CoreStore) | ✅ Data layer |
+| `control-service` | Service layer (business logic) | ⚠️ Partial orchestration |
+| `control-api` | REST API (Axum) | ✅ HTTP interface |
+| `operator-cli` | CLI tool | ✅ Admin operations |
+| `agent-mcp` | MCP protocol (tool definitions + handler) | ✅ Agent interface |
+| `object-store` | S3-compatible object storage | ✅ Artifact storage |
+| `rollback-engine` | Rollback preview/execution | ✅ Undo operations |
+| `gateway` | Gateway logic | ✅ Entry point |
+| `knowledge-store` | Knowledge metadata | ⚠️ Limited to knowledge |
+| `bundle-runtime` | Bundle deployment/runtime | ✅ Deployment |
+
+**Strengths:**
+- Rock-solid permission/audit/command foundation
+- Event sourcing + snapshot + rollback architecture
+- MCP tooling for agent interaction
+- Object storage for artifacts
+
+**Weaknesses:**
+- No project/workflow entity
+- No phase state machine
+- No gate enforcement system
+- No artifact repository (beyond object-store primitives)
+- No team/skill assignment tracking
+
+### Existing MCP Tools (37)
+
+**Well-Covered Domains:**
+- ✅ Session management (issue, renew, revoke)
+- ✅ Command lifecycle (propose, authorize, apply)
+- ✅ Audit chain (query, verify)
+- ✅ Snapshots (create, validate, compare)
+- ✅ Rollbacks (preview, execute, verify)
+- ✅ Actor/skills (get scope, register, activate)
+- ✅ Gateway execution
+- ✅ Bundle deployment
+- ✅ Runtime management
+- ✅ Live watch (monitoring, remediation)
+
+**Under-Covered Domains:**
+- ⚠️ Work packets (generated, but not tied to projects/phases)
+- ⚠️ Knowledge (basic query/ingest, no structured artifact storage)
+- ⚠️ Build watch (cost tracking, but no budget/approval workflow)
+
+**Missing Domains:**
+- ❌ Project/workflow management
+- ❌ Gate approvals
+- ❌ Artifact repository (requirements, designs, ADRs, test plans)
+- ❌ Team assignment
+- ❌ Application type registry
+- ❌ Template library
+- ❌ Security review tracking
+- ❌ Test plan management
+- ❌ Release orchestration
+
+---
+
+## Part 2: Workflow Requirements vs. Backend Support
+
+### Phase 0: INTAKE & REQUIREMENTS
+
+**Required Capabilities:**
+- User prompt → Agent clarification
+- Business user (Iris) drafts user stories
+- PM (Alex) documents constraints
+- Output: `REQUIREMENTS.md`
+
+**Current Support:**
+- ✅ MCP tools for agent interaction
+- ✅ Knowledge store (could store requirements)
+- ⚠️ No structured requirements document storage
+- ❌ No user story entity
+- ❌ No constraint tracking
+- ❌ No project entity to attach requirements to
+
+**Missing:**
+1. **Project entity** (top-level container)
+2. **Requirements artifact storage** (structured + versioned)
+3. **User story tracking** (story ID, acceptance criteria, status)
+4. **Constraint registry** (technical, business, regulatory)
+5. **Template system** (REQUIREMENTS.md template)
+
+**Gate:** None (Phase 0 → Phase 1 requires user approval of requirements)
+
+---
+
+### Phase 1: DESIGN & MOCKUP
+
+**Required Capabilities:**
+- Agent creates mockup/workflow design
+- Frontend (Kai) reviews UX/accessibility
+- Gate: User approves design
+
+**Current Support:**
+- ✅ Object store (could store mockup files)
+- ❌ No design artifact entity
+- ❌ No design approval gate
+- ❌ No persona assignment tracking (who reviews?)
+
+**Missing:**
+1. **Design artifact storage** (mockups, wireframes, diagrams)
+2. **Design approval gate** (approval workflow + audit trail)
+3. **Persona assignment** (assign Kai to review)
+4. **Design review comments** (feedback tracking)
+
+**Gate:** 🔴 **BLOCKING** — User approval required before Phase 2
+
+---
+
+### Phase 2: TECHNICAL DISCOVERY
+
+**Required Capabilities:**
+- Data Architect (Chen) audits data sources
+- Backend (Dmitri) assesses integrations
+- Security Architect (Fatima) identifies threats
+- Output: `TECHNICAL_ASSESSMENT.md`
+
+**Current Support:**
+- ✅ Knowledge store (could store assessment)
+- ⚠️ No data source inventory
+- ❌ No integration assessment tracking
+- ❌ No security threat registry (distinct from live threats)
+
+**Missing:**
+1. **Data source inventory** (catalog available datasets)
+2. **Integration assessment** (third-party APIs, dependencies)
+3. **Security threat registry** (threats identified during discovery)
+4. **Technical assessment artifact** (structured document)
+
+**Gate:** None (Phase 2 → Phase 3 is automatic)
+
+---
+
+### Phase 3: ARCHITECTURE & DESIGN
+
+**Required Capabilities:**
+- Architectural board designs system
+- CTO (Rena) reviews architecture
+- Council approves design
+- Output: ADRs (Architecture Decision Records)
+
+**Current Support:**
+- ⚠️ Knowledge store (could store ADRs, but unstructured)
+- ❌ No ADR entity
+- ❌ No council approval gate
+- ❌ No architecture diagram storage
+
+**Missing:**
+1. **ADR storage** (structured ADRs with metadata: title, date, status, context, decision, consequences)
+2. **Architecture diagram storage** (versioned diagrams)
+3. **Council approval gate** (multi-stakeholder approval)
+4. **Architecture review tracking** (CTO sign-off)
+
+**Gate:** 🔴 **BLOCKING** — Council approval required before Phase 4
+
+---
+
+### Phase 4: FINANCIAL REVIEW
+
+**Required Capabilities:**
+- Accountant (Bob) estimates costs
+- CEO (Victor) approves budget
+- Gate: Budget approval required
+
+**Current Support:**
+- ⚠️ Build watch has cost tracking (but not budget/approval)
+- ❌ No budget entity
+- ❌ No cost estimation workflow
+- ❌ No CEO approval gate
+
+**Missing:**
+1. **Budget entity** (estimated_cost, approved_budget, actual_cost)
+2. **Cost estimation workflow** (line items by phase/module)
+3. **Budget approval gate** (CEO sign-off)
+4. **Cost tracking** (actual vs. estimated)
+
+**Gate:** 🔴 **BLOCKING** — CEO approval required before Phase 5
+
+---
+
+### Phase 5: DETAILED PLANNING
+
+**Required Capabilities:**
+- PM (Alex) creates work breakdown structure
+- PM assigns skills/personas
+- Output: `PROJECT_PLAN.md`
+
+**Current Support:**
+- ⚠️ Work packets exist (but not tied to projects/phases)
+- ⚠️ Skills exist (but no team assignment tracking)
+- ❌ No work breakdown structure
+- ❌ No task dependency tracking
+- ❌ No project plan artifact
+
+**Missing:**
+1. **Work breakdown structure** (hierarchical tasks)
+2. **Task entity** (task ID, title, assigned_persona, estimated_hours, dependencies)
+3. **Team assignment tracking** (which personas/skills assigned to project)
+4. **Project plan artifact** (PROJECT_PLAN.md with WBS + assignments)
+5. **Dependency graph** (task dependencies)
+
+**Gate:** None (Phase 5 → Phase 6 is automatic)
+
+---
+
+### Phase 6: QUALITY & SECURITY PLANNING
+
+**Required Capabilities:**
+- QA (Meg) defines test strategy
+- Security Architect (Fatima) performs threat model
+- Gate: Security approval required
+
+**Current Support:**
+- ❌ No test plan entity
+- ❌ No threat model entity
+- ❌ No security approval gate
+
+**Missing:**
+1. **Test plan entity** (test strategy, test cases, acceptance criteria)
+2. **Threat model entity** (STRIDE analysis, mitigations)
+3. **Security review tracking** (Fatima sign-off)
+4. **Security approval gate** (blocks deployment)
+
+**Gate:** 🔴 **BLOCKING** — Security approval required before Phase 7
+
+---
+
+### Phase 7: IMPLEMENTATION
+
+**Required Capabilities:**
+- PM (Alex) orchestrates with Orchestrator
+- Engineering implements (code)
+- Code reviews
+- QA runs tests
+- Tech Writer produces documentation
+
+**Current Support:**
+- ✅ Command lifecycle (propose, authorize, apply)
+- ✅ Audit chain (all changes logged)
+- ✅ Snapshot/rollback (version control)
+- ⚠️ Work packets (but no orchestration tracking)
+- ❌ No code review tracking
+- ❌ No test execution tracking
+- ❌ No documentation generation tracking
+
+**Missing:**
+1. **Task orchestration** (task status, progress tracking)
+2. **Code review tracking** (review requests, approvals, comments)
+3. **Test execution tracking** (test runs, pass/fail, coverage)
+4. **Documentation generation tracking** (docs produced per task)
+5. **Implementation dashboard** (real-time progress)
+
+**Gate:** None (Phase 7 → Phase 8 requires all tests passing)
+
+---
+
+### Phase 8: RELEASE
+
+**Required Capabilities:**
+- Release Manager (Sam) executes deployment
+- QA performs smoke tests
+- Gate: User sign-off
+
+**Current Support:**
+- ✅ Bundle deployment (bundle-runtime)
+- ⚠️ No deployment runbook entity
+- ❌ No smoke test execution tracking
+- ❌ No release approval gate
+
+**Missing:**
+1. **Deployment runbook entity** (step-by-step deployment plan)
+2. **Runbook execution tracking** (step status, logs)
+3. **Smoke test suite** (automated smoke tests)
+4. **Release approval gate** (user UAT sign-off)
+
+**Gate:** 🔴 **BLOCKING** — User sign-off required before production
+
+---
+
+### Phase 9: POST-LAUNCH
+
+**Required Capabilities:**
+- Monitor performance
+- Triage bugs
+- Collect feedback
+- Loop: Bugs/features → Back to Phase 0
+
+**Current Support:**
+- ✅ Live watch (monitoring, signals, remediation)
+- ⚠️ No bug tracking
+- ❌ No feedback collection
+- ❌ No loop-back mechanism (bug → new project)
+
+**Missing:**
+1. **Bug tracking** (bug ID, severity, status, assigned_to)
+2. **Feedback collection** (user feedback, feature requests)
+3. **Loop-back mechanism** (create new project from bug/feature)
+4. **Post-launch dashboard** (performance metrics, bug triage)
+
+**Gate:** None (Phase 9 is continuous)
+
+---
+
+## Part 3: Missing Core Systems (6 Blockers)
+
+### 1. Project/Workflow Engine 🔴
+
+**Purpose:** Top-level project lifecycle management
+
+**Responsibilities:**
+- Create projects (with application type)
+- Track current phase (0-9)
+- Enforce phase transitions
+- Store project metadata (name, description, owner, timeline)
+
+**New Crate:** `workflow-engine`
+
+**Database Tables:**
+```sql
+-- projects table
+CREATE TABLE projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    description TEXT,
+    application_type_id TEXT NOT NULL, -- references application_types
+    current_phase INT NOT NULL DEFAULT 0, -- 0-9
+    status TEXT NOT NULL DEFAULT 'active', -- active, paused, completed, cancelled
+    owner_actor_id UUID NOT NULL, -- references actors
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- workflow_phases table
+CREATE TABLE workflow_phases (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    phase_number INT NOT NULL, -- 0-9
+    status TEXT NOT NULL DEFAULT 'not_started', -- not_started, in_progress, completed, blocked
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    blocked_reason TEXT,
+    deliverables JSONB, -- phase outputs
+    UNIQUE(project_id, phase_number)
+);
+```
+
+**New MCP Tools:**
+- `workflow_create_project(name, application_type, description)`
+- `workflow_get_project(project_id)`
+- `workflow_list_projects(status, owner_actor_id)`
+- `workflow_advance_phase(project_id, force?)` -- moves to next phase (checks gates)
+- `workflow_block_phase(project_id, reason)` -- mark phase as blocked
+- `workflow_update_deliverables(project_id, phase_number, deliverables)`
+
+**Service Layer Functions:**
+- `create_project() -> Project`
+- `get_project(id) -> Project`
+- `list_projects(filters) -> Vec<Project>`
+- `advance_phase(id) -> Result<(), GateBlockedError>` -- validates gates
+- `get_phase_status(id, phase_num) -> PhaseStatus`
+
+---
+
+### 2. Gate System 🔴
+
+**Purpose:** Approval workflow for quality gates
+
+**Responsibilities:**
+- Define gates (user approval, council approval, CEO approval, security approval)
+- Request approvals
+- Collect approvals (approve/reject + reason)
+- Block phase transitions until gates pass
+
+**New Crate:** `gate-system`
+
+**Database Tables:**
+```sql
+-- gates table
+CREATE TABLE gates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    phase_number INT NOT NULL, -- which phase this gate protects
+    gate_type TEXT NOT NULL, -- 'user_approval', 'council_approval', 'ceo_approval', 'security_approval', 'test_approval'
+    status TEXT NOT NULL DEFAULT 'pending', -- pending, approved, rejected
+    required_approver_role TEXT, -- 'ceo', 'council', 'security_architect', 'user'
+    requested_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    resolved_at TIMESTAMPTZ,
+    UNIQUE(project_id, phase_number, gate_type)
+);
+
+-- gate_approvals table
+CREATE TABLE gate_approvals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    gate_id UUID NOT NULL REFERENCES gates(id),
+    approver_actor_id UUID NOT NULL, -- who approved/rejected
+    decision TEXT NOT NULL, -- 'approve', 'reject'
+    reason TEXT,
+    timestamp TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**New MCP Tools:**
+- `gate_create(project_id, phase_number, gate_type, required_approver_role)`
+- `gate_request_approval(gate_id, approver_actor_id)` -- notify approver
+- `gate_submit_approval(gate_id, decision, reason)` -- approve/reject
+- `gate_get_pending(approver_actor_id)` -- list pending approvals for actor
+- `gate_check_phase_gates(project_id, phase_number) -> bool` -- all gates passed?
+
+**Service Layer Functions:**
+- `create_gate() -> Gate`
+- `request_approval(gate_id, approver_id) -> ()`
+- `submit_approval(gate_id, decision, reason) -> Result<(), GateError>`
+- `get_pending_gates(approver_id) -> Vec<Gate>`
+- `check_phase_gates(project_id, phase) -> Result<(), Vec<Gate>>` -- returns failed gates
+
+**Gate Types:**
+1. **User Approval** (Phase 0→1, Phase 8→Production) — User/stakeholder sign-off
+2. **Council Approval** (Phase 3→4) — Multi-stakeholder architecture approval
+3. **CEO Approval** (Phase 4→5) — Budget approval
+4. **Security Approval** (Phase 6→7) — Security review sign-off
+5. **Test Approval** (Phase 7→8) — All tests passing
+
+---
+
+### 3. Artifact Repository 🔴
+
+**Purpose:** Structured storage for project artifacts (requirements, designs, ADRs, test plans, runbooks)
+
+**Responsibilities:**
+- Store artifacts with metadata (project_id, phase, artifact_type, version)
+- Version artifacts (immutable history)
+- Retrieve artifacts by project/phase/type
+- Support templating (generate from template)
+
+**New Crate:** `artifact-store`
+
+**Database Tables:**
+```sql
+-- artifacts table
+CREATE TABLE artifacts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    phase_number INT NOT NULL, -- which phase produced this
+    artifact_type TEXT NOT NULL, -- 'requirements', 'design', 'adr', 'test_plan', 'runbook', 'technical_assessment'
+    title TEXT NOT NULL,
+    content TEXT NOT NULL, -- markdown content
+    version INT NOT NULL DEFAULT 1,
+    created_by_actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    replaced_by UUID REFERENCES artifacts(id), -- new version
+    UNIQUE(project_id, artifact_type, version)
+);
+
+-- artifact_templates table
+CREATE TABLE artifact_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_type TEXT NOT NULL UNIQUE, -- 'requirements', 'project_plan', 'adr', etc.
+    content TEXT NOT NULL, -- markdown template with placeholders
+    version INT NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**New MCP Tools:**
+- `artifact_create(project_id, phase_number, artifact_type, title, content)`
+- `artifact_get(artifact_id)`
+- `artifact_list(project_id, phase_number?, artifact_type?)`
+- `artifact_update(artifact_id, content)` -- creates new version
+- `artifact_generate_from_template(project_id, template_type, variables)` -- fill template
+- `template_create(template_type, content)`
+- `template_get(template_type)`
+
+**Service Layer Functions:**
+- `create_artifact() -> Artifact`
+- `get_artifact(id) -> Artifact`
+- `list_artifacts(filters) -> Vec<Artifact>`
+- `update_artifact(id, content) -> Artifact` -- creates new version
+- `generate_from_template(template_type, vars) -> String`
+
+**Artifact Types:**
+1. `requirements` — REQUIREMENTS.md (Phase 0)
+2. `design` — Design mockups/diagrams (Phase 1)
+3. `technical_assessment` — TECHNICAL_ASSESSMENT.md (Phase 2)
+4. `adr` — Architecture Decision Record (Phase 3)
+5. `project_plan` — PROJECT_PLAN.md (Phase 5)
+6. `test_plan` — Test strategy (Phase 6)
+7. `threat_model` — Security threat model (Phase 6)
+8. `runbook` — Deployment runbook (Phase 8)
+
+---
+
+### 4. Team Assignment System 🔴
+
+**Purpose:** Track which personas/skills are assigned to projects
+
+**Responsibilities:**
+- Assign personas to projects (e.g., "Dmitri (backend) assigned to Project X")
+- Track skill requirements (e.g., "Project X requires frontend, backend, QA")
+- Query assignments (who's assigned to what?)
+
+**Extend:** `control-store` (new module: `team_assignments.rs`)
+
+**Database Tables:**
+```sql
+-- team_assignments table
+CREATE TABLE team_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    persona_name TEXT NOT NULL, -- 'backend', 'frontend', 'qa', 'ceo', etc.
+    skill_name TEXT, -- optional skill grant
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    assigned_by_actor_id UUID NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active', -- active, completed
+    UNIQUE(project_id, persona_name)
+);
+```
+
+**New MCP Tools:**
+- `team_assign(project_id, persona_name, skill_name?)`
+- `team_unassign(project_id, persona_name)`
+- `team_get_assignments(project_id)`
+- `team_get_persona_projects(persona_name)` -- what projects is Dmitri on?
+
+**Service Layer Functions:**
+- `assign_persona() -> TeamAssignment`
+- `unassign_persona() -> ()`
+- `get_assignments(project_id) -> Vec<TeamAssignment>`
+- `get_persona_projects(persona) -> Vec<Project>`
+
+---
+
+### 5. Application Type Registry 🔴
+
+**Purpose:** Store and query the 15 application types with metadata
+
+**Responsibilities:**
+- Store application type definitions (from APPLICATION_TYPE_MATRIX.md)
+- Query application types (by complexity, timeline, required skills)
+- Retrieve application type details (components, deliverables, special considerations)
+
+**Extend:** `control-store` (new module: `application_types.rs`)
+
+**Database Tables:**
+```sql
+-- application_types table
+CREATE TABLE application_types (
+    id TEXT PRIMARY KEY, -- '01_static_website', '02_static_site_forms', etc.
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    complexity TEXT NOT NULL, -- 'low', 'medium', 'medium-high', 'high'
+    timeline_weeks TEXT NOT NULL, -- '1-2', '4-8', '8-12', '12-24'
+    components JSONB NOT NULL, -- {frontend: true, backend: false, database: false, ...}
+    required_personas JSONB NOT NULL, -- ['frontend', 'tech-writer']
+    deliverables JSONB NOT NULL, -- ['landing_page', 'form_handler', ...]
+    special_considerations TEXT -- markdown
+);
+
+-- Seed data from APPLICATION_TYPE_MATRIX.md
+```
+
+**New MCP Tools:**
+- `apptype_list(complexity?, timeline?)` -- query application types
+- `apptype_get(id)` -- get full details
+- `apptype_get_requirements(id)` -- return required personas, components, deliverables
+
+**Service Layer Functions:**
+- `list_application_types(filters) -> Vec<ApplicationType>`
+- `get_application_type(id) -> ApplicationType`
+- `get_requirements(id) -> ApplicationTypeRequirements`
+
+---
+
+### 6. Task Orchestration System 🟡
+
+**Purpose:** Work breakdown, task dependencies, progress tracking
+
+**Responsibilities:**
+- Break project into tasks (WBS)
+- Track task status (not_started, in_progress, completed, blocked)
+- Track task dependencies (task B depends on task A)
+- Query task progress
+
+**Extend:** `control-service` (enhance work packet system)
+
+**Database Tables:**
+```sql
+-- tasks table
+CREATE TABLE tasks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    phase_number INT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    assigned_persona TEXT, -- 'backend', 'frontend', etc.
+    status TEXT NOT NULL DEFAULT 'not_started', -- not_started, in_progress, completed, blocked
+    estimated_hours NUMERIC,
+    actual_hours NUMERIC,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
+);
+
+-- task_dependencies table
+CREATE TABLE task_dependencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    task_id UUID NOT NULL REFERENCES tasks(id),
+    depends_on_task_id UUID NOT NULL REFERENCES tasks(id),
+    UNIQUE(task_id, depends_on_task_id)
+);
+```
+
+**New MCP Tools:**
+- `task_create(project_id, phase_number, title, description, assigned_persona, estimated_hours)`
+- `task_update_status(task_id, status)`
+- `task_add_dependency(task_id, depends_on_task_id)`
+- `task_list(project_id, phase_number?, status?)`
+- `task_get_ready()` -- tasks with no incomplete dependencies
+
+**Service Layer Functions:**
+- `create_task() -> Task`
+- `update_task_status(id, status) -> ()`
+- `add_dependency(task_id, depends_on) -> ()`
+- `list_tasks(filters) -> Vec<Task>`
+- `get_ready_tasks(project_id) -> Vec<Task>` -- no incomplete dependencies
+
+---
+
+## Part 4: High-Impact Missing Modules (8)
+
+### 7. Security Review Tracking 🟡
+
+**Purpose:** Threat modeling, security findings, security approval
+
+**Extend:** `control-store` (new module: `security_reviews.rs`)
+
+**Database Tables:**
+```sql
+-- security_reviews table
+CREATE TABLE security_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    threat_model TEXT NOT NULL, -- STRIDE analysis (markdown)
+    findings JSONB NOT NULL, -- [{threat, severity, mitigation, status}]
+    status TEXT NOT NULL DEFAULT 'in_progress', -- in_progress, approved, requires_changes
+    reviewed_by_actor_id UUID, -- Fatima
+    reviewed_at TIMESTAMPTZ
+);
+```
+
+**New MCP Tools:**
+- `security_create_review(project_id, threat_model)`
+- `security_add_finding(review_id, threat, severity, mitigation)`
+- `security_approve_review(review_id)`
+- `security_get_review(project_id)`
+
+---
+
+### 8. Test Plan Management 🟡
+
+**Purpose:** Test strategy, test cases, test execution
+
+**Extend:** `control-store` (new module: `test_plans.rs`)
+
+**Database Tables:**
+```sql
+-- test_plans table
+CREATE TABLE test_plans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    test_strategy TEXT NOT NULL, -- markdown
+    test_cases JSONB NOT NULL, -- [{case_id, title, steps, expected_result, status}]
+    created_by_actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- test_executions table
+CREATE TABLE test_executions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    test_plan_id UUID NOT NULL REFERENCES test_plans(id),
+    case_id TEXT NOT NULL, -- matches test_cases.case_id
+    status TEXT NOT NULL, -- 'pass', 'fail', 'skip'
+    executed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    logs TEXT
+);
+```
+
+**New MCP Tools:**
+- `test_create_plan(project_id, test_strategy)`
+- `test_add_case(test_plan_id, case_id, title, steps, expected_result)`
+- `test_execute_case(test_plan_id, case_id, status, logs)`
+- `test_get_results(test_plan_id)` -- pass/fail summary
+
+---
+
+### 9. Cost & Budget Tracking 🟡
+
+**Purpose:** Cost estimation, budget approval, actual cost tracking
+
+**Extend:** `build-watch` or create `cost-tracker`
+
+**Database Tables:**
+```sql
+-- budgets table
+CREATE TABLE budgets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    estimated_cost NUMERIC NOT NULL,
+    approved_budget NUMERIC,
+    actual_cost NUMERIC DEFAULT 0,
+    approved_by_actor_id UUID, -- Victor (CEO)
+    approved_at TIMESTAMPTZ
+);
+
+-- cost_line_items table
+CREATE TABLE cost_line_items (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    budget_id UUID NOT NULL REFERENCES budgets(id),
+    phase_number INT,
+    item TEXT NOT NULL, -- 'Backend development', 'Database hosting', etc.
+    estimated_cost NUMERIC NOT NULL,
+    actual_cost NUMERIC DEFAULT 0
+);
+```
+
+**New MCP Tools:**
+- `cost_create_estimate(project_id, estimated_cost)`
+- `cost_add_line_item(budget_id, item, estimated_cost)`
+- `cost_approve_budget(budget_id, approved_budget)`
+- `cost_record_actual(line_item_id, actual_cost)`
+- `cost_get_summary(project_id)`
+
+---
+
+### 10. Code Review Tracking 🟡
+
+**Purpose:** Track code review requests, approvals, comments
+
+**New Crate or Extend:** `control-store` (new module: `code_reviews.rs`)
+
+**Database Tables:**
+```sql
+-- code_reviews table
+CREATE TABLE code_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    task_id UUID REFERENCES tasks(id),
+    pr_url TEXT, -- GitHub PR URL (if applicable)
+    status TEXT NOT NULL DEFAULT 'pending', -- pending, approved, changes_requested
+    reviewed_by_actor_id UUID,
+    reviewed_at TIMESTAMPTZ
+);
+
+-- code_review_comments table
+CREATE TABLE code_review_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    code_review_id UUID NOT NULL REFERENCES code_reviews(id),
+    comment TEXT NOT NULL,
+    commenter_actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**New MCP Tools:**
+- `codereview_create(project_id, task_id, pr_url?)`
+- `codereview_add_comment(review_id, comment)`
+- `codereview_approve(review_id)`
+- `codereview_request_changes(review_id, comment)`
+
+---
+
+### 11. Release Runbook Management 🟡
+
+**Purpose:** Deployment runbooks, step-by-step execution tracking
+
+**Extend:** `bundle-runtime` or create `release-orchestrator`
+
+**Database Tables:**
+```sql
+-- runbooks table
+CREATE TABLE runbooks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    title TEXT NOT NULL,
+    steps JSONB NOT NULL, -- [{step_num, title, command, expected_result}]
+    created_by_actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- runbook_executions table
+CREATE TABLE runbook_executions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    runbook_id UUID NOT NULL REFERENCES runbooks(id),
+    step_num INT NOT NULL,
+    status TEXT NOT NULL, -- 'pending', 'success', 'failure'
+    logs TEXT,
+    executed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**New MCP Tools:**
+- `runbook_create(project_id, title, steps)`
+- `runbook_execute_step(runbook_id, step_num)`
+- `runbook_get_status(runbook_id)` -- progress summary
+
+---
+
+### 12. Bug Tracking 🟡
+
+**Purpose:** Bug triage, assignment, resolution tracking
+
+**New Crate or Extend:** `control-store` (new module: `bugs.rs`)
+
+**Database Tables:**
+```sql
+-- bugs table
+CREATE TABLE bugs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    severity TEXT NOT NULL, -- 'critical', 'high', 'medium', 'low'
+    status TEXT NOT NULL DEFAULT 'open', -- open, in_progress, resolved, closed
+    assigned_to_actor_id UUID,
+    reported_by_actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    resolved_at TIMESTAMPTZ
+);
+```
+
+**New MCP Tools:**
+- `bug_create(project_id, title, description, severity)`
+- `bug_assign(bug_id, actor_id)`
+- `bug_update_status(bug_id, status)`
+- `bug_list(project_id, status?, severity?)`
+
+---
+
+### 13. Feedback Collection 🟡
+
+**Purpose:** Collect user feedback, feature requests
+
+**Extend:** `control-store` (new module: `feedback.rs`)
+
+**Database Tables:**
+```sql
+-- feedback table
+CREATE TABLE feedback (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    feedback_type TEXT NOT NULL, -- 'bug_report', 'feature_request', 'general'
+    content TEXT NOT NULL,
+    submitted_by_actor_id UUID,
+    submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    status TEXT NOT NULL DEFAULT 'new' -- new, reviewed, planned, wont_fix
+);
+```
+
+**New MCP Tools:**
+- `feedback_submit(project_id, feedback_type, content)`
+- `feedback_list(project_id, status?)`
+- `feedback_update_status(feedback_id, status)`
+
+---
+
+### 14. Design Review Comments 🟡
+
+**Purpose:** Track design feedback during Phase 1
+
+**Extend:** `control-store` (new module: `design_reviews.rs`)
+
+**Database Tables:**
+```sql
+-- design_reviews table
+CREATE TABLE design_reviews (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    artifact_id UUID NOT NULL REFERENCES artifacts(id), -- references design artifact
+    comment TEXT NOT NULL,
+    commenter_actor_id UUID NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**New MCP Tools:**
+- `design_add_comment(artifact_id, comment)`
+- `design_get_comments(artifact_id)`
+
+---
+
+## Part 5: Enhancement Features (4)
+
+### 15. Data Source Inventory 🟢
+
+**Purpose:** Catalog available data sources for Phase 2 discovery
+
+**Extend:** `control-store` (new module: `data_sources.rs`)
+
+**Database Tables:**
+```sql
+-- data_sources table
+CREATE TABLE data_sources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    source_type TEXT NOT NULL, -- 'database', 'api', 'file', 's3', 'kafka'
+    connection_info JSONB NOT NULL, -- {host, port, credentials_ref}
+    schema_info JSONB, -- {tables: [...], columns: [...]}
+    registered_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+**New MCP Tools:**
+- `datasource_register(name, source_type, connection_info)`
+- `datasource_list(source_type?)`
+- `datasource_get_schema(datasource_id)`
+
+---
+
+### 16. Integration Assessment 🟢
+
+**Purpose:** Track third-party integrations during Phase 2
+
+**Extend:** `control-store` (new module: `integrations.rs`)
+
+**Database Tables:**
+```sql
+-- integrations table
+CREATE TABLE integrations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES projects(id),
+    integration_name TEXT NOT NULL,
+    integration_type TEXT NOT NULL, -- 'api', 'webhook', 'sdk'
+    assessment TEXT NOT NULL, -- markdown notes
+    status TEXT NOT NULL DEFAULT 'planned' -- planned, approved, rejected
+);
+```
+
+**New MCP Tools:**
+- `integration_add(project_id, integration_name, integration_type, assessment)`
+- `integration_list(project_id)`
+
+---
+
+### 17. Architecture Diagram Storage 🟢
+
+**Purpose:** Store versioned architecture diagrams (Phase 3)
+
+**Extend:** `artifact-store` (already supports file storage via object-store)
+
+**No new tables needed** (use `artifacts` table with `artifact_type = 'architecture_diagram'`)
+
+**New MCP Tools:**
+- `artifact_upload_diagram(project_id, diagram_file, title)` -- upload PNG/SVG
+- `artifact_get_diagram(artifact_id)` -- retrieve diagram
+
+---
+
+### 18. Loop-Back Mechanism 🟢
+
+**Purpose:** Create new projects from bugs/features in Phase 9
+
+**Extend:** `workflow-engine` (service layer logic)
+
+**No new tables needed** (logic only)
+
+**New MCP Tools:**
+- `workflow_create_from_bug(bug_id, application_type)` -- create project from bug
+- `workflow_create_from_feedback(feedback_id, application_type)` -- create project from feature request
+
+---
+
+## Part 6: Implementation Roadmap
+
+### Phase 0a: Foundation (Weeks 1-2)
+
+**Goal:** Core workflow infrastructure
+
+**Deliverables:**
+1. `workflow-engine` crate — project entity, phase state machine
+2. `gate-system` crate — gate entity, approval workflow
+3. Database migrations for projects, workflow_phases, gates, gate_approvals
+4. MCP tools: workflow_*, gate_*
+
+**Acceptance Criteria:**
+- Can create a project
+- Can track current phase
+- Can create gates
+- Can submit approvals
+- Phase transitions blocked until gates pass
+
+---
+
+### Phase 0b: Artifacts & Teams (Weeks 3-4)
+
+**Goal:** Artifact storage and team assignment
+
+**Deliverables:**
+1. `artifact-store` crate — artifact entity, versioning, templates
+2. Team assignment module in `control-store`
+3. Database migrations for artifacts, artifact_templates, team_assignments
+4. MCP tools: artifact_*, team_*
+
+**Acceptance Criteria:**
+- Can store/retrieve artifacts (requirements, designs, ADRs, etc.)
+- Can generate artifacts from templates
+- Can assign personas to projects
+- Can query team assignments
+
+---
+
+### Phase 0c: Application Types & Planning (Week 5)
+
+**Goal:** Application type registry and task orchestration
+
+**Deliverables:**
+1. Application types module in `control-store`
+2. Task orchestration in `control-service` (enhance work packets)
+3. Database migrations for application_types, tasks, task_dependencies
+4. Seed data: 15 application types from APPLICATION_TYPE_MATRIX.md
+5. MCP tools: apptype_*, task_*
+
+**Acceptance Criteria:**
+- Can query application types
+- Can create tasks with dependencies
+- Can track task progress
+- Can query ready tasks
+
+---
+
+### Phase 0d: Quality & Security (Weeks 6-7)
+
+**Goal:** Test planning and security review tracking
+
+**Deliverables:**
+1. Test plan module in `control-store`
+2. Security review module in `control-store`
+3. Database migrations for test_plans, test_executions, security_reviews
+4. MCP tools: test_*, security_*
+
+**Acceptance Criteria:**
+- Can create test plans with test cases
+- Can execute tests and record results
+- Can create security reviews with threat models
+- Can approve/reject security reviews (triggers security gate)
+
+---
+
+### Phase 0e: Financial & Release (Weeks 8-9)
+
+**Goal:** Cost tracking and release orchestration
+
+**Deliverables:**
+1. Cost tracking (extend build-watch or new crate)
+2. Release runbook management (extend bundle-runtime or new crate)
+3. Database migrations for budgets, cost_line_items, runbooks, runbook_executions
+4. MCP tools: cost_*, runbook_*
+
+**Acceptance Criteria:**
+- Can create cost estimates with line items
+- Can approve budgets (triggers CEO gate)
+- Can create deployment runbooks
+- Can execute runbook steps
+
+---
+
+### Phase 0f: Post-Launch (Week 10)
+
+**Goal:** Bug tracking, feedback, loop-back
+
+**Deliverables:**
+1. Bug tracking module in `control-store`
+2. Feedback module in `control-store`
+3. Loop-back logic in `workflow-engine`
+4. Database migrations for bugs, feedback
+5. MCP tools: bug_*, feedback_*, workflow_create_from_*
+
+**Acceptance Criteria:**
+- Can create and track bugs
+- Can collect feedback
+- Can create new projects from bugs/features
+
+---
+
+## Part 7: Summary
+
+### Total New Infrastructure
+
+| Category | Count | Estimated LOC |
+|----------|-------|---------------|
+| New Crates | 6-9 | 3,000-5,000 |
+| Database Migrations | 8-12 | 500-800 (SQL) |
+| New MCP Tools | 35-45 | 2,000-3,000 |
+| Service Layer Functions | 50-70 | 2,500-4,000 |
+| **Total** | — | **8,000-12,800** |
+
+### Critical Path
+
+**Blocking (must be done first):**
+1. Workflow engine + gate system (Phase 0a)
+2. Artifact store + team assignments (Phase 0b)
+
+**High Priority (needed for full workflow):**
+3. Application types + task orchestration (Phase 0c)
+4. Test plans + security reviews (Phase 0d)
+5. Cost tracking + runbooks (Phase 0e)
+
+**Nice-to-Have (enhances workflow):**
+6. Bug tracking + feedback + loop-back (Phase 0f)
+7. Data source inventory
+8. Integration assessment
+9. Architecture diagram storage
+
+### Effort Estimate
+
+**Total Effort:** 10-12 weeks (2.5-3 months)
+
+**Team:**
+- Backend (Dmitri): 60% (core implementation)
+- Data Architect (Chen): 20% (database schema design)
+- API Architect (Marcus): 10% (MCP tool design)
+- QA (Meg): 10% (acceptance tests)
+
+**Sequencing:**
+- Weeks 1-2: Phase 0a (foundation)
+- Weeks 3-4: Phase 0b (artifacts)
+- Week 5: Phase 0c (planning)
+- Weeks 6-7: Phase 0d (quality/security)
+- Weeks 8-9: Phase 0e (financial/release)
+- Week 10: Phase 0f (post-launch)
+
+---
+
+## Part 8: Next Steps
+
+### Immediate Actions
+
+1. **Council Decision Required:** Review this gap analysis and approve the 6-phase implementation roadmap (Phase 0a-0f).
+2. **Specs First:** Create specs for each new crate/module following docs-first law:
+   - `docs/spec/workflow-engine.md`
+   - `docs/spec/gate-system.md`
+   - `docs/spec/artifact-store.md`
+   - ... (8-12 spec files)
+3. **Database Schema Design:** Chen (Data Architect) reviews proposed schema and creates migrations.
+4. **MCP Tool Design:** Marcus (API Architect) reviews proposed MCP tools and defines contracts.
+5. **Implementation:** Dmitri (Backend) begins Phase 0a after specs approved.
+
+### Open Questions
+
+1. Should `cost-tracker` be a separate crate or extend `build-watch`?
+2. Should `release-orchestrator` be a separate crate or extend `bundle-runtime`?
+3. Should code review tracking integrate with GitHub API or remain internal?
+4. Should loop-back mechanism auto-create projects or require manual confirmation?
+
+---
+
+**END OF GAP ANALYSIS**

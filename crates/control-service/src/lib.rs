@@ -7,6 +7,7 @@ pub mod catalog_service;
 pub mod command_service;
 pub mod error;
 pub mod gateway_service;
+pub mod intake_service;
 pub mod knowledge_service;
 pub mod live_watch_service;
 pub mod login_handler;
@@ -27,6 +28,7 @@ pub use catalog_service::CatalogService;
 pub use command_service::CommandService;
 pub use error::ServiceError;
 pub use gateway_service::GatewayService;
+pub use intake_service::IntakeService;
 pub use knowledge_service::{KnowledgeService, KnowledgeQueryResult};
 pub use live_watch_service::LiveWatchService;
 pub use login_handler::LoginHandler;
@@ -59,6 +61,7 @@ pub struct ServiceContext {
     pub catalog: CatalogService,
     pub work_paths: WorkPathService,
     pub gateway: GatewayService,
+    pub intake: IntakeService,
     pub knowledge: KnowledgeService,
     pub boards: BoardsService,
     pub build_watch: BuildWatchService,
@@ -87,6 +90,7 @@ impl ServiceContext {
             catalog: CatalogService::new(store.clone()),
             work_paths: WorkPathService::new(store.clone()),
             gateway: GatewayService::new(store.clone()),
+            intake: IntakeService::new(store.clone()),
             knowledge: KnowledgeService::new(store.clone()),
             boards: BoardsService::new(store.clone()),
             build_watch: BuildWatchService::new(store.clone()),

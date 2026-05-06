@@ -40,7 +40,7 @@ The vision document (`realm_forge_ai_native_path_forward.md`) is the **north sta
 **What exists (the skeleton):**
 
 | Crate | Files | What's Implemented |
-|-------|-------|--------------------|
+|-------|-------|-----------------------|
 | `authority-domain` | `lib.rs`, `ids.rs`, `scope.rs`, `state.rs`, `command.rs`, `skill.rs`, `skill_creator.rs` | Typed IDs (12 types), ActorScope, enums (ExecutionMode, ApprovalState, CommandStatus, etc.), BoundedCommand value object, SkillRegistration/SkillSession, SkillCreator with catalog |
 | `audit-log` | `lib.rs` | AuditEvent with hash-chain integrity, compute_hash/verify_hash |
 | `policy-engine` | `lib.rs` | PolicyDecision/PolicyDenial, authorize_action() with 6 checks (expired, stale, unauthorized, wrong skill, proposal only, approval required) |
@@ -129,6 +129,347 @@ snapshot-ledger/src/
 - `cargo clippy --workspace -- -D warnings` passes
 - `cargo fmt --all -- --check` passes
 - All source files under 300 lines (300 target, 500 hard cap)
+
+---
+
+### Phase 0a: Structured Intake System — Core Engine (Weeks 1-2)
+**Goal: Build the deterministic intake engine with 3 foundational application types.**
+
+**Business Justification:**
+- 95% reduction in AI token costs (from $10/intake to $0.50/intake)
+- 5-minute intake completion time (down from 20+ minutes)
+- Consistent requirements capture across all project types
+- Foundation for AI-native software construction governance
+
+Files to create:
+
+```
+intake-engine/                   NEW CRATE (pure logic, no IO)
+  ├── Cargo.toml            Dependencies: serde, serde_json, thiserror
+  └── src/
+      ├── lib.rs            Module declarations
+      ├── error.rs          IntakeError enum
+      ├── types.rs          IntakeSession, Question, Answer, Response types
+      ├── evaluator.rs      evaluate_condition() — decision tree logic
+      ├── navigator.rs      get_next_question() — tree traversal
+      └── validator.rs      validate_template() — schema validation
+
+control-service/src/
+  ├── intake_service.rs     NEW — Session lifecycle, AI integration orchestration
+  └── lib.rs                EXTEND — Export intake_service
+
+control-store/src/
+  └── lib.rs                EXTEND — Add intake queries (sessions, templates, responses)
+
+migrations/
+  └── 003_intake_foundation.sql    NEW — 7 tables:
+                                   - application_types (with is_ai_generated, admin_reviewed)
+                                   - intake_templates (decision_tree JSONB, versioned)
+                                   - intake_sessions (responses, ai_questions, status)
+                                   - ai_intake_questions (normalized_question, context)
+                                   - question_frequency (occurrence_count, promoted tracking)
+                                   - admin_review_queue (review_type, item_id, status)
+                                   - intake_audit_log (event_type, event_data)
+```
+
+**Initial Application Type Templates (seed data):**
+1. **Static Website** — hosting, domain, SSL, CDN, deploy method
+2. **REST API** — auth, endpoints, rate limiting, versioning, DB type
+3. **Dynamic Web App** — frontend framework, backend framework, session management, DB, file storage
+
+**Conditional Logic DSL:**
+```json
+{
+  "question_id": "Q003",
+  "text": "Does your API require authentication?",
+  "type": "yes_no",
+  "conditional": {
+    "show_if": "response.app_type == 'rest_api'"
+  },
+  "branches": {
+    "yes": {
+      "next": "Q004_auth_method",
+      "features": ["user_management", "jwt_service"]
+    },
+    "no": {
+      "next": "Q005_rate_limiting"
+    }
+  }
+}
+```
+
+**Validation Gate:**
+- `cargo test -p intake-engine` passes with 100% decision tree logic coverage
+- All 3 templates load, validate, and execute without errors
+- intake_service correctly orchestrates engine → store flow
+- Database migration applies successfully with all 7 tables created
+
+**Team:** Dmitri Volkov (Backend), Priya Mehta (Data)
+
+---
+
+### Phase 0b: Structured Intake System — AI Assistance (Weeks 3-4)
+**Goal: Add AI fallback for unlisted applications and edge-case clarification.**
+
+Files to create:
+
+```
+intake-engine/src/
+  ├── ai_provider.rs        NEW — AiProvider trait
+  │     ask_clarifying_question() → String
+  │     normalize_question() → String
+  │     generate_form() → IntakeTemplate (Phase 0d)
+  ├── claude_provider.rs    NEW — ClaudeProvider implementation
+  └── lib.rs                EXTEND — Export ai_provider module
+
+control-service/src/
+  └── intake_service.rs     EXTEND — Add AI fallback orchestration:
+                               - detect_unlisted_app_type()
+                               - ai_clarify_response()
+                               - store_ai_question()
+```
+
+**AI Integration Points:**
+```rust
+pub trait AiProvider {
+    async fn ask_clarifying_question(
+        &self,
+        context: &IntakeContext,
+        ambiguous_response: &str,
+    ) -> Result<String, IntakeError>;
+
+    async fn normalize_question(
+        &self,
+        question: &str,
+    ) -> Result<String, IntakeError>;
+}
+```
+
+**Edge Case Handling:**
+- User answers "maybe" or "it depends" → AI asks targeted follow-up
+- User describes unlisted application type → AI asks 3-5 clarifying questions
+- Ambiguous responses captured and normalized for learning engine (Phase 0c)
+
+**Validation Gate:**
+- AI clarification triggered correctly for ambiguous responses
+- Normalized questions stored with pg_trgm GIN index for similarity search
+- End-to-end test: unlisted app type → AI questions → manual completion
+- AI provider abstraction allows swapping Claude for OpenAI/Mock
+
+**Team:** Dmitri Volkov (Backend), Priya Mehta (Data)
+
+---
+
+### Phase 0c: Structured Intake System — Smart Learning Engine (Week 5)
+**Goal: Auto-promote frequently-asked AI questions to canonical forms.**
+
+Files to create:
+
+```
+intake-engine/src/
+  ├── learning.rs           NEW — Auto-promotion logic
+  │     check_promotion_threshold()
+  │     generate_canonical_question()
+  │     suggest_template_update()
+  └── lib.rs                EXTEND — Export learning module
+
+control-service/src/
+  └── intake_learning_service.rs  NEW — Background job orchestration:
+                                    - detect_promotion_candidates()
+                                    - create_admin_review_task()
+                                    - apply_approved_promotion()
+```
+
+**Auto-Promotion Logic:**
+```
+1. AI asks clarifying question Q_ai
+2. Store normalized version with pg_trgm similarity index
+3. Background job runs daily:
+   - Query questions with similarity > 0.6 threshold
+   - Count occurrences per normalized form
+   - If count ≥ 5 → queue for admin review
+4. Admin reviews → approves → adds to template decision tree
+```
+
+**Database Queries (PostgreSQL with pg_trgm):**
+```sql
+-- Find similar questions
+SELECT normalized_question, COUNT(*) as occurrence_count
+FROM ai_intake_questions
+WHERE similarity(normalized_question, 'target question') > 0.6
+  AND promoted_to_template = FALSE
+GROUP BY normalized_question
+HAVING COUNT(*) >= 5
+ORDER BY occurrence_count DESC;
+```
+
+**Validation Gate:**
+- Background job detects 5+ similar questions and creates review task
+- Admin review UI displays candidate question with context
+- Approved promotion correctly updates template decision tree
+- Migration from Phase 2+ embeddings: performance degradation triggers upgrade
+
+**Threshold Configuration (See DEC-PM-PENDING-auto-promotion-threshold.md):**
+- Initial: Fixed threshold of 5 occurrences
+- Review: 3-month evaluation of precision/recall
+- Upgrade path: Variable thresholds by app type if precision < 60%
+
+**Team:** Dmitri Volkov (Backend), Priya Mehta (Data)
+
+---
+
+### Phase 0d: Structured Intake System — AI Form Generation (Weeks 6-7)
+**Goal: Generate draft intake forms for unlisted application types on-demand.**
+
+Files to extend:
+
+```
+intake-engine/src/
+  ├── ai_provider.rs        EXTEND — Add generate_form() method:
+  │     async fn generate_form(
+  │         &self,
+  │         app_description: &str,
+  │         ai_qa_context: Vec<(String, String)>,
+  │     ) -> Result<IntakeTemplate, IntakeError>;
+  │
+  └── form_validator.rs     NEW — Draft form validation:
+        validate_generated_form() → checks structure, detects PII
+
+control-service/src/
+  └── intake_service.rs     EXTEND — Add form generation flow:
+                               - generate_draft_form()
+                               - validate_draft_safety()
+                               - store_for_review()
+```
+
+**AI Form Generation Prompt Structure:**
+```
+You are generating a structured intake form for: {app_description}
+
+Based on these Q&A exchanges:
+{ai_qa_context}
+
+Generate a decision tree with:
+1. 5-15 questions covering architecture, deployment, integrations
+2. Conditional logic (show_if, branches)
+3. Feature derivations (features array per answer)
+4. Module mappings (which RealmForge modules are needed)
+
+Return valid JSON matching IntakeTemplate schema.
+```
+
+**Safety Validations:**
+- **PII Detection:** Scan for fields requesting SSN, credit cards, passwords
+- **Structure Validation:** Ensure valid JSON, required fields present
+- **Complexity Limits:** Max 20 questions, max 4 nesting levels
+- **Profanity Filter:** Reject forms with inappropriate content
+
+**Draft Form Usage Policy (See DEC-SECURITY-PENDING-draft-form-usage.md):**
+- **Option A (Immediate Use):** High risk — T1 malicious injection
+- **Option B (Approval-First):** Low risk — delays user, admin bottleneck
+- **Option C (Hybrid):** **RECOMMENDED** — One-time use with PII detection + rate limiting
+
+**Validation Gate:**
+- AI generates valid IntakeTemplate for "IoT monitoring dashboard"
+- PII detection blocks forms requesting sensitive data
+- Draft form stored in admin review queue with pending status
+- One-time use allows user to complete intake without blocking
+
+**Team:** Dmitri Volkov (Backend), Priya Mehta (Data)
+
+---
+
+### Phase 0e: Structured Intake System — Admin Review Portal (Weeks 8-9)
+**Goal: Build admin UI for reviewing AI-generated content (forms, questions, promotions).**
+
+Files to create:
+
+```
+control-api/src/routes/
+  └── admin_intake.rs       NEW — Admin endpoints:
+                               GET /v1/admin/intake/review-queue
+                               GET /v1/admin/intake/review/:id
+                               POST /v1/admin/intake/review/:id/approve
+                               POST /v1/admin/intake/review/:id/reject
+                               PUT /v1/admin/intake/templates/:id/edit
+
+frontend/admin-portal/       NEW (if separate frontend exists)
+  ├── ReviewQueue.tsx       Component: list pending reviews
+  ├── FormEditor.tsx        Component: edit decision tree JSON
+  ├── QuestionReview.tsx    Component: approve/reject question promotions
+  └── TemplatePreview.tsx   Component: preview generated forms
+```
+
+**Admin Review UI Features:**
+1. **Review Queue Dashboard**
+   - Filter by type: AI Questions, Generated Forms, Template Updates
+   - Sort by: Date, Occurrence Count, Priority
+   - Bulk actions: Approve Selected, Reject Selected
+
+2. **Form Editor**
+   - Visual decision tree editor (or JSON with validation)
+   - Preview mode: simulate intake flow
+   - Diff view: compare AI-generated vs. manual edits
+
+3. **Approval Workflow**
+   - Single reviewer (PM or CTO) required initially
+   - Comments/feedback on rejections
+   - Audit trail: who approved, when, why
+
+**Access Control (See DEC-COUNCIL-PENDING-intake-form-approval-authority.md):**
+- **Phase 1 (First 5 forms):** Full Council approval required
+- **Phase 2 (After 5 forms):** PM + CTO approval sufficient
+- **Escalation:** Council review for high-risk forms (e.g., financial, healthcare)
+
+**Validation Gate:**
+- Admin can view all pending reviews in queue
+- Form editor correctly validates decision tree JSON
+- Approval updates database and makes form available
+- Rejection provides feedback, allows AI to regenerate
+
+**Team:** Kai Larson (Frontend), Dmitri Volkov (Backend)
+
+---
+
+### Phase 0f: Structured Intake System — Expansion to 15 App Types (Weeks 10-12)
+**Goal: Author 12 additional application type templates to cover 95% of use cases.**
+
+Templates to author:
+
+```
+4.  Mobile App (iOS/Android)       — native vs hybrid, backend API, push notifications
+5.  Microservices Architecture      — service count, communication (REST/gRPC), service mesh
+6.  Batch Processing Pipeline       — data source, schedule, transformations, output
+7.  Real-Time Streaming App         — event source (Kafka, Kinesis), processing, sinks
+8.  Machine Learning Model API      — framework, model type, input/output, scaling
+9.  E-Commerce Platform             — payment gateway, inventory, cart, checkout, admin
+10. Content Management System       — content types, media storage, versioning, permissions
+11. Multi-Tenant SaaS               — tenant isolation, billing, admin portal, feature flags
+12. IoT Data Platform               — device protocol, telemetry, time-series DB, dashboards
+13. GraphQL API                     — schema, resolvers, subscriptions, caching
+14. Serverless Functions            — trigger type, runtime, cold start mitigation, logging
+15. Desktop Application             — framework (Electron, Qt, etc.), updater, local storage
+```
+
+**Template Authoring Process:**
+1. **Research:** Interview 2-3 teams who built this app type
+2. **Draft:** Create decision tree with 8-15 questions
+3. **Review:** PM + Domain Expert approve
+4. **Test:** Run 3 test intakes, refine based on feedback
+5. **Commit:** Merge into templates table with version 1.0
+
+**Validation Gate:**
+- All 15 templates validated with `validate_template()`
+- Each template tested with 3 real-world scenarios
+- Feature derivations correctly map to RealmForge modules
+- QA sign-off: intakes complete in < 5 minutes with clear outputs
+
+**Coverage Target:**
+- 15 templates cover 95% of intake requests
+- Remaining 5% handled by AI-assisted intake + learning engine
+- Unlisted app types trigger AI form generation (Phase 0d)
+
+**Team:** Dmitri Volkov (Backend), Kai Larson (Frontend), Priya Mehta (Data), Meg Thompson (QA)
 
 ---
 
@@ -532,7 +873,10 @@ agent-mcp/src/
   │   ├── rollback.rs       NEW — core_preview_rollback, core_execute_rollback, core_verify_rollback
   │   ├── actor.rs          NEW — core_get_actor_scope
   │   ├── skill.rs          NEW — core_register_skill, core_activate_skill_session
-  │   └── work_packet.rs    NEW — core_generate_work_packet, core_validate_work_packet
+  │   ├── work_packet.rs    NEW — core_generate_work_packet, core_validate_work_packet
+  │   └── intake.rs         NEW — intake_start, intake_answer, intake_complete,
+  │                            intake_ai_assist, intake_generate_form,
+  │                            admin_get_review_queue, admin_review_decision
   └── types.rs              NEW — Shared MCP tool input/output types
 ```
 
@@ -541,12 +885,28 @@ agent-mcp/src/
 2. Tool descriptions are complete enough for an AI agent to use without examples
 3. Input schemas are strict — every required field is listed, types are explicit
 4. Error messages include corrective actions when possible
-5. Total tool count stays under 25 (current: 5, target: ~20)
+5. Total tool count stays under 30 (current: 5, target: ~28 with intake tools)
+
+**New MCP Tools for Intake System (8 tools):**
+```
+intake_start(app_type?)           → Start session, return first question
+intake_answer(session_id, answer) → Submit answer, return next question or completion
+intake_complete(session_id)       → Finalize, return derived modules/personas
+
+intake_ai_assist(session_id)      → Request AI clarification for ambiguous response
+intake_ai_answer(session_id, q, a) → Submit AI Q&A, continue form-based flow
+intake_generate_form(description) → Generate draft form for unlisted app type
+
+admin_get_review_queue()          → List pending reviews (questions, forms)
+admin_review_decision(id, action) → Approve/reject review item
+admin_edit_template(id, tree)     → Update template decision tree
+```
 
 **Validation Gate:**
-- `core_tool_definitions()` returns all 20 tools with complete schemas
+- `core_tool_definitions()` returns all ~28 tools with complete schemas
 - Every tool can be called and returns valid JSON
 - Unknown tool returns McpError::UnknownTool
+- Intake tools correctly orchestrate form-based + AI-assisted flows
 
 ---
 
@@ -564,7 +924,8 @@ control-service/tests/
   ├── audit_integrity.rs    NEW — Hash chain with tampering detection
   ├── snapshot_flow.rs      NEW — Create → Validate → Compare → Store → Retrieve
   ├── rollback_flow.rs      NEW — Preview → Execute → Verify → Validate
-  └── work_packet_flow.rs   NEW — Generate → Validate → Scope check → Boundary test
+  ├── work_packet_flow.rs   NEW — Generate → Validate → Scope check → Boundary test
+  └── intake_flow.rs        NEW — Form-based intake → AI fallback → learning → admin review
 
 control-api/tests/
   ├── common/mod.rs         NEW — Test app builder, test client
@@ -584,9 +945,10 @@ operator-cli/tests/
 2. Tests run in parallel using unique schema/namespace
 3. Cross-crate "happy path" test covers: propose → authorize → apply → audit → snapshot → rollback → verify
 4. Security boundary tests verify forbidden paths return errors
+5. Intake system tests: form completion → AI clarification → form generation → admin approval
 
 **Validation Gate:**
-- `cargo test --workspace` passes all ~80+ tests in under 60 seconds
+- `cargo test --workspace` passes all ~90+ tests in under 60 seconds
 - Integration tests cover all crates together
 - Test coverage > 80% on service layer
 
@@ -708,6 +1070,46 @@ When a phase is complete:
 - `authority-domain/src/error.rs` (NEW)
 - Extensions to: `ids.rs`, `scope.rs`, `state.rs`, `command.rs`, `skill.rs`, `skill_creator.rs`
 
+### Phase 0a — Intake Core Engine (15 files new)
+- `intake-engine/Cargo.toml` (NEW)
+- `intake-engine/src/lib.rs` (NEW)
+- `intake-engine/src/error.rs` (NEW)
+- `intake-engine/src/types.rs` (NEW)
+- `intake-engine/src/evaluator.rs` (NEW)
+- `intake-engine/src/navigator.rs` (NEW)
+- `intake-engine/src/validator.rs` (NEW)
+- `control-service/src/intake_service.rs` (NEW)
+- `control-service/src/lib.rs` (EXTEND)
+- `control-store/src/lib.rs` (EXTEND)
+- `migrations/003_intake_foundation.sql` (NEW)
+- Seed data: 3 application type templates (Static Website, REST API, Dynamic Web App)
+
+### Phase 0b — AI Assistance (4 files new/extended)
+- `intake-engine/src/ai_provider.rs` (NEW)
+- `intake-engine/src/claude_provider.rs` (NEW)
+- `intake-engine/src/lib.rs` (EXTEND)
+- `control-service/src/intake_service.rs` (EXTEND)
+
+### Phase 0c — Smart Learning Engine (3 files new/extended)
+- `intake-engine/src/learning.rs` (NEW)
+- `intake-engine/src/lib.rs` (EXTEND)
+- `control-service/src/intake_learning_service.rs` (NEW)
+
+### Phase 0d — AI Form Generation (3 files extended/new)
+- `intake-engine/src/ai_provider.rs` (EXTEND)
+- `intake-engine/src/form_validator.rs` (NEW)
+- `control-service/src/intake_service.rs` (EXTEND)
+
+### Phase 0e — Admin Review Portal (5 files new)
+- `control-api/src/routes/admin_intake.rs` (NEW)
+- `frontend/admin-portal/ReviewQueue.tsx` (NEW)
+- `frontend/admin-portal/FormEditor.tsx` (NEW)
+- `frontend/admin-portal/QuestionReview.tsx` (NEW)
+- `frontend/admin-portal/TemplatePreview.tsx` (NEW)
+
+### Phase 0f — 15 App Type Templates (seed data)
+- Seed data: 12 additional application type templates (total 15)
+
 ### Phase 1 — Service Layer (12 files)
 - `control-service/Cargo.toml` (NEW)
 - `control-service/src/lib.rs` (NEW)
@@ -783,7 +1185,7 @@ When a phase is complete:
 - `operator-cli/src/commands/migrate.rs` (NEW)
 - `operator-cli/src/commands/config.rs` (NEW)
 
-### Phase 9 — Full MCP Surface (10 files new/modified)
+### Phase 9 — Full MCP Surface (13 files new/modified)
 - `agent-mcp/src/lib.rs` (EXTEND)
 - `agent-mcp/src/error.rs` (NEW)
 - `agent-mcp/src/types.rs` (NEW)
@@ -796,8 +1198,9 @@ When a phase is complete:
 - `agent-mcp/src/tools/actor.rs` (NEW)
 - `agent-mcp/src/tools/skill.rs` (NEW)
 - `agent-mcp/src/tools/work_packet.rs` (NEW)
+- `agent-mcp/src/tools/intake.rs` (NEW — 9 intake tools)
 
-### Phase 10 — Integration Testing (11 files new)
+### Phase 10 — Integration Testing (12 files new)
 - `control-service/tests/common/mod.rs` (NEW)
 - `control-service/tests/session_lifecycle.rs` (NEW)
 - `control-service/tests/command_lifecycle.rs` (NEW)
@@ -806,6 +1209,7 @@ When a phase is complete:
 - `control-service/tests/snapshot_flow.rs` (NEW)
 - `control-service/tests/rollback_flow.rs` (NEW)
 - `control-service/tests/work_packet_flow.rs` (NEW)
+- `control-service/tests/intake_flow.rs` (NEW)
 - `control-api/tests/common/mod.rs` (NEW)
 - `control-api/tests/health_test.rs` (NEW)
 - `control-api/tests/session_test.rs` (NEW)
@@ -834,7 +1238,8 @@ operator-cli
         ├── audit-log       (depends on authority-domain)
         ├── policy-engine       (depends on authority-domain)
         ├── control-store        (depends on authority-domain, audit-log, snapshot-ledger)
-        └── snapshot-ledger     (depends on authority-domain)
+        ├── snapshot-ledger     (depends on authority-domain)
+        └── intake-engine        (pure logic — no deps on other RealmForge crates)
 
 control-api
   └── control-service (same hierarchy)
@@ -842,23 +1247,24 @@ control-api
 agent-mcp
   └── control-service (same hierarchy)
 
-snapshot-ledger ──┐
-audit-log ────┤──→ authority-domain (pure)
+intake-engine ────┐
+snapshot-ledger ──┤
+audit-log ────────┤──→ authority-domain (pure)
 policy-engine ────┘
 ```
 
 **Layer violation detection:**
 - authority-domain MUST NOT import any other capability crate
-- audit-log, policy-engine, snapshot-ledger MAY import authority-domain only
+- audit-log, policy-engine, snapshot-ledger, intake-engine MAY import authority-domain only
 - control-store MAY import authority-domain, audit-log, snapshot-ledger
-- control-service MAY import authority-domain, audit-log, policy-engine, control-store, snapshot-ledger
+- control-service MAY import authority-domain, audit-log, policy-engine, control-store, snapshot-ledger, intake-engine
 - control-api, operator-cli, agent-mcp MAY import control-service only (NOT control-store directly)
 
 ---
 
 ## The Final Promise
 
-When all 11 phases are complete, RealmForge Core will be able to prove:
+When all 17 phases are complete, RealmForge Core will be able to prove:
 
 ```
 Who is allowed to do what?
@@ -873,6 +1279,8 @@ With what evidence?
   → Appended through AuditEvent hash chain
 How is it restored?
   → SnapshotManifest + RollbackEngine
+How are requirements captured?
+  → Structured Intake System (95% deterministic, 5% AI-assisted)
 ```
 
 This is the heartbeat. This is the soul. This is **RealmForge Core**.

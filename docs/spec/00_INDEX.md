@@ -79,6 +79,10 @@ No code, migration, API, CLI command, MCP tool, runtime bundle, visual node, tes
 | `21_ACCEPTANCE_TEST_PLAN.md` | Required validation | `VN-ACCEPTANCE-TESTS` |
 | `22_OPEN_DECISIONS.md` | Blocked decisions | `VN-OPEN-DECISIONS` |
 | `23_FRONTEND_VERTICAL_SPEC.md` | Frontend stack and Boards vertical implementation contract | `VN-MODULE-BOARDS` |
+| `24_WORKFLOW_SUPPORT_GAP_ANALYSIS.md` | Backend workflow support gap analysis (corrected) | `VN-WORKFLOW-GAP` |
+| `25_INTAKE_SYSTEM_DESIGN.md` | Structured deterministic intake engine design | `VN-INTAKE-SYSTEM` |
+| `26_CODE_REVIEW_MODULE_SPEC.md` | Automated code review engine and standards registry | `VN-CODE-REVIEW-MODULE` |
+| `27_WORKFLOW_LIFECYCLE_AGENT_SYSTEM.md` | Workflow lifecycle agent system (StageAgent trait, Orchestrator, 10 stage agents) | `VN-WORKFLOW-LIFECYCLE` |
 
 ## Doc Quality Gate
 

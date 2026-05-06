@@ -80,6 +80,7 @@ These paths define the first implementation universe. File IDs are stable.
 | `FILE-CRATE-DOMAIN-WORKPATH` | `crates/authority-domain/src/work_path.rs` | `compiled_source` | Work Paths | high | `WP-WORKPATH-001` | `SGL-BACKEND-DOMAIN` | `TEST-WORKPATH-DOMAIN-001` |
 | `FILE-CRATE-DOMAIN-CATALOG` | `crates/authority-domain/src/catalog.rs` | `compiled_source` | Catalogs | high | `WP-CATALOG-001` | `SGL-BACKEND-DOMAIN` | `TEST-CATALOG-DOMAIN-001` |
 | `FILE-CRATE-DOMAIN-GRANT` | `crates/authority-domain/src/skill_grant.rs` | `compiled_source` | Skill Grants | critical | `WP-SKILL-001` | `SGL-BACKEND-DOMAIN` | `TEST-SKILL-GRANT-001` |
+| `FILE-CRATE-DOMAIN-WORKFLOW` | `crates/authority-domain/src/workflow.rs` | `compiled_source` | Authority Core | high | `WP-CORE-001` | `SGL-BACKEND-DOMAIN` | `TEST-DOMAIN-WORKFLOW-001` |
 | `FILE-CRATE-POLICY-LIB` | `crates/policy-engine/src/lib.rs` | `compiled_source` | Authority Core | critical | `WP-CORE-001` | `SGL-BACKEND-POLICY` | `TEST-POLICY-001` |
 | `FILE-CRATE-POLICY-SOD` | `crates/policy-engine/src/separation_of_duties.rs` | `compiled_source` | Security | critical | `WP-SKILL-001` | `SGL-BACKEND-POLICY` | `TEST-SOD-001` |
 | `FILE-CRATE-AUDIT-LIB` | `crates/audit-log/src/lib.rs` | `compiled_source` | Audit Ledger | high | `WP-CORE-001` | `SGL-BACKEND-AUDIT` | `TEST-AUDIT-CHAIN-001` |
@@ -122,6 +123,57 @@ These paths define the first implementation universe. File IDs are stable.
 | `FILE-CLAUDE-SKILL-PEER-REVIEW` | `.claude/skills/peer-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
 | `FILE-SKILL-CODE-REVIEW` | `skills/code-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
 | `FILE-CLAUDE-SKILL-CODE-REVIEW` | `.claude/skills/code-review/SKILL.md` | `operator_config` | Codex Operations | low | `WP-DOCS-000` | `SGL-TECH-WRITER` | `TEST-DOCS-METADATA-001` |
+| `FILE-CRATE-INTAKE-LIB` | `crates/intake-engine/src/lib.rs` | `compiled_source` | Intake | high | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-LIB-001` |
+| `FILE-CRATE-INTAKE-TREE` | `crates/intake-engine/src/tree.rs` | `compiled_source` | Intake | high | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-TREE-001` |
+| `FILE-CRATE-INTAKE-CONDITION` | `crates/intake-engine/src/condition.rs` | `compiled_source` | Intake | high | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-CONDITION-001` |
+| `FILE-CRATE-INTAKE-ENGINE` | `crates/intake-engine/src/engine.rs` | `compiled_source` | Intake | high | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-ENGINE-001` |
+| `FILE-CRATE-INTAKE-MAPPER` | `crates/intake-engine/src/mapper.rs` | `compiled_source` | Intake | medium | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-MAPPER-001` |
+| `FILE-CRATE-INTAKE-VALIDATE` | `crates/intake-engine/src/validate.rs` | `compiled_source` | Intake | medium | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-VALIDATE-001` |
+| `FILE-CRATE-INTAKE-ERROR` | `crates/intake-engine/src/error.rs` | `compiled_source` | Intake | medium | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-ERROR-001` |
+| `FILE-CRATE-STORE-INTAKE` | `crates/control-store/src/intake.rs` | `compiled_source` | Data Contracts | critical | `WP-CORE-001` | `SGL-BACKEND-STORE` | `TEST-STORE-INTAKE-001` |
+| `FILE-DB-013` | `db/migrations/013_intake_decision_trees.sql` | `migration` | Data Contracts | critical | `WP-CORE-001` | `SGL-DATA-POSTGRES` | `TEST-MIGRATION-013` |
+| `FILE-TREE-STATIC-SITE` | `catalog/intake-trees/tree-static-site.json` | `runtime_definition` | Intake | medium | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-TREE-001` |
+| `FILE-TREE-WEB-APP` | `catalog/intake-trees/tree-web-app.json` | `runtime_definition` | Intake | medium | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-TREE-001` |
+| `FILE-TREE-API-SERVICE` | `catalog/intake-trees/tree-api-service.json` | `runtime_definition` | Intake | medium | `WP-CORE-001` | `SGL-BACKEND-CORE` | `TEST-INTAKE-TREE-001` |
+| `FILE-FE-INT-WIZARD-TYPES` | `frontend/src/features/intake-wizard/types.ts` | `compiled_source` | Intake | low | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-001` |
+| `FILE-FE-INT-WIZARD-ENGINE` | `frontend/src/features/intake-wizard/tree-engine.ts` | `compiled_source` | Intake | medium | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-002` |
+| `FILE-FE-INT-WIZARD-SELECTOR` | `frontend/src/features/intake-wizard/app-type-selector.tsx` | `compiled_source` | Intake | low | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-003` |
+| `FILE-FE-INT-WIZARD-QUESTIONS` | `frontend/src/features/intake-wizard/question-walkthrough.tsx` | `compiled_source` | Intake | low | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-004` |
+| `FILE-FE-INT-WIZARD-SUMMARY` | `frontend/src/features/intake-wizard/intake-summary.tsx` | `compiled_source` | Intake | low | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-005` |
+| `FILE-FE-INT-WIZARD-MAIN` | `frontend/src/features/intake-wizard/intake-wizard.tsx` | `compiled_source` | Intake | high | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-006` |
+| `FILE-FE-INT-WIZARD-INDEX` | `frontend/src/features/intake-wizard/index.ts` | `compiled_source` | Intake | low | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-007` |
+| `FILE-FE-INT-WIZARD-CSS` | `frontend/src/index.css` | `managed_source` | Intake | medium | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-WIZARD-008` |
+| `FILE-FE-INT-BOARD` | `frontend/src/features/boards/intake/intake-board.tsx` | `compiled_source` | Intake | low | `WP-CORE-001` | `SGL-FRONTEND-CORE` | `TEST-FE-INT-BOARD-001` |
+| `FILE-CRATE-CODE-REVIEW-CARGO` | `crates/code-review/Cargo.toml` | `operator_config` | Code Review | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001` |
+| `FILE-CRATE-CODE-REVIEW-LIB` | `crates/code-review/src/lib.rs` | `compiled_source` | Code Review | high | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001` |
+| `FILE-CRATE-CODE-REVIEW-CONFIG` | `crates/code-review/src/config.rs` | `compiled_source` | Code Review | high | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-008` |
+| `FILE-CRATE-CODE-REVIEW-STANDARDS` | `crates/code-review/src/standards.rs` | `compiled_source` | Code Review | high | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001`, `TEST-CODE-REVIEW-005` |
+| `FILE-CRATE-CODE-REVIEW-CHECK` | `crates/code-review/src/check.rs` | `compiled_source` | Code Review | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001` |
+| `FILE-CRATE-CODE-REVIEW-EXEC` | `crates/code-review/src/executable.rs` | `compiled_source` | Code Review | critical | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-002`, `TEST-CODE-REVIEW-009`, `TEST-CODE-REVIEW-010` |
+| `FILE-CRATE-CODE-REVIEW-REGEX` | `crates/code-review/src/regex.rs` | `compiled_source` | Code Review | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-003` |
+| `FILE-CRATE-CODE-REVIEW-FILEPROP` | `crates/code-review/src/file_property.rs` | `compiled_source` | Code Review | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-004` |
+| `FILE-CRATE-CODE-REVIEW-REPORT` | `crates/code-review/src/report.rs` | `compiled_source` | Code Review | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-006` |
+| `FILE-CRATE-CODE-REVIEW-ERROR` | `crates/code-review/src/error.rs` | `compiled_source` | Code Review | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001` |
+| `FILE-CRATE-CODE-REVIEW-SEVERITY` | `crates/code-review/src/severity.rs` | `compiled_source` | Code Review | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-006` |
+| `FILE-STANDARDS-AGNOSTIC` | `code-review-standards/language-agnostic.yaml` | `runtime_policy` | Code Review | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001` |
+| `FILE-STANDARDS-RUST` | `code-review-standards/rust.yaml` | `runtime_policy` | Code Review | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-001`, `TEST-CODE-REVIEW-005` |
+| `FILE-CONFIG-CODE-REVIEW` | `.code-review.yaml` | `operator_config` | Code Review | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-CODE-REVIEW-007`, `TEST-CODE-REVIEW-008` |
+| `FILE-CRATE-WORKFLOW-ENGINE-CARGO` | `crates/workflow-engine/Cargo.toml` | `operator_config` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-LIB` | `crates/workflow-engine/src/lib.rs` | `compiled_source` | Workflow Engine | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-ERROR` | `crates/workflow-engine/src/error.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-TRAITS` | `crates/workflow-engine/src/traits.rs` | `compiled_source` | Workflow Engine | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-ORCHESTRATOR` | `crates/workflow-engine/src/orchestrator.rs` | `compiled_source` | Workflow Engine | medium | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGES-MOD` | `crates/workflow-engine/src/stages/mod.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-IDEA` | `crates/workflow-engine/src/stages/idea.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-PLANNING` | `crates/workflow-engine/src/stages/planning.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-DESIGN` | `crates/workflow-engine/src/stages/design.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-ARCHITECTURE` | `crates/workflow-engine/src/stages/architecture.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-COUNCIL` | `crates/workflow-engine/src/stages/council.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-DEVELOPMENT` | `crates/workflow-engine/src/stages/development.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-PEER-REVIEW` | `crates/workflow-engine/src/stages/peer_review.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-CODE-REVIEW` | `crates/workflow-engine/src/stages/code_review.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-TESTING` | `crates/workflow-engine/src/stages/testing.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
+| `FILE-CRATE-WORKFLOW-ENGINE-STAGE-DOCUMENTATION` | `crates/workflow-engine/src/stages/documentation.rs` | `compiled_source` | Workflow Engine | low | `WP-DOCS-000` | `SGL-BACKEND-CORE` | `TEST-WORKFLOW-001` |
 
 ## Visual Metadata Contract
 

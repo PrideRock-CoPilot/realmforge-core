@@ -1,5 +1,6 @@
 pub mod audit;
 pub mod boards;
+pub mod intake;
 pub mod plan_store;
 
 pub mod build_watch;

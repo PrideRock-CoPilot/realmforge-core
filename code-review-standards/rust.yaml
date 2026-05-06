@@ -1,0 +1,50 @@
+language: rust
+version: "1.0"
+description: "RealmForge Rust code review standards"
+
+checks:
+  - id: RUST-EXEC-001
+    name: "Clippy Linting"
+    description: "Run cargo clippy with -D warnings — blocks any code with clippy warnings"
+    check_type: executable
+    command: ["cargo", "clippy", "--all-targets", "--", "-D", "warnings"]
+    working_dir: workspace_root
+    timeout_secs: 120
+    severity: BLOCKER
+
+  - id: RUST-EXEC-002
+    name: "Format Check"
+    description: "Check Rust formatting with cargo fmt --check"
+    check_type: executable
+    command: ["cargo", "fmt", "--all", "--", "--check"]
+    working_dir: workspace_root
+    timeout_secs: 60
+    severity: REQUIRED_CHANGE
+
+  - id: RUST-REGEX-001
+    name: "No Bare Unwrap"
+    description: "Detect unwrap() calls without an invariant or SAFETY comment on a preceding line"
+    check_type: regex
+    pattern: "unwrap\\(\\)"
+    allowed_pattern: "//\\s*SAFETY:|//\\s*invariant:"
+    file_pattern: "**/*.rs"
+    severity: REQUIRED_CHANGE
+
+  - id: RUST-REGEX-002
+    name: "Unsafe Block Comment Required"
+    description: "Every unsafe block must have a preceding // SAFETY: comment explaining why it is safe"
+    check_type: regex
+    pattern: "unsafe\\s*\\{"
+    required_above: "//\\s*SAFETY:"
+    file_pattern: "**/*.rs"
+    severity: BLOCKER
+
+  - id: RUST-PROP-001
+    name: "File Size Check"
+    description: "Source files should not exceed the hard cap of 500 lines"
+    check_type: file_property
+    property: line_count
+    max: 500
+    warning_at: 300
+    file_pattern: "**/*.rs"
+    severity: REQUIRED_CHANGE

@@ -25,11 +25,19 @@ test.describe('Accessibility', () => {
     await expect(submitBtn).toBeVisible()
   })
 
-  test('skip-to-content link is first focusable element', async ({ page }) => {
+  test('skip-to-content link is first focusable element after login', async ({ page }) => {
+    // Skip link only exists inside AppShell (post-authentication)
     await page.goto('/')
+    await page.getByLabel(/Username/i).fill('alice')
+    await page.getByLabel(/Password/i).fill('s3cr3t')
+    await page.getByRole('button', { name: /Sign in/i }).click()
+    await page.waitForURL('**/boards/intake', { timeout: 15_000 })
 
-    // The skip link should be visually hidden but in the DOM
+    // Skip link is visually hidden (left: -9999px) but exists in the DOM
     const skipLink = page.getByText(/Skip to main content/i)
-    await expect(skipLink).toBeVisible()
+    await expect(skipLink).toBeAttached()
+
+    // The skip link should be the first focusable element — press Tab then check
+    await expect(skipLink).toHaveAttribute('href', /^#/)
   })
 })

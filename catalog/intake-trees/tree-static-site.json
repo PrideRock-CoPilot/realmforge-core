@@ -1,0 +1,96 @@
+{
+  "$schema": "https://realmforge.dev/schemas/intake-tree.json",
+  "tree_id": "tree-static-site",
+  "name": "Static Site Intake",
+  "version": "1.0.0",
+  "description": "Intake decision tree for static website projects",
+  "applies_to": ["static-site"],
+  "max_depth": 3,
+  "questions": [
+    {
+      "question_id": "site_purpose",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What is the primary purpose of your static site?",
+      "options": [
+        { "value": "docs", "label": "Documentation / Knowledge Base" },
+        { "value": "blog", "label": "Blog / Content Site" },
+        { "value": "landing", "label": "Landing Page / Marketing" },
+        { "value": "portfolio", "label": "Portfolio / Personal Site" },
+        { "value": "ecommerce-front", "label": "E-Commerce Frontend" }
+      ],
+      "order": 1,
+      "required": true,
+      "is_root": true
+    },
+    {
+      "question_id": "content_source",
+      "question_type": { "type": "SingleChoice" },
+      "text": "How will content be managed?",
+      "options": [
+        { "value": "markdown", "label": "Markdown files (static)" },
+        { "value": "cms-headless", "label": "Headless CMS (Strapi, Contentful)" },
+        { "value": "generated", "label": "Generated from data/API" }
+      ],
+      "order": 2,
+      "required": true
+    },
+    {
+      "question_id": "deploy_target",
+      "question_type": { "type": "SingleChoice" },
+      "text": "Where will the site be deployed?",
+      "options": [
+        { "value": "github-pages", "label": "GitHub Pages" },
+        { "value": "netlify", "label": "Netlify" },
+        { "value": "vercel", "label": "Vercel" },
+        { "value": "cloudflare", "label": "Cloudflare Pages" },
+        { "value": "custom", "label": "Custom hosting" }
+      ],
+      "order": 3,
+      "required": true
+    }
+  ],
+  "feature_mappings": [
+    {
+      "question_id": "site_purpose",
+      "value": "docs",
+      "modules": ["docs-site"],
+      "personas": ["tech-writer"],
+      "skills": ["tech-writer"]
+    },
+    {
+      "question_id": "site_purpose",
+      "value": "blog",
+      "modules": ["content-blog"],
+      "personas": ["content-creator"],
+      "skills": []
+    },
+    {
+      "question_id": "site_purpose",
+      "value": "landing",
+      "modules": ["marketing-site"],
+      "personas": ["designer"],
+      "skills": ["frontend"]
+    },
+    {
+      "question_id": "deploy_target",
+      "value": "netlify",
+      "modules": ["deploy-netlify"],
+      "personas": ["devops"],
+      "skills": ["infra-architect"]
+    },
+    {
+      "question_id": "deploy_target",
+      "value": "vercel",
+      "modules": ["deploy-vercel"],
+      "personas": ["devops"],
+      "skills": ["infra-architect"]
+    }
+  ],
+  "meta_mappings": {},
+  "plan_stage_handoff": {
+    "map_requirements": true,
+    "generate_constraints": false,
+    "generate_name_from": ["site_purpose"],
+    "default_scope_template": "static-site-default"
+  }
+}

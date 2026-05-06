@@ -62,13 +62,21 @@ QA unless the owning approver explicitly accepts the risk.
 1. Identify the area and exact `Code Review` board cell under review.
 2. Build the in-scope file inventory from the metadata registry, phase plan,
    current diff, generated artifacts, and tests.
-3. Create one review record for every in-scope file.
-4. For each file, check purpose, ownership, layer boundaries, authorization,
+3. **Run automated checks.** Before manual review, invoke the automated code
+   review engine (CLI or MCP) to produce a `ReviewReport`. Automated findings
+   pre-populate the file review template.
+4. For each automated finding, confirm (accept into final record) or reject
+   (false positive with justification).
+5. Create one review record for every in-scope file, using automated findings
+   as the baseline and adding human-only findings.
+6. For each file, check purpose, ownership, layer boundaries, authorization,
    validation, error behavior, audit/trace effects, rollback impact, tests, and
-   file-size discipline.
-5. Record findings with severity, file path, line reference when available,
-   required owner, and disposition.
-6. Recommend `DONE` only when every file record is `APPROVED` or
+   file-size discipline — supplementing the automated checks with architecture
+   and design-pattern review that only a human can provide.
+7. Record findings with severity, file path, line reference when available,
+   required owner, and disposition. Automated findings are prefixed with their
+   check ID (e.g., `RUST-REGEX-001`).
+8. Recommend `DONE` only when every file record is `APPROVED` or
    `ACCEPTED_WITH_RISK` and no `BLOCKER` or `REQUIRED_CHANGE` remains open.
 
 ## Your Hard Rules

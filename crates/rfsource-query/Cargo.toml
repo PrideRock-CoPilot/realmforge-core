@@ -1,0 +1,16 @@
+[package]
+name = "rfsource-query"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+rfsource-core.workspace = true
+rfsource-index.workspace = true
+rfsource-catalog.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

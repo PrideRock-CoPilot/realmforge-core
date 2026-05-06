@@ -45,17 +45,21 @@ ON CONFLICT (id) DO NOTHING;
 "@ 2>&1 | Out-Null
 
 # Step 4: Insert credential for alice (s3cr3t)
-# The credential is stored as a SHA-256 hash. In production this uses
-# login_policy::hash_credential(). For test purposes, we pre-compute.
-Write-Host "Inserting credential for 'alice'..." -ForegroundColor Gray
-$hash = (Write-Host "s3cr3t" -NoNewline | Get-FileHash -Algorithm SHA256).Hash
-$hashBytes = [Text.Encoding]::UTF8.GetBytes($hash.ToLower())
+# The credential is stored as a SHA-256 hex-encoded hash. This matches
+# what authority_domain::login_policy::secure_compare() computes:
+#   hex::encode(Sha256::digest(credential.as_bytes()))
+# SHA-256("s3cr3t") = 4e738ca5563c06cfd0018299933d58db1dd8bf97f6973dc99bf6cdc64b5550bd
+Write-Host "Inserting credential for 'alice' in stored_credentials..." -ForegroundColor Gray
+
+# Compute single SHA-256 hash (matching Rust's hex::encode(Sha256::digest(bytes)))
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+$hashBytes = $sha256.ComputeHash([System.Text.Encoding]::UTF8.GetBytes("s3cr3t"))
 $hashHex = [System.BitConverter]::ToString($hashBytes).Replace("-","").ToLower()
 
 psql $DatabaseUrl -c @"
-INSERT INTO actor_credentials (actor_id, tenant_id, credential_hash, created_at)
-VALUES ('alice', 'system', decode('$hashHex', 'hex'), NOW())
-ON CONFLICT (actor_id, tenant_id) DO UPDATE SET credential_hash = decode('$hashHex', 'hex');
+INSERT INTO stored_credentials (actor_id, tenant_id, credential_hash, created_at)
+VALUES ('alice', 'system', '$hashHex', NOW())
+ON CONFLICT (actor_id, tenant_id) DO UPDATE SET credential_hash = '$hashHex';
 "@ 2>&1 | Out-Null
 
 # Step 5: Create sample board plans
@@ -92,12 +96,17 @@ VALUES
 ON CONFLICT (id) DO NOTHING;
 "@ 2>&1 | Out-Null
 
-# Step 8: Insert login policy for system tenant (relaxed for testing)
+# Step 8: Clean up stale login attempts and blocks (from prior failed test runs)
+Write-Host "Cleaning up stale login state..." -ForegroundColor Gray
+psql $DatabaseUrl -c "DELETE FROM login_attempts WHERE actor_id = 'alice' AND tenant_id = 'system';" 2>&1 | Out-Null
+psql $DatabaseUrl -c "DELETE FROM login_blocks WHERE actor_id = 'alice' AND tenant_id = 'system';" 2>&1 | Out-Null
+
+# Step 9: Insert login policy for system tenant (relaxed for testing)
 Write-Host "Inserting login policy for system tenant..." -ForegroundColor Gray
 psql $DatabaseUrl -c @"
-INSERT INTO login_policies (tenant_id, config, created_at, updated_at)
-VALUES ('system', '{"max_failed_attempts": 10, "window_seconds": 300, "max_attempts": 20, "block_duration_seconds": 60}', NOW(), NOW())
-ON CONFLICT (tenant_id) DO NOTHING;
+INSERT INTO login_policies (tenant_id, config_json, created_at, updated_at)
+VALUES ('system', '{"max_failed_attempts": 10, "window_seconds": 300, "max_requests_per_window": 20, "credential_validation_enabled": true, "block_duration_seconds": 60}', NOW(), NOW())
+ON CONFLICT (tenant_id) DO UPDATE SET config_json = EXCLUDED.config_json, updated_at = NOW();
 "@ 2>&1 | Out-Null
 
 Write-Host "✓ Seed complete!" -ForegroundColor Green

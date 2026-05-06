@@ -1,0 +1,176 @@
+{
+  "$schema": "https://realmforge.dev/schemas/intake-tree.json",
+  "tree_id": "tree-web-app",
+  "name": "Web Application Intake",
+  "version": "1.0.0",
+  "description": "Intake decision tree for dynamic web application projects",
+  "applies_to": ["web-app"],
+  "max_depth": 5,
+  "questions": [
+    {
+      "question_id": "app_type_detail",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What kind of web application are you building?",
+      "options": [
+        { "value": "saas", "label": "SaaS / Multi-tenant Platform" },
+        { "value": "portal", "label": "User Portal / Dashboard" },
+        { "value": "internal-tool", "label": "Internal Business Tool" },
+        { "value": "marketplace", "label": "Marketplace / Platform" },
+        { "value": "social", "label": "Social / Community Platform" }
+      ],
+      "order": 1,
+      "required": true,
+      "is_root": true
+    },
+    {
+      "question_id": "auth_required",
+      "question_type": { "type": "Boolean" },
+      "text": "Does this application require user authentication?",
+      "order": 2,
+      "required": true
+    },
+    {
+      "question_id": "auth_type",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What authentication method is needed?",
+      "options": [
+        { "value": "email-password", "label": "Email + Password" },
+        { "value": "sso-saml", "label": "SSO (SAML / OIDC)" },
+        { "value": "social-login", "label": "Social Login (Google, GitHub)" },
+        { "value": "magic-link", "label": "Passwordless / Magic Link" },
+        { "value": "multi-factor", "label": "Multi-factor Authentication" }
+      ],
+      "order": 3,
+      "required": true,
+      "conditions": {
+        "if_": { "operator": "equals", "operands": ["question:auth_required", true] },
+        "then_show_ai_banner": false,
+        "else_hide": true
+      }
+    },
+    {
+      "question_id": "db_required",
+      "question_type": { "type": "Boolean" },
+      "text": "Does this application need a database?",
+      "order": 4,
+      "required": true
+    },
+    {
+      "question_id": "db_type",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What type of database is needed?",
+      "options": [
+        { "value": "postgresql", "label": "PostgreSQL" },
+        { "value": "mysql", "label": "MySQL / MariaDB" },
+        { "value": "mongodb", "label": "MongoDB" },
+        { "value": "sqlite", "label": "SQLite (embedded)" }
+      ],
+      "order": 5,
+      "required": true,
+      "conditions": {
+        "if_": { "operator": "equals", "operands": ["question:db_required", true] },
+        "then_show_ai_banner": false,
+        "else_hide": true
+      }
+    },
+    {
+      "question_id": "hosting_type",
+      "question_type": { "type": "SingleChoice" },
+      "text": "Where will this application be hosted?",
+      "options": [
+        { "value": "cloud", "label": "Cloud (AWS, GCP, Azure)" },
+        { "value": "on-prem", "label": "On-Premise" },
+        { "value": "hybrid", "label": "Hybrid" }
+      ],
+      "order": 6,
+      "required": true
+    },
+    {
+      "question_id": "expected_users",
+      "question_type": { "type": "Number", "params": { "min": 1 } },
+      "text": "Expected number of users?",
+      "order": 7,
+      "required": false
+    }
+  ],
+  "feature_mappings": [
+    {
+      "question_id": "auth_required",
+      "value": true,
+      "modules": ["auth"],
+      "personas": ["backend-auth"],
+      "skills": ["backend"]
+    },
+    {
+      "question_id": "auth_type",
+      "value": "sso-saml",
+      "modules": ["auth-sso"],
+      "personas": ["backend-auth"],
+      "skills": ["backend", "security-architect"]
+    },
+    {
+      "question_id": "auth_type",
+      "value": "social-login",
+      "modules": ["auth-social"],
+      "personas": ["backend-auth"],
+      "skills": ["backend"]
+    },
+    {
+      "question_id": "db_required",
+      "value": true,
+      "modules": ["database"],
+      "personas": ["backend-data"],
+      "skills": ["backend", "data-architect"]
+    },
+    {
+      "question_id": "db_type",
+      "value": "postgresql",
+      "modules": ["database-postgres"],
+      "personas": ["backend-data"],
+      "skills": ["backend", "data-architect"]
+    },
+    {
+      "question_id": "hosting_type",
+      "value": "cloud",
+      "modules": ["hosting-cloud"],
+      "personas": ["devops"],
+      "skills": ["infra-architect"]
+    },
+    {
+      "question_id": "app_type_detail",
+      "value": "saas",
+      "modules": ["multi-tenant", "billing"],
+      "personas": ["backend-arch"],
+      "skills": ["cto", "backend"]
+    }
+  ],
+  "meta_mappings": {
+    "auth_cloud_rate_limit": {
+      "condition": {
+        "operator": "and",
+        "conditions": [
+          { "operator": "equals", "operands": ["question:auth_required", true] },
+          { "operator": "equals", "operands": ["question:hosting_type", "cloud"] }
+        ]
+      },
+      "modules": ["rate-limiting"],
+      "personas": ["infra-security"],
+      "skills": ["security-architect", "infra-architect"]
+    },
+    "high_scale": {
+      "condition": {
+        "operator": "gt",
+        "operands": ["question:expected_users", 10000]
+      },
+      "modules": ["scaling", "caching"],
+      "personas": ["infra-scalability"],
+      "skills": ["infra-architect"]
+    }
+  },
+  "plan_stage_handoff": {
+    "map_requirements": true,
+    "generate_constraints": true,
+    "generate_name_from": ["app_type_detail"],
+    "default_scope_template": "web-app-default"
+  }
+}

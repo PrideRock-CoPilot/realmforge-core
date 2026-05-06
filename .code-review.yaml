@@ -1,0 +1,25 @@
+# RealmForge Code Review Configuration
+# This file tells the automated code review engine which languages and standards apply.
+
+languages:
+  - rust
+
+standards_dir: "code-review-standards"
+
+# Fail threshold: findings at or above REQUIRED_CHANGE will fail the review.
+# NOTE and SHOULD_FIX findings are non-blocking.
+fail_threshold: "REQUIRED_CHANGE"
+
+# Framework-specific rules (optional, one per framework).
+# Each framework maps to code-review-standards/<name>.yaml
+frameworks: []
+
+# Per-check overrides (optional)
+overrides:
+  # ALL-REGEX-001 (TODO detection) is informational only for RealmForge
+  - check_id: ALL-REGEX-001
+    severity: NOTE
+    reason: "TODOs are tracked separately in issue tracker"
+
+# Checks to skip entirely (optional)
+skip_checks: []

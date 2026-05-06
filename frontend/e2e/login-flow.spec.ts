@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────
 // Tests:
 //   1. Login page renders correctly (unauthenticated)
-//   2. Successful login with alice/s3cr3t redirects to Intake Board
+//   2. Successful login with alice/s3cr3t redirects to Intake Pipeline
 //   3. Failed login shows error message
 //   4. Logout clears session and returns to login page
 
@@ -20,7 +20,7 @@ test.describe('Login Flow', () => {
     await expect(page.getByRole('button', { name: /Sign in/i })).toBeVisible()
 
     // Should NOT be on a board
-    await expect(page.getByText(/Intake Board/i)).not.toBeVisible()
+    await expect(page.getByText(/Intake Pipeline/i)).not.toBeVisible()
   })
 
   test('successful login with valid credentials redirects to boards', async ({ page }) => {
@@ -34,11 +34,11 @@ test.describe('Login Flow', () => {
     await page.getByRole('button', { name: /Sign in/i }).click()
 
     // Wait for navigation to boards — the login POST goes to /v1/login
-    // which requires the backend to be running. We wait for the Intake Board to appear.
+    // which requires the backend to be running. We wait for the Intake Pipeline to appear.
     await page.waitForURL('**/boards/intake', { timeout: 15_000 })
 
     // Verify board content is visible
-    await expect(page.getByRole('heading', { name: /Intake Board/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Intake Pipeline/i })).toBeVisible()
 
     // Verify the top nav shows the actor name
     await expect(page.getByText('alice')).toBeVisible()
@@ -81,7 +81,7 @@ test.describe('Login Flow', () => {
 
     // Wait for boards
     await page.waitForURL('**/boards/intake', { timeout: 15_000 })
-    await expect(page.getByRole('heading', { name: /Intake Board/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Intake Pipeline/i })).toBeVisible()
 
     // Click logout button
     await page.getByRole('button', { name: /Sign out/i }).click()

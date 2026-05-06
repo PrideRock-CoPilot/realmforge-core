@@ -1,0 +1,169 @@
+{
+  "$schema": "https://realmforge.dev/schemas/intake-tree.json",
+  "tree_id": "tree-api-service",
+  "name": "API Service Intake",
+  "version": "1.0.0",
+  "description": "Intake decision tree for API backend service projects",
+  "applies_to": ["api-service"],
+  "max_depth": 5,
+  "questions": [
+    {
+      "question_id": "api_type",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What type of API are you building?",
+      "options": [
+        { "value": "rest", "label": "RESTful API" },
+        { "value": "graphql", "label": "GraphQL API" },
+        { "value": "grpc", "label": "gRPC Service" },
+        { "value": "webhook", "label": "Webhook Receiver" },
+        { "value": "event-stream", "label": "Event Stream / SSE" }
+      ],
+      "order": 1,
+      "required": true,
+      "is_root": true
+    },
+    {
+      "question_id": "auth_required",
+      "question_type": { "type": "Boolean" },
+      "text": "Does this API require authentication?",
+      "order": 2,
+      "required": true
+    },
+    {
+      "question_id": "auth_method",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What authentication method?",
+      "options": [
+        { "value": "api-key", "label": "API Key" },
+        { "value": "jwt", "label": "JWT / Bearer Token" },
+        { "value": "oauth2", "label": "OAuth 2.0" },
+        { "value": "mtls", "label": "mTLS" }
+      ],
+      "order": 3,
+      "required": true,
+      "conditions": {
+        "if_": { "operator": "equals", "operands": ["question:auth_required", true] },
+        "then_show_ai_banner": false,
+        "else_hide": true
+      }
+    },
+    {
+      "question_id": "data_persistence",
+      "question_type": { "type": "Boolean" },
+      "text": "Does this API service need data persistence?",
+      "order": 4,
+      "required": true
+    },
+    {
+      "question_id": "storage_type",
+      "question_type": { "type": "SingleChoice" },
+      "text": "What storage does the API need?",
+      "options": [
+        { "value": "postgresql", "label": "PostgreSQL" },
+        { "value": "redis", "label": "Redis / Cache" },
+        { "value": "object-store", "label": "Object Store (S3, GCS)" },
+        { "value": "message-queue", "label": "Message Queue (Kafka, SQS)" },
+        { "value": "search", "label": "Search Engine (ElasticSearch)" }
+      ],
+      "order": 5,
+      "required": true,
+      "conditions": {
+        "if_": { "operator": "equals", "operands": ["question:data_persistence", true] },
+        "then_show_ai_banner": false,
+        "else_hide": true
+      }
+    },
+    {
+      "question_id": "rate_limiting",
+      "question_type": { "type": "Boolean" },
+      "text": "Does this API need rate limiting?",
+      "order": 6,
+      "required": false
+    },
+    {
+      "question_id": "expected_rps",
+      "question_type": { "type": "Number", "params": { "min": 1, "max": 1000000 } },
+      "text": "Expected requests per second?",
+      "order": 7,
+      "required": false
+    }
+  ],
+  "feature_mappings": [
+    {
+      "question_id": "api_type",
+      "value": "rest",
+      "modules": ["api-rest"],
+      "personas": ["api-designer"],
+      "skills": ["api-architect"]
+    },
+    {
+      "question_id": "api_type",
+      "value": "graphql",
+      "modules": ["api-graphql"],
+      "personas": ["api-designer"],
+      "skills": ["api-architect"]
+    },
+    {
+      "question_id": "api_type",
+      "value": "grpc",
+      "modules": ["api-grpc"],
+      "personas": ["backend-arch"],
+      "skills": ["backend"]
+    },
+    {
+      "question_id": "auth_required",
+      "value": true,
+      "modules": ["api-auth"],
+      "personas": ["backend-auth"],
+      "skills": ["backend", "security-architect"]
+    },
+    {
+      "question_id": "auth_method",
+      "value": "oauth2",
+      "modules": ["api-auth-oauth2"],
+      "personas": ["backend-auth"],
+      "skills": ["backend", "security-architect"]
+    },
+    {
+      "question_id": "data_persistence",
+      "value": true,
+      "modules": ["data-persistence"],
+      "personas": ["backend-data"],
+      "skills": ["backend", "data-architect"]
+    },
+    {
+      "question_id": "storage_type",
+      "value": "postgresql",
+      "modules": ["data-postgres"],
+      "personas": ["backend-data"],
+      "skills": ["backend", "data-architect"]
+    },
+    {
+      "question_id": "rate_limiting",
+      "value": true,
+      "modules": ["rate-limiting"],
+      "personas": ["infra-security"],
+      "skills": ["infra-architect"]
+    }
+  ],
+  "meta_mappings": {
+    "high_throughput_security": {
+      "condition": {
+        "operator": "and",
+        "conditions": [
+          { "operator": "equals", "operands": ["question:auth_required", true] },
+          { "operator": "gt", "operands": ["question:expected_rps", 5000] }
+        ]
+      },
+      "modules": ["rate-limiting-advanced", "ddos-protection"],
+      "personas": ["security-arch"],
+      "skills": ["security-architect", "infra-architect"]
+    }
+  },
+  "plan_stage_handoff": {
+    "map_requirements": true,
+    "generate_constraints": true,
+    "generate_name_from": ["api_type"],
+    "default_scope_template": "api-service-default"
+  }
+}

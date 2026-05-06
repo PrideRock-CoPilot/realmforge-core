@@ -14,8 +14,20 @@ members = [
   "crates/runtime-bundle",
   "crates/live-runtime",
   "crates/live-watch",
-  "crates/parquet-store",
+  "crates/intake-engine",
+  "crates/code-review",
+  "crates/workflow-engine",
+  "crates/rfsource-core",
+  "crates/rfsource-format",
+  "crates/rfsource-index",
+  "crates/rfsource-governance",
+  "crates/rfsource-catalog",
+  "crates/rfsource-store",
+  "crates/rfsource-query",
+  "crates/rfsource-materialize",
+  "crates/rfsource-service",
 ]
+
 
 [workspace.package]
 edition = "2021"
@@ -40,6 +52,8 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 tokio-stream = "0.1"
 tower-http = { version = "0.6", features = ["trace", "fs"] }
 tracing = "0.1"
+serde_yaml = "0.9"
+
 uuid = { version = "1", features = ["v4", "serde"] }
 
 agent-gateway = { path = "crates/agent-gateway" }
@@ -52,7 +66,20 @@ policy-engine = { path = "crates/policy-engine" }
 control-service = { path = "crates/control-service" }
 snapshot-ledger = { path = "crates/snapshot-ledger" }
 control-store = { path = "crates/control-store" }
-parquet-store = { path = "crates/parquet-store" }
+intake-engine = { path = "crates/intake-engine" }
+code-review = { path = "crates/code-review" }
+
+rfsource-core = { path = "crates/rfsource-core" }
+rfsource-format = { path = "crates/rfsource-format" }
+rfsource-index = { path = "crates/rfsource-index" }
+rfsource-governance = { path = "crates/rfsource-governance" }
+rfsource-catalog = { path = "crates/rfsource-catalog" }
+rfsource-store = { path = "crates/rfsource-store" }
+rfsource-query = { path = "crates/rfsource-query" }
+rfsource-materialize = { path = "crates/rfsource-materialize" }
+rfsource-service = { path = "crates/rfsource-service" }
+
 assert_cmd = "2"
 predicates = "3"
 tower = { version = "0.5", features = ["util"] }
+flate2 = "1"

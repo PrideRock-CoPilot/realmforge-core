@@ -1,23 +1,21 @@
 [package]
-name = "parquet-store"
+name = "rfsource-service"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+rfsource-core.workspace = true
+rfsource-store.workspace = true
+rfsource-catalog.workspace = true
+rfsource-query.workspace = true
+rfsource-materialize.workspace = true
 chrono.workspace = true
-authority-domain.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 uuid.workspace = true
-datafusion = "43"
-parquet = "53"
-arrow = "53"
-arrow-schema = "53"
 
 [dev-dependencies]
 tempfile = "3"

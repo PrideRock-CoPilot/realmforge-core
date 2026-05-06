@@ -34,4 +34,14 @@ pub enum DomainError {
 
     #[error("approval required but no approval id provided")]
     MissingApprovalId,
+
+    #[error("invalid state: {0}")]
+    InvalidState(String),
+}
+
+impl DomainError {
+    /// Create an invalid state error.
+    pub fn invalid_state(msg: impl Into<String>) -> Self {
+        Self::InvalidState(msg.into())
+    }
 }

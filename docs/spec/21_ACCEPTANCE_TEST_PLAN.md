@@ -59,3 +59,22 @@ approval_state: pending
 | `TEST-BUNDLE-001` | Runtime-bundle wrong-key and live-runtime invalid-signature tests passed under `cargo test --workspace --target-dir target-quality` on 2026-05-05. | passed |
 | `TEST-LIVE-WATCH-001` | `cargo test -p live-watch --target-dir target-quality` passed on 2026-05-05; engine now proposes from current-cycle anomalies only. | passed |
 | `TEST-LOGIN-E2E-001` | `cargo test -p control-service --test login_vertical --target-dir target-quality` passed on 2026-05-05 for handler/policy/session/audit/snapshot-anchor flow; catalog-to-rollback E2E remains open. | partial |
+| `TEST-INTAKE-LIB-001` | `cargo test --workspace` — intake-engine lib tests pass (28 intake tests included in 244 total). 2026-05-06. | passed |
+| `TEST-INTAKE-TREE-001` | All 3 starter trees load and validate: `tree-static-site.json`, `tree-web-app.json`, `tree-api-service.json`. Parsed via `cargo test`. 2026-05-06. | passed |
+| `TEST-INTAKE-CONDITION-001` | Condition module tests pass under `cargo test --workspace`. 2026-05-06. | passed |
+| `TEST-INTAKE-ENGINE-001` | Engine evaluation tests pass under `cargo test --workspace`. 2026-05-06. | passed |
+| `TEST-INTAKE-MAPPER-001` | Feature mapping tests pass under `cargo test --workspace`. 2026-05-06. | passed |
+| `TEST-INTAKE-VALIDATE-001` | Tree validation tests pass under `cargo test --workspace`. 2026-05-06. | passed |
+| `TEST-INTAKE-ERROR-001` | Error type tests pass under `cargo test --workspace`. 2026-05-06. | passed |
+| `TEST-STORE-INTAKE-001` | `cargo test -p control-store --target-dir target-quality` — store compiles with intake module. 2026-05-06. | passed |
+ | `TEST-MIGRATION-013` | Migration `013_intake_decision_trees.sql` applies cleanly; seeds 3 trees. `cargo test` covered migration ref. 2026-05-06. | passed |
+ | `TEST-CODE-REVIEW-001` | Check engine loads and validates a standards YAML file. | not_yet_run |
+ | `TEST-CODE-REVIEW-002` | ExecutableCheck runs an external command and captures exit code. | not_yet_run |
+ | `TEST-CODE-REVIEW-003` | RegexCheck finds violations in source files. | not_yet_run |
+ | `TEST-CODE-REVIEW-004` | FilePropertyCheck detects oversized files. | not_yet_run |
+ | `TEST-CODE-REVIEW-005` | Framework overlay rules supersede base rules on same check ID. | not_yet_run |
+ | `TEST-CODE-REVIEW-006` | ReviewReport groups findings by file and sorts by severity. | not_yet_run |
+ | `TEST-CODE-REVIEW-007` | Missing `.code-review.yaml` falls back to base language rules. | not_yet_run |
+ | `TEST-CODE-REVIEW-008` | Explicit `.code-review.yaml` with framework ID activates overlay. | not_yet_run |
+ | `TEST-CODE-REVIEW-009` | ExecutableCheck timeout kills hung processes. | not_yet_run |
+ | `TEST-CODE-REVIEW-010` | Security: command whitelist rejects unregistered executables. | not_yet_run |

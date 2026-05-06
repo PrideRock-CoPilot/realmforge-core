@@ -19,6 +19,7 @@ pub mod skill_creator;
 pub mod state;
 pub mod work_packet;
 pub mod work_path;
+pub mod workflow;
 
 pub use boards::*;
 pub use build_watch::*;
@@ -40,3 +41,4 @@ pub use skill_creator::*;
 pub use state::*;
 pub use work_packet::*;
 pub use work_path::*;
+pub use workflow::*;

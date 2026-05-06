@@ -21,7 +21,17 @@ import type {
 } from '@/api/hooks'
 import { useSession } from '@/hooks/use-session'
 import { formatDate, relativeTime } from '@/lib/formatters'
-import { X, Loader2, AlertCircle, CheckCircle2, Plus, ArrowRight, ChevronRight, ChevronDown, FileText, Layers, Siren, GitBranch, PackageCheck, CircleDot, ClipboardList, History } from 'lucide-react'
+import { IntakeWizard } from '@/features/intake-wizard'
+import type { IntakeTree } from '@/features/intake-wizard'
+import { X, Loader2, AlertCircle, CheckCircle2, Plus, ArrowRight, ChevronRight, ChevronDown, FileText, Layers, Siren, GitBranch, PackageCheck, CircleDot, ClipboardList, History, HelpCircle } from 'lucide-react'
+
+// ── Load decision trees from catalog ──
+
+const treeModules: Record<string, object> = import.meta.glob('/catalog/intake-trees/tree-*.json', { eager: true, import: 'default' })
+const DECISION_TREES = Object.values(treeModules) as IntakeTree[]
+const TREES_LOADING = Object.keys(treeModules).length === 0
+
+
 
 // ─────────────────────────────────────────────
 // Intake Pipeline Page — PIPELINE-VIEW-INTAKE
@@ -585,9 +595,17 @@ function SuccessBanner({ message, onDismiss }: { message: string; onDismiss: () 
 export function IntakeBoard() {
   const { actorId } = useSession()
   const [showCreate, setShowCreate] = useState(false)
+  const [showWizard, setShowWizard] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [expandedStage, setExpandedStage] = useState<string | null>(null)
+
+  const handleWizardComplete = () => {
+    setShowWizard(false)
+    setSuccessMessage('Plan created via Intake Wizard.')
+    refetch()
+  }
+
 
   const { data, isLoading, isError, error, refetch } = useIntakePlans()
   const createPlan = useCreateIntakePlan()
@@ -709,19 +727,30 @@ export function IntakeBoard() {
               Pipeline intake system — from ideation through ready for execution
             </p>
           </div>
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={() => setShowCreate(true)}
-          >
-            <Plus size={14} aria-hidden="true" />
-            New Plan
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => setShowWizard(true)}
+            >
+              <HelpCircle size={14} aria-hidden="true" />
+              New Intake Session
+            </button>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => setShowCreate(true)}
+            >
+              <Plus size={14} aria-hidden="true" />
+              New Plan
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Guided intake flow indicator */}
       <GuidedIntakeBar />
+
 
       {/* Success banner */}
       {successMessage && (
@@ -842,6 +871,32 @@ export function IntakeBoard() {
           isActing={isActing}
         />
       )}
+
+      {/* Intake Wizard Modal */}
+      {showWizard && (
+        <div className="modal-overlay" onClick={() => setShowWizard(false)} role="dialog" aria-modal="true" aria-labelledby="intake-wizard-title">
+          <div className="modal intake-wizard-modal" onClick={(e) => e.stopPropagation()}>
+            <header className="modal__header">
+              <h2 id="intake-wizard-title" className="modal__title">
+                <HelpCircle size={16} aria-hidden="true" />
+                New Intake Session
+              </h2>
+              <button type="button" onClick={() => setShowWizard(false)} className="modal__close" aria-label="Close intake wizard">
+                <X size={16} />
+              </button>
+            </header>
+            <div className="modal__body">
+              <IntakeWizard
+                trees={DECISION_TREES}
+                loading={TREES_LOADING}
+                onComplete={handleWizardComplete}
+                onClose={() => setShowWizard(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+

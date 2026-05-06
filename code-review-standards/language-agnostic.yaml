@@ -1,0 +1,30 @@
+language: "*"
+version: "1.0"
+description: "Language-agnostic code review standards — applicable to all projects regardless of programming language"
+
+checks:
+  - id: ALL-PROP-001
+    name: "File Size Hard Cap"
+    description: "No file exceeds 500 lines without written justification"
+    check_type: file_property
+    property: line_count
+    max: 500
+    warning_at: 300
+    file_pattern: "**/*"
+    severity: REQUIRED_CHANGE
+
+  - id: ALL-REGEX-001
+    name: "No TODO Commits"
+    description: "Detect unresolved TODOs, FIXMEs, HACKs, and XXX markers in production code"
+    check_type: regex
+    pattern: "(?i)TODO|FIXME|HACK|XXX"
+    file_pattern: "src/**/*.rs"
+    severity: NOTE
+
+  - id: ALL-REGEX-002
+    name: "No Absolute Filesystem Paths"
+    description: "Detect hardcoded absolute filesystem paths in source"
+    check_type: regex
+    pattern: '["\']/[a-zA-Z0-9_/-]+/["\']'
+    file_pattern: "src/**/*.rs"
+    severity: SHOULD_FIX

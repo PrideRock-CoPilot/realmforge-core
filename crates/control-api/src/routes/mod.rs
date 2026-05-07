@@ -17,3 +17,4 @@ pub mod session;
 pub mod snapshot;
 pub mod work_packet;
 pub mod work_path;
+pub mod workflow;

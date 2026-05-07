@@ -13,7 +13,6 @@ policy-engine.workspace = true
 snapshot-ledger.workspace = true
 control-store.workspace = true
 agent-gateway.workspace = true
-parquet-store.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2 = "0.10"

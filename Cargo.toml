@@ -17,7 +17,9 @@ members = [
   "crates/intake-engine",
   "crates/code-review",
   "crates/workflow-engine",
+  "crates/design-council",
   "crates/rfsource-core",
+
   "crates/rfsource-format",
   "crates/rfsource-index",
   "crates/rfsource-governance",
@@ -68,8 +70,11 @@ snapshot-ledger = { path = "crates/snapshot-ledger" }
 control-store = { path = "crates/control-store" }
 intake-engine = { path = "crates/intake-engine" }
 code-review = { path = "crates/code-review" }
+workflow-engine = { path = "crates/workflow-engine" }
+design-council = { path = "crates/design-council" }
 
 rfsource-core = { path = "crates/rfsource-core" }
+
 rfsource-format = { path = "crates/rfsource-format" }
 rfsource-index = { path = "crates/rfsource-index" }
 rfsource-governance = { path = "crates/rfsource-governance" }

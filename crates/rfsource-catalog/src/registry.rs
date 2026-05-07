@@ -7,7 +7,6 @@
 use std::collections::HashMap;
 
 use tracing::instrument;
-use uuid::Uuid;
 
 use crate::error::{CatalogError, Result};
 use crate::models::{ArtifactEntry, ArtifactTag, ArtifactVersionEntry, GrantBinding};
@@ -38,10 +37,7 @@ impl ArtifactRegistry {
 
     /// Register a new artifact in the registry.
     #[instrument(skip(self))]
-    pub fn register_artifact(
-        &mut self,
-        entry: ArtifactEntry,
-    ) -> Result<()> {
+    pub fn register_artifact(&mut self, entry: ArtifactEntry) -> Result<()> {
         if self.artifacts.contains_key(&entry.artifact_id) {
             return Err(CatalogError::Validation(format!(
                 "Artifact already registered: {}",
@@ -145,7 +141,10 @@ impl ArtifactRegistry {
 
     /// List tags for an artifact.
     pub fn list_tags(&self, artifact_id: &str) -> Vec<&ArtifactTag> {
-        self.tags.iter().filter(|t| t.artifact_id == artifact_id).collect()
+        self.tags
+            .iter()
+            .filter(|t| t.artifact_id == artifact_id)
+            .collect()
     }
 }
 
@@ -166,7 +165,7 @@ mod tests {
             language: "Rust".to_string(),
             current_version_id: "ver_1".to_string(),
             risk_level: "low".to_string(),
-            allowed_grants: vec!["SGL-BACKEND-READ".to_string()],
+            allowed_grants: vec!["SGL-RFSOURCE-READ".to_string()],
             deleted: false,
             created_at: chrono::Utc::now(),
             updated_at: chrono::Utc::now(),
@@ -205,12 +204,12 @@ mod tests {
         let mut reg = ArtifactRegistry::new();
         reg.register_artifact(sample_entry("art_1")).unwrap();
         reg.add_grant(GrantBinding {
-            grant: "SGL-BACKEND-READ".to_string(),
+            grant: "SGL-RFSOURCE-READ".to_string(),
             artifact_id: "art_1".to_string(),
             created_at: chrono::Utc::now(),
         });
-        assert!(reg.grant_allows("art_1", "SGL-BACKEND-READ"));
-        assert!(!reg.grant_allows("art_1", "SGL-FRONTEND-READ"));
+        assert!(reg.grant_allows("art_1", "SGL-RFSOURCE-READ"));
+        assert!(!reg.grant_allows("art_1", "SGL-RFSOURCE-WRITE"));
     }
 
     #[test]

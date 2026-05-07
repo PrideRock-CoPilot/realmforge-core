@@ -17,6 +17,7 @@ pub fn sha256_hex(input: &str) -> String {
 /// # Examples
 ///
 /// ```
+/// use rfsource_core::ids::short_id;
 /// let id = short_id("art", "src/main.rs at HEAD");
 /// assert!(id.starts_with("art_"));
 /// assert_eq!(id.len(), 20); // "art_" + 16 hex chars

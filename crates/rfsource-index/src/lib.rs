@@ -22,7 +22,7 @@ use rfsource_core::{SearchHit, SourceChunk, SymbolRecord};
 pub fn search_text(
     query: &str,
     chunks: &[SourceChunk],
-    symbols: &[SymbolRecord],
+    _symbols: &[SymbolRecord],
     grant_allows: &impl Fn(&str) -> bool,
 ) -> Vec<SearchHit> {
     let query_lower = query.to_lowercase();
@@ -57,18 +57,15 @@ pub fn search_text(
 }
 
 /// Search for symbols by name.
-pub fn search_symbol(
+pub fn search_symbol<'a>(
     query: &str,
-    symbols: &[SymbolRecord],
+    symbols: &'a [SymbolRecord],
     grant_allows: &impl Fn(&str) -> bool,
-) -> Vec<&SymbolRecord> {
+) -> Vec<&'a SymbolRecord> {
     let query_lower = query.to_lowercase();
     symbols
         .iter()
-        .filter(|s| {
-            s.symbol_name.to_lowercase().contains(&query_lower)
-                && grant_allows("search")
-        })
+        .filter(|s| s.symbol_name.to_lowercase().contains(&query_lower) && grant_allows("search"))
         .collect()
 }
 

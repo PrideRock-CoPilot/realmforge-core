@@ -23,7 +23,6 @@ use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use tracing::instrument;
 
 use crate::error::{FormatError, Result};
 
@@ -46,7 +45,6 @@ const FLAG_COMPRESSED: u8 = 0x01;
 ///
 /// Creates the file and writes the magic header. Returns an error if the
 /// file already exists.
-#[instrument]
 pub fn initialize(path: impl AsRef<Path>) -> Result<()> {
     use std::fs;
     let path = path.as_ref();
@@ -69,7 +67,6 @@ pub fn initialize(path: impl AsRef<Path>) -> Result<()> {
 ///
 /// Serializes `value` to JSON, compresses it with zlib (deflate), and
 /// appends a frame header + compressed payload to the file.
-#[instrument(skip(value))]
 pub fn append_frame<T: Serialize>(path: impl AsRef<Path>, value: &T) -> Result<()> {
     let json = serde_json::to_vec(value)?;
     let json_len = json.len() as u64;
@@ -140,7 +137,7 @@ pub fn write_frame(
 ///
 /// Returns frames in file order (oldest first).
 pub fn read_frames<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<Vec<T>> {
-    let mut file_bytes = std::fs::read(path.as_ref())?;
+    let file_bytes = std::fs::read(path.as_ref())?;
     let mut cursor = std::io::Cursor::new(&file_bytes);
 
     // Read magic header

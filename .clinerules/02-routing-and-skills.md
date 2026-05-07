@@ -29,6 +29,7 @@ Skill files live in `skills/<name>/SKILL.md`.
 | Workflow state, handoff tracking, stall detection | `orchestrator` | `skills/orchestrator/SKILL.md` |
 | Focused lifecycle flow from idea through documentation | `orchestrator`, `pm`, `cto`, `qa`, `tech-writer` | `skills/orchestrator/SKILL.md`, `skills/pm/SKILL.md`, `skills/cto/SKILL.md`, `skills/qa/SKILL.md`, `skills/tech-writer/SKILL.md` |
 | Multi-stakeholder contested decisions | `council` | `skills/council/SKILL.md` |
+| Evidence-driven design research, pattern extraction, design briefs | `design-council` | `skills/design-council/SKILL.md` |
 | Creating or auditing skills | `realmforge-skill-creator` | `skills/realmforge-skill-creator/SKILL.md` |
 
 ## Rules

@@ -8,21 +8,17 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use chrono::Utc;
-use tracing::instrument;
 
-use rfsource_catalog::ArtifactRegistry;
 use rfsource_core::{
     short_id, BranchRecord, CommentRecord, CommitArtifactRequest, CommitBundle, CommitOutcome,
     CommitRecord, Manifest, ProjectStats, ProposalRecord, RFSourceError, SourceArtifact,
     SourceChunk, SymbolRecord, MAIN_BRANCH_ID, MAIN_BRANCH_NAME,
 };
-use rfsource_format::{append_frames, initialize, read_frames};
+use rfsource_format::{append_frame, append_frames, initialize, read_frames};
 use rfsource_governance::run_checks;
 
 use crate::error::{Result, StoreError};
-use crate::tree::{
-    derive_branch_heads, resolve_branch, tree_for_branch, tree_for_branch_id_from_parts,
-};
+use crate::tree::resolve_branch;
 
 /// The main RFSource store — wraps a `.rfsource` file.
 #[derive(Clone, Debug)]
@@ -32,6 +28,7 @@ pub struct RFSource {
 
 /// In-memory representation of a `.rfsource` file's state.
 #[derive(Debug)]
+#[allow(dead_code)]
 pub(crate) struct SourceState {
     pub(crate) manifest: Manifest,
     pub(crate) branches: BTreeMap<String, BranchRecord>,
@@ -45,6 +42,7 @@ pub(crate) struct SourceState {
 }
 
 /// Internal result of building a commit.
+#[allow(dead_code)]
 #[derive(Debug)]
 pub(crate) struct BuiltCommit {
     pub(crate) bundle: CommitBundle,
@@ -53,7 +51,6 @@ pub(crate) struct BuiltCommit {
 
 impl RFSource {
     /// Create a new `.rfsource` project at the given path.
-    #[instrument]
     pub fn create(path: impl Into<PathBuf>, project_name: &str) -> Result<Self> {
         let path = path.into();
         initialize(&path)?;
@@ -75,7 +72,7 @@ impl RFSource {
         };
         append_frames(&path, &[serde_json::to_value(&main_branch)?])?;
 
-        Ok(Self { path: path.into() })
+        Ok(Self { path })
     }
 
     /// Open an existing `.rfsource` project.
@@ -98,7 +95,9 @@ impl RFSource {
         frames
             .first()
             .and_then(|v| serde_json::from_value(v.clone()).ok())
-            .ok_or_else(|| RFSourceError::InvalidContainer("No manifest frame found".to_string()).into())
+            .ok_or_else(|| {
+                RFSourceError::InvalidContainer("No manifest frame found".to_string()).into()
+            })
     }
 
     /// Get project statistics.
@@ -117,22 +116,31 @@ impl RFSource {
     }
 
     /// Commit an artifact to the main branch.
-    #[instrument(skip(self, req))]
-    pub fn commit_artifact(&self, req: CommitArtifactRequest) -> Result<CommitOutcome> {
-        self.commit_artifact_on_branch(MAIN_BRANCH_NAME, req, None)
+    ///
+    /// Requires `actor_grant` — authorization will be enforced against
+    /// the artifact's `allowed_grants`. Pass `Some("*")` for unrestricted
+    /// system-level writes.
+    pub fn commit_artifact(
+        &self,
+        req: CommitArtifactRequest,
+        actor_grant: &str,
+    ) -> Result<CommitOutcome> {
+        self.commit_artifact_on_branch(MAIN_BRANCH_NAME, req, Some(actor_grant))
     }
 
     /// Commit multiple artifacts to the main branch.
-    #[instrument(skip(self, requests))]
-    pub fn commit_artifacts(&self, requests: Vec<CommitArtifactRequest>) -> Result<Vec<CommitOutcome>> {
+    pub fn commit_artifacts(
+        &self,
+        requests: Vec<CommitArtifactRequest>,
+        actor_grant: &str,
+    ) -> Result<Vec<CommitOutcome>> {
         requests
             .into_iter()
-            .map(|req| self.commit_artifact(req))
+            .map(|req| self.commit_artifact(req, actor_grant))
             .collect()
     }
 
     /// Commit an artifact on a specific branch with optional actor grant check.
-    #[instrument(skip(self, req))]
     pub fn commit_artifact_on_branch(
         &self,
         branch: &str,
@@ -146,15 +154,22 @@ impl RFSource {
             .ok_or_else(|| StoreError::BranchNotFound(branch.to_string()))?;
 
         // Grant check for write
+        //
+        // INVARIANT: Default-deny when allowed_grants is non-empty and actor_grant
+        // is not a match. If allowed_grants is empty, the artifact has no grant
+        // protections — only grant "*" passes through (F-002 mitigation).
         if let Some(grant) = actor_grant {
-            if !req.allowed_grants.is_empty()
-                && !req.allowed_grants.contains(&grant.to_string())
-                && !req.allowed_grants.contains(&"*".to_string())
-            {
-                return Err(StoreError::GrantDenied(format!(
-                    "Actor grant '{}' not in allowed grants for '{}'",
-                    grant, req.logical_path
-                )));
+            let allowed_contains_grant = req.allowed_grants.contains(&grant.to_string());
+            let allowed_contains_wildcard = req.allowed_grants.contains(&"*".to_string());
+            if !allowed_contains_grant && !allowed_contains_wildcard {
+                // Default-deny: if allowed_grants is non-empty and doesn't match, reject.
+                // If allowed_grants is empty, only grant "*" passes (system-level).
+                if grant != "*" || !req.allowed_grants.is_empty() {
+                    return Err(StoreError::GrantDenied(format!(
+                        "Actor grant '{}' not in allowed grants for '{}'",
+                        grant, req.logical_path
+                    )));
+                }
             }
         }
 
@@ -166,16 +181,33 @@ impl RFSource {
             return Err(StoreError::Governance(format!(
                 "Blocking governance findings for '{}': {:?}",
                 req.logical_path,
-                blocking_findings.iter().map(|f| &f.rule_id).collect::<Vec<_>>()
+                blocking_findings
+                    .iter()
+                    .map(|f| &f.rule_id)
+                    .collect::<Vec<_>>()
             )));
         }
 
         // Build commit bundle
         // INVARIANT: req.logical_path is unique per commit within a branch
-        let artifact_id = short_id("art", &format!("{}@{}", req.logical_path, branch_record.head_commit_id.as_deref().unwrap_or("root")));
-        let commit_id = short_id("cmt", &format!("{}-{}", req.logical_path, Utc::now().timestamp_nanos_opt().unwrap_or(0)));
+        let artifact_id = short_id(
+            "art",
+            &format!(
+                "{}@{}",
+                req.logical_path,
+                branch_record.head_commit_id.as_deref().unwrap_or("root")
+            ),
+        );
+        let commit_id = short_id(
+            "cmt",
+            &format!(
+                "{}-{}",
+                req.logical_path,
+                Utc::now().timestamp_nanos_opt().unwrap_or(0)
+            ),
+        );
         let version_id = short_id("ver", &format!("{}-{}", artifact_id, commit_id));
-        let content_hash = crate::ids::sha256_hex(&req.content);
+        let content_hash = sha256_hex(&req.content);
 
         // Chunk the content
         let lines: Vec<&str> = req.content.lines().collect();
@@ -195,7 +227,7 @@ impl RFSource {
                     ordinal: i as u32,
                     line_start: start,
                     line_end: end,
-                    text_hash: crate::ids::sha256_hex(&text),
+                    text_hash: sha256_hex(&text),
                     text,
                     symbols_defined: vec![],
                     symbols_referenced: vec![],
@@ -220,7 +252,10 @@ impl RFSource {
         let version = rfsource_core::ArtifactVersion {
             version_id: version_id.clone(),
             artifact_id: artifact_id.clone(),
-            parent_version_id: state.artifacts.get(&artifact_id).map(|a| a.current_version_id.clone()),
+            parent_version_id: state
+                .artifacts
+                .get(&artifact_id)
+                .map(|a| a.current_version_id.clone()),
             content_hash: content_hash.clone(),
             commit_id: commit_id.clone(),
             created_at: Utc::now(),
@@ -255,6 +290,12 @@ impl RFSource {
         // Write the bundle frames
         append_frames(&self.path, &[serde_json::to_value(&bundle)?])?;
 
+        // Update the branch record with the new head commit ID
+        let mut updated_branch = branch_record.clone();
+        updated_branch.head_commit_id = Some(commit.commit_id.clone());
+        updated_branch.updated_at = Utc::now();
+        append_frame(&self.path, &updated_branch)?;
+
         let outcome = CommitOutcome {
             commit,
             artifact,
@@ -267,7 +308,6 @@ impl RFSource {
     }
 
     /// Commit multiple artifacts on a branch.
-    #[instrument(skip(self, requests))]
     pub fn commit_artifacts_on_branch(
         &self,
         branch: &str,
@@ -276,7 +316,7 @@ impl RFSource {
     ) -> Result<Vec<CommitOutcome>> {
         requests
             .into_iter()
-            .map(|req| self.commit_artifact_on_branch(branch, req, actor_grant.clone()))
+            .map(|req| self.commit_artifact_on_branch(branch, req, actor_grant))
             .collect()
     }
 
@@ -309,7 +349,7 @@ impl RFSource {
     }
 
     /// Read and validate the full state from the `.rfsource` file.
-    fn read_valid_state(&self) -> Result<SourceState> {
+    pub(crate) fn read_valid_state(&self) -> Result<SourceState> {
         let frames: Vec<serde_json::Value> = read_frames(&self.path)?;
         let mut manifest: Option<Manifest> = None;
         let mut branches = BTreeMap::new();
@@ -350,7 +390,8 @@ impl RFSource {
         }
 
         Ok(SourceState {
-            manifest: manifest.ok_or_else(|| RFSourceError::InvalidContainer("No manifest".to_string()))?,
+            manifest: manifest
+                .ok_or_else(|| RFSourceError::InvalidContainer("No manifest".to_string()))?,
             branches,
             commits,
             bundles,
@@ -363,14 +404,12 @@ impl RFSource {
     }
 }
 
-// Re-export sha256_hex for use in this crate
-mod ids {
+/// Compute the SHA-256 hex digest of a string.
+pub(crate) fn sha256_hex(input: &str) -> String {
     use sha2::{Digest, Sha256};
-    pub fn sha256_hex(input: &str) -> String {
-        let mut hasher = Sha256::new();
-        hasher.update(input.as_bytes());
-        hex::encode(hasher.finalize())
-    }
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+    hex::encode(hasher.finalize())
 }
 
 #[cfg(test)]
@@ -382,7 +421,7 @@ mod tests {
     fn test_create_and_open() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("test.rfsource");
-        let store = RFSource::create(&path, "test-project").unwrap();
+        let _store = RFSource::create(&path, "test-project").unwrap();
         assert!(path.exists());
 
         let opened = RFSource::open(&path).unwrap();
@@ -397,18 +436,21 @@ mod tests {
         let store = RFSource::create(&path, "test-project").unwrap();
 
         let outcome = store
-            .commit_artifact(CommitArtifactRequest {
-                logical_path: "src/main.rs".to_string(),
-                language: "Rust".to_string(),
-                content: "fn main() {}".to_string(),
-                owner_capability: "backend".to_string(),
-                risk_level: "low".to_string(),
-                policy_bindings: vec![],
-                allowed_grants: vec![],
-                required_tests: vec![],
-                actor: "test".to_string(),
-                message: "Initial commit".to_string(),
-            })
+            .commit_artifact(
+                CommitArtifactRequest {
+                    logical_path: "src/main.rs".to_string(),
+                    language: "Rust".to_string(),
+                    content: "fn main() {}".to_string(),
+                    owner_capability: "backend".to_string(),
+                    risk_level: "low".to_string(),
+                    policy_bindings: vec![],
+                    allowed_grants: vec![],
+                    required_tests: vec![],
+                    actor: "test".to_string(),
+                    message: "Initial commit".to_string(),
+                },
+                "*",
+            )
             .unwrap();
 
         assert_eq!(outcome.artifact.logical_path, "src/main.rs");
@@ -423,18 +465,21 @@ mod tests {
         let store = RFSource::create(&path, "test-project").unwrap();
 
         store
-            .commit_artifact(CommitArtifactRequest {
-                logical_path: "src/main.rs".to_string(),
-                language: "Rust".to_string(),
-                content: "fn main() {}".to_string(),
-                owner_capability: "backend".to_string(),
-                risk_level: "low".to_string(),
-                policy_bindings: vec![],
-                allowed_grants: vec![],
-                required_tests: vec![],
-                actor: "test".to_string(),
-                message: "Initial".to_string(),
-            })
+            .commit_artifact(
+                CommitArtifactRequest {
+                    logical_path: "src/main.rs".to_string(),
+                    language: "Rust".to_string(),
+                    content: "fn main() {}".to_string(),
+                    owner_capability: "backend".to_string(),
+                    risk_level: "low".to_string(),
+                    policy_bindings: vec![],
+                    allowed_grants: vec![],
+                    required_tests: vec![],
+                    actor: "test".to_string(),
+                    message: "Initial".to_string(),
+                },
+                "*",
+            )
             .unwrap();
 
         let stats = store.stats().unwrap();

@@ -21,11 +21,7 @@ use rfsource_core::CheckFinding;
 ///
 /// Returns a list of findings. If any finding has `blocking: true`,
 /// the artifact should not be committed.
-pub fn run_checks(
-    logical_path: &str,
-    content: &str,
-    object_ref: &str,
-) -> Vec<CheckFinding> {
+pub fn run_checks(logical_path: &str, content: &str, object_ref: &str) -> Vec<CheckFinding> {
     let mut findings = Vec::new();
     let lines: Vec<&str> = content.lines().collect();
     let line_count = lines.len();
@@ -46,10 +42,7 @@ pub fn run_checks(
 
     // PATH-002: Rust snake_case check
     if logical_path.ends_with(".rs") {
-        let stem = logical_path
-            .rsplit('/')
-            .next()
-            .unwrap_or(logical_path);
+        let stem = logical_path.rsplit('/').next().unwrap_or(logical_path);
         let stem = stem.trim_end_matches(".rs");
         if stem.contains('-') || stem.contains(char::is_uppercase) {
             findings.push(CheckFinding {
@@ -58,10 +51,7 @@ pub fn run_checks(
                 logical_path: logical_path.to_string(),
                 rule_id: "PATH-002".into(),
                 severity: "warn".into(),
-                message: format!(
-                    "Rust file '{}' should use snake_case naming",
-                    stem
-                ),
+                message: format!("Rust file '{}' should use snake_case naming", stem),
                 line: None,
                 blocking: false,
             });
@@ -76,10 +66,7 @@ pub fn run_checks(
             logical_path: logical_path.to_string(),
             rule_id: "SIZE-001".into(),
             severity: "error".into(),
-            message: format!(
-                "File has {} lines, exceeds hard cap of 500",
-                line_count
-            ),
+            message: format!("File has {} lines, exceeds hard cap of 500", line_count),
             line: None,
             blocking: true,
         });
@@ -93,10 +80,7 @@ pub fn run_checks(
             logical_path: logical_path.to_string(),
             rule_id: "SIZE-002".into(),
             severity: "warn".into(),
-            message: format!(
-                "File has {} lines, exceeds target of 300",
-                line_count
-            ),
+            message: format!("File has {} lines, exceeds target of 300", line_count),
             line: None,
             blocking: false,
         });
@@ -128,13 +112,11 @@ pub fn run_checks(
     if logical_path.ends_with(".rs") {
         for (i, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
-            if trimmed.ends_with(".unwrap();")
-                || trimmed.ends_with(".unwrap()")
-            {
+            if trimmed.ends_with(".unwrap();") || trimmed.ends_with(".unwrap()") {
                 // Check previous line for invariant comment
                 let prev_line = if i > 0 { lines[i - 1].trim() } else { "" };
-                let has_invariant = prev_line.contains("// INVARIANT:")
-                    || prev_line.contains("// invariant:");
+                let has_invariant =
+                    prev_line.contains("// INVARIANT:") || prev_line.contains("// invariant:");
                 if !has_invariant {
                     findings.push(CheckFinding {
                         finding_id: format!("{}-RUST-001-{}", object_ref, i + 1),
@@ -142,10 +124,7 @@ pub fn run_checks(
                         logical_path: logical_path.to_string(),
                         rule_id: "RUST-001".into(),
                         severity: "warn".into(),
-                        message: format!(
-                            "Line {}: unwrap() without INVARIANT comment",
-                            i + 1
-                        ),
+                        message: format!("Line {}: unwrap() without INVARIANT comment", i + 1),
                         line: Some((i + 1) as u32),
                         blocking: false,
                     });
@@ -168,10 +147,7 @@ pub fn run_checks(
                         logical_path: logical_path.to_string(),
                         rule_id: "RUST-002".into(),
                         severity: "error".into(),
-                        message: format!(
-                            "Line {}: unsafe block without SAFETY comment",
-                            i + 1
-                        ),
+                        message: format!("Line {}: unsafe block without SAFETY comment", i + 1),
                         line: Some((i + 1) as u32),
                         blocking: true,
                     });
@@ -191,10 +167,7 @@ pub fn run_checks(
             {
                 let prev_line = if i > 0 { lines[i - 1].trim() } else { "" };
                 if !prev_line.starts_with("///") && !prev_line.starts_with("//!") {
-                    let item_name = trimmed
-                        .split_whitespace()
-                        .nth(2)
-                        .unwrap_or("<unknown>");
+                    let item_name = trimmed.split_whitespace().nth(2).unwrap_or("<unknown>");
                     findings.push(CheckFinding {
                         finding_id: format!("{}-DOC-001-{}", object_ref, i + 1),
                         object_ref: object_ref.to_string(),
@@ -239,7 +212,10 @@ mod tests {
     fn test_empty_file_passes() {
         let findings = run_checks("src/empty.rs", "", "obj_1");
         let blocking: Vec<_> = findings.iter().filter(|f| f.blocking).collect();
-        assert!(blocking.is_empty(), "Empty file should have no blocking issues");
+        assert!(
+            blocking.is_empty(),
+            "Empty file should have no blocking issues"
+        );
     }
 
     #[test]

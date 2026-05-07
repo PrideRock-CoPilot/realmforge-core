@@ -49,7 +49,7 @@ is not a skill. It's just noise with a badge.
 
 ## The Company Skill Deck
 
-The RealmForge company is made of these 21 skills. Know them all.
+The RealmForge company is made of these 22 skills. Know them all.
 
 **Leadership:**
 - `/ceo` — Victor Chen — Strategy, approval, company direction
@@ -78,6 +78,9 @@ The RealmForge company is made of these 21 skills. Know them all.
 **Knowledge & User Voice:**
 - `/tech-writer` — Clara Mills — ADRs, API docs, Rust crate docs, architecture guides
 - `/biz-user` — Iris Park — User stories, acceptance criteria, business user perspective
+
+**Design & Research (report to CTO):**
+- `/design-council` — The Design Council — Evidence-driven design research, pattern extraction, design briefs
 
 **Process:**
 - `/orchestrator` — The Orchestrator — Handoff discipline, dependency visibility, stall detection

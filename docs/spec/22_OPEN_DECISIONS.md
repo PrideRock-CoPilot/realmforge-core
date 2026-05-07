@@ -6,11 +6,12 @@ owner: council
 reviewers: [ceo, pm, cto, tech-writer]
 created_at: 2026-05-04
 last_reviewed_at: 2026-05-06
-closed_decisions: [DEC-COUNCIL-001, DEC-COUNCIL-003, DEC-COUNCIL-RFSOURCE-001, DEC-COUNCIL-RFSOURCE-002, DEC-COUNCIL-CODE-REVIEW-001, DEC-COUNCIL-INTAKE-001, DEC-USER-004, DEC-USER-005, DEC-USER-006]
+closed_decisions: [DEC-COUNCIL-001, DEC-COUNCIL-003, DEC-COUNCIL-RFSOURCE-001, DEC-COUNCIL-RFSOURCE-002, DEC-COUNCIL-RFSOURCE-003, DEC-COUNCIL-CODE-REVIEW-001, DEC-COUNCIL-INTAKE-001, DEC-COUNCIL-WFE-001, DEC-USER-004, DEC-USER-005, DEC-USER-006, DEC-USER-RFSOURCE-001]
+
 source_of_truth: true
 product_area: decisions
 work_path_ids: [WP-DOCS-000, WP-RFSOURCE-001]
-related_decision_ids: [DEC-COUNCIL-RFSOURCE-001, DEC-COUNCIL-RFSOURCE-002]
+related_decision_ids: [DEC-COUNCIL-RFSOURCE-001, DEC-COUNCIL-RFSOURCE-002, DEC-USER-RFSOURCE-001]
 related_file_ids: []
 visual_node_ids: [VN-OPEN-DECISIONS]
 visual_edge_ids: []
@@ -30,7 +31,6 @@ This is the only spec file where unresolved decisions may appear.
 
 | Decision ID | Marker | Question | Blocked area |
 | --- | --- | --- | --- |
-| `DEC-USER-RFSOURCE-001` | USER_APPROVAL_REQUIRED | Governance model for rfsource: Option A (reuse existing SGL-BACKEND-* grants), Option B (new dedicated SGL-RFSOURCE-* grants), or Option C (hybrid — core under existing, catalog under new) | rfsource grant enforcement implementation |
 
 ## Closed Decisions
 
@@ -45,8 +45,12 @@ This is the only spec file where unresolved decisions may appear.
 | `DEC-COUNCIL-RFSOURCE-001` | Source Storage — Parquet removal, .rfsource adoption | **Remove Parquet entirely** from the RealmForge storage stack. Only `.rfsource` + PostgreSQL going forward. The `parquet-store` crate is removed from the workspace. Supersedes `DEC-COUNCIL-003`. | 2026-05-06 | `DEC-COUNCIL-RFSOURCE-001` |
 | `DEC-COUNCIL-RFSOURCE-002` | Artifact Registry naming | **"Artifact Registry"** chosen as the name for the PostgreSQL metadata layer. Table prefix: `ar_`. API route: `/v1/artifacts/`. | 2026-05-06 | `DEC-COUNCIL-RFSOURCE-002` |
 | `DEC-USER-006` | When may Live Watch auto-remediate? | Tier 0 (default): reports/suggests only, no auto-remediation. Tier 1 (opt-in per app): pre-approved low-severity actions with bounded blast radius, explicit operator opt-in per app. Tiers 2-3 deferred. | 2026-05-05 | `DOC-PLAN-P8` |
+| `DEC-USER-RFSOURCE-001` | Governance model for rfsource grants | **Option B** — New dedicated `SGL-RFSOURCE-*` grant namespace. Clean separation from backend grants. Initial grants: `SGL-RFSOURCE-COMMIT` (write artifacts), `SGL-RFSOURCE-READ` (read/search artifacts), `SGL-RFSOURCE-GOVERN` (manage grants/policies). | 2026-05-06 | `DOC-SPEC-022`, `DOC-SPEC-004` |
+| `DEC-COUNCIL-RFSOURCE-003` | RFSource Source Control Feature Release Approval | **APPROVED for release** — with conditions: file-size refactor before next feature addition; known limitations remain open and tracked. Dissent recorded from Security (F-003 residual risk) and QA (F-007 atomicity gap). | 2026-05-06 | `DEC-COUNCIL-RFSOURCE-003` |
+| `DEC-COUNCIL-WFE-001` | Workflow Engine crate adoption | **Adopted as-is** with accepted file-size condition. All upstream gates (Architecture → Peer Review → Code Review → QA) passed. orchestrator.rs file-size finding accepted-with-risk by CTO. | 2026-05-06 | `DOC-SPEC-027`, `DEC-COUNCIL-WFE-001` |
 
 ## Lockout Rule
+
 
 Implementation that depends on a decision in this file cannot proceed until the decision record is closed and linked from the relevant spec.
 

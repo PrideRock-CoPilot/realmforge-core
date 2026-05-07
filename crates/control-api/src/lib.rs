@@ -114,6 +114,8 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
         routes::live_watch::approve_proposal,
         routes::live_watch::get_profile,
         routes::live_watch::update_profile,
+        // Workflow
+        routes::workflow::run_workflow,
     ),
     components(
         schemas(
@@ -184,6 +186,9 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
             routes::live_watch::RecordSignalBody,
             routes::live_watch::ProfileBody,
             routes::live_watch::ThresholdJson,
+            // Workflow route types
+            routes::workflow::RunWorkflowRequest,
+            routes::workflow::WorkflowRunResponse,
             // Intake Pipeline route types
             routes::intake::CreateIntakePlanRequest,
             routes::intake::RefinePlanRequest,
@@ -223,6 +228,7 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
         (name = "login", description = "Login — authentication, session issuance, policy management"),
         (name = "live-watch", description = "Live Watch — runtime signal monitoring, remediation proposals"),
         (name = "intake", description = "Intake Pipeline — 6-stage plan creation flow"),
+        (name = "workflow", description = "Workflow lifecycle — full-stage orchestrator execution"),
     )
 )]
 pub struct ApiDoc;
@@ -432,6 +438,8 @@ pub fn router(state: ServiceContext) -> Router {
             "/v1/live-watch/profiles/:app_id",
             put(routes::live_watch::update_profile),
         )
+        // Workflow
+        .route("/v1/workflow/run", post(routes::workflow::run_workflow))
         // Intake Pipeline
         .route("/v1/intake/plans", post(routes::intake::create_plan))
         .route("/v1/intake/plans", get(routes::intake::list_plans))

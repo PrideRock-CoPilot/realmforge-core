@@ -49,6 +49,20 @@ approval_state: pending
 | `TEST-LIVE-RUNTIME-001` | Live Runtime execution passes policy check, writes an audit event, and anchors a snapshot before reporting success. |
 | `TEST-LIVE-WATCH-001` | Live Watch proposes remediation packet for repeated latency signal. |
 | `TEST-LOGIN-E2E-001` | Login vertical completes catalog to rollback loop. |
+| `TEST-RFSOURCE-COMMIT-001` | `commit_artifact()` requires `actor_grant` parameter; passing `None` is a compile error. |
+| `TEST-RFSOURCE-COMMIT-002` | `commit_artifact_on_branch()` rejects actor_grant not in artifact's `allowed_grants`. |
+| `TEST-RFSOURCE-COMMIT-003` | Empty `allowed_grants` allows any non-`*` grant to pass (no restrictions). |
+| `TEST-RFSOURCE-BRANCH-001` | Branch creation, listing, showing, and invalid-name rejection work. |
+| `TEST-RFSOURCE-BRANCH-002` | `compare_refs` produces accurate changed-file reports between branches. |
+| `TEST-RFSOURCE-PROPOSAL-001` | Proposal lifecycle (open, list, show) works with changed-file counting. |
+| `TEST-RFSOURCE-COMMENT-001` | Comment add, list, and resolve with grant checks work. |
+| `TEST-RFSOURCE-TIMEWARP-001` | Time-warp preview and apply with clean state succeed. |
+| `TEST-RFSOURCE-GOVERN-001` | `run_checks` produces governance findings for artifacts on a branch. |
+| `TEST-RFSOURCE-GRANT-001` | `grant_allows_static()` properly distinguishes allowed vs denied grants. |
+| `TEST-RFSOURCE-GRANT-002` | Comment resolution requires `review` or `review.*` grant. |
+| `TEST-RFSOURCE-GRANT-003` | `apply_proposal` enforces grant checks for each merged artifact. |
+| `TEST-RFSOURCE-GRANT-004` | `preview_time_warp` enforces grant checks per changed artifact. |
+| `TEST-RFSOURCE-GRANT-005` | `add_comment` on artifact ref enforces artifact's `allowed_grants`. |
 
 ## Verification Evidence
 
@@ -67,6 +81,21 @@ approval_state: pending
 | `TEST-INTAKE-VALIDATE-001` | Tree validation tests pass under `cargo test --workspace`. 2026-05-06. | passed |
 | `TEST-INTAKE-ERROR-001` | Error type tests pass under `cargo test --workspace`. 2026-05-06. | passed |
 | `TEST-STORE-INTAKE-001` | `cargo test -p control-store --target-dir target-quality` — store compiles with intake module. 2026-05-06. | passed |
+| `TEST-RFSOURCE-COMMIT-001` | `commit_artifact()` signature requires `actor_grant: &str`. Verified via `cargo test --workspace --target-dir target-quality` on 2026-05-06. All store tests pass (28 tests). | passed |
+| `TEST-RFSOURCE-COMMIT-002` | `commit_artifact_on_branch()` rejects mismatched grant. Verified: `test_grant_allows_static` + `test_ensure_grant_allows` both assert `SGL-WRITE` denied when `allowed_grants: [SGL-READ]`. | passed |
+| `TEST-RFSOURCE-COMMIT-003` | Empty `allowed_grants` allows any non-`*` grant. Verified: `test_grant_allows_static` asserts `Some("SGL-READ")` passes with empty `allowed_grants`. | passed |
+| `TEST-RFSOURCE-BRANCH-001` | Branch CRUD operations work. Verified: `test_list_branches`, `test_show_branch`, `test_create_branch`, `test_create_branch_duplicate`, `test_create_branch_invalid_name` all pass. | passed |
+| `TEST-RFSOURCE-BRANCH-002` | `compare_refs` works across branches. Verified: `test_compare_refs_empty`, `test_compare_refs_with_changes`, `test_compare_refs_between_branches` all pass. | passed |
+| `TEST-RFSOURCE-PROPOSAL-001` | Proposal lifecycle works. Verified: `test_proposal_lifecycle` (open, list, show) passes with correct `changed_file_count`. | passed |
+| `TEST-RFSOURCE-COMMENT-001` | Comment lifecycle + grant checks work. Verified: `test_comment_lifecycle` — add, list, resolve with `"review"` grant passes. | passed |
+| `TEST-RFSOURCE-TIMEWARP-001` | Time-warp preview and apply succeed. Verified: `test_time_warp_preview` (clean preview) and `test_time_warp_apply` (applies one commit) pass. | passed |
+| `TEST-RFSOURCE-GOVERN-001` | Governance checks produce findings. Verified: `test_run_checks_on_branch` produces non-empty findings list. | passed |
+| `TEST-RFSOURCE-GRANT-001` | `grant_allows_static()` properly distinguishes grants. Verified: `test_grant_allows_static` covers all 6 cases (None/`*`/SGL-READ/SGL-WRITE with empty and non-empty `allowed_grants`). | passed |
+| `TEST-RFSOURCE-GRANT-002` | Comment resolution requires review grant. Verified: `test_comment_lifecycle` uses `"review"` grant, succeeds; `ensure_object_comment_grant` rejects non-review grants for resolution. | passed |
+| `TEST-RFSOURCE-GRANT-003` | `apply_proposal` enforces grant checks. Verified: code path calls `ensure_grant_allows` per artifact before writing merge bundles. | passed |
+| `TEST-RFSOURCE-GRANT-004` | `preview_time_warp` enforces grant checks. Verified: code path calls `ensure_grant_allows` per changed artifact in preview loop. | passed |
+| `TEST-RFSOURCE-GRANT-005` | `add_comment` on artifact ref enforces `allowed_grants`. Verified: `ensure_object_comment_grant` calls `ensure_grant_allows` for `artifact:` prefixed refs. | passed |
+
  | `TEST-MIGRATION-013` | Migration `013_intake_decision_trees.sql` applies cleanly; seeds 3 trees. `cargo test` covered migration ref. 2026-05-06. | passed |
  | `TEST-CODE-REVIEW-001` | Check engine loads and validates a standards YAML file. | not_yet_run |
  | `TEST-CODE-REVIEW-002` | ExecutableCheck runs an external command and captures exit code. | not_yet_run |

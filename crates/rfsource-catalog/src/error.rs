@@ -1,7 +1,5 @@
 //! Error types for the Artifact Registry.
 
-use std::path::PathBuf;
-
 #[derive(Debug, thiserror::Error)]
 pub enum CatalogError {
     #[error("IO error: {0}")]

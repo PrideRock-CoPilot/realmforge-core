@@ -50,6 +50,7 @@ name, or invoke their skill directly with `/skill-name`.
 | `/api-architect` | Marcus Webb | API/MCP/CLI contract design, versioning, error standards |
 | `/infra-architect` | Nadia Kovacs | PostgreSQL architecture, observability, deployment topology |
 | `/data-architect` | Chen Wei | Data layer governance, schema separation, Parquet standards |
+| `/design-council` | The Design Council | Evidence-driven design research, pattern extraction, design briefs |
 
 ## Engineering
 
@@ -107,6 +108,9 @@ Say their name naturally:
 - "hi Iris" → Business User
 - "orchestrator, what's in-flight?" → Orchestrator
 - "/council" → convene the Decision Council
+- "hi design council" → The Design Council
+- "/design-council" → convene the Design Council
+- "let's study what worked" → The Design Council
 
 ---
 
@@ -139,6 +143,7 @@ When a user's request matches a skill's domain, invoke the skill using `use_skil
 - User stories, business perspective → invoke `/biz-user` (Iris Park)
 - Workflow state, handoff discipline → invoke `/orchestrator`
 - Multi-stakeholder decision → invoke `/council`
+- Design research, pattern extraction, design briefs → invoke `/design-council` (The Design Council)
 - Creating/auditing a new skill → invoke `/realmforge-skill-creator` (ALWAYS first)
 
 ### 2. Orchestrator Invocation

@@ -1,7 +1,7 @@
 ---
 doc_id: DOC-SPEC-027
 title: "Workflow Lifecycle Agent System"
-status: draft
+status: active
 owner: orchestrator
 reviewers: [cto, pm, backend, domain-architect]
 created_at: 2026-05-06
@@ -9,11 +9,29 @@ last_reviewed_at: 2026-05-06
 source_of_truth: true
 product_area: workflow-engine
 work_path_ids: [WP-WF-001]
-related_decision_ids: []
-related_file_ids: [FILE-WFE-CORE, FILE-WFE-STAGE-TRAIT, FILE-WFE-STAGES, FILE-WFE-ERROR, FILE-WFE-TEST]
+related_decision_ids: [DEC-COUNCIL-WFE-001]
+related_file_ids:
+  [
+    FILE-CRATE-WORKFLOW-ENGINE-CARGO,
+    FILE-CRATE-WORKFLOW-ENGINE-LIB,
+    FILE-CRATE-WORKFLOW-ENGINE-ERROR,
+    FILE-CRATE-WORKFLOW-ENGINE-TRAITS,
+    FILE-CRATE-WORKFLOW-ENGINE-ORCHESTRATOR,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGES-MOD,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-IDEA,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-PLANNING,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-DESIGN,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-ARCHITECTURE,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-COUNCIL,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-DEVELOPMENT,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-PEER-REVIEW,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-CODE-REVIEW,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-TESTING,
+    FILE-CRATE-WORKFLOW-ENGINE-STAGE-DOCUMENTATION,
+  ]
 visual_node_ids: [VN-WORKFLOW-ENGINE]
 visual_edge_ids: []
-approval_state: pending
+approval_state: accepted
 ---
 
 # Workflow Lifecycle Agent System

@@ -10,6 +10,9 @@ pub enum StoreError {
     #[error("Format error: {0}")]
     Format(#[from] rfsource_format::FormatError),
 
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
     #[error("Governance check failed: {0}")]
     Governance(String),
 

@@ -12,7 +12,6 @@
 
 use rfsource_catalog::ArtifactRegistry;
 use rfsource_core::{SearchHit, SourceChunk, SymbolRecord};
-use rfsource_index;
 
 /// Query configuration for artifact searches.
 pub struct ArtifactQuery {
@@ -75,7 +74,6 @@ pub fn search_artifacts(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rfsource_catalog::{ArtifactEntry, GrantBinding};
 
     #[test]
     fn test_empty_search() {
@@ -90,7 +88,7 @@ mod tests {
             &[],
             &[],
             &reg,
-            "SGL-BACKEND-READ",
+            "SGL-RFSOURCE-READ",
         );
         assert_eq!(results.total_count, 0);
     }

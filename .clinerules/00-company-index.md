@@ -30,6 +30,7 @@ Skill files live at: `skills/<name>/SKILL.md`
 | `biz-user` | Iris Park | User stories, acceptance criteria, business user perspective |
 | `orchestrator` | The Orchestrator | Handoff discipline, dependency visibility, stall detection |
 | `council` | The Decision Council | Multi-stakeholder decisions; structured debate; closed outcomes |
+| `design-council` | The Design Council | Evidence-driven design research; pattern extraction; design briefs |
 | `realmforge-skill-creator` | The Builder | Creates, validates, and registers all skills in this catalog |
 
 ## Quick Domain Lookup

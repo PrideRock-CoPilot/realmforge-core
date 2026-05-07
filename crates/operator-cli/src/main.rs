@@ -8,7 +8,7 @@ use commands::{
     knowledge::KnowledgeCommand, live_watch::LiveWatchCommands, login::LoginCommand,
     migrate::MigrateCommand, rollback::RollbackCommand, runtime::RuntimeCommand,
     session::SessionCommand, skill::SkillCommand, snapshot::SnapshotCommand, watch::WatchCommand,
-    work_packet::WorkPacketCommand, work_path::WorkPathCommand,
+    work_packet::WorkPacketCommand, work_path::WorkPathCommand, workflow::WorkflowCommand,
 };
 
 use control_service::ServiceContext;
@@ -130,6 +130,11 @@ enum Command {
         #[command(subcommand)]
         cmd: LoginCommand,
     },
+    /// Workflow lifecycle execution
+    Workflow {
+        #[command(subcommand)]
+        cmd: WorkflowCommand,
+    },
 }
 
 fn main() {
@@ -183,6 +188,7 @@ async fn async_main() {
         Command::Bundle { cmd } => bundle::handle_bundle(cmd, &ctx).await,
         Command::Login { cmd } => login::handle_login(cmd, &ctx, cli.pretty).await,
         Command::Runtime { cmd } => runtime::handle_runtime(cmd, &ctx).await,
+        Command::Workflow { cmd } => workflow::handle_workflow(cmd, &ctx).await,
     };
 
     if let Err(e) = result {
@@ -332,5 +338,12 @@ mod login {
     use super::*;
     pub async fn handle_login(cmd: LoginCommand, ctx: &ServiceContext, pretty: bool) -> CliResult {
         commands::login::handle_login_command(cmd, ctx, pretty).await
+    }
+}
+
+mod workflow {
+    use super::*;
+    pub async fn handle_workflow(cmd: WorkflowCommand, ctx: &ServiceContext) -> CliResult {
+        commands::workflow::handle_workflow(cmd, ctx).await
     }
 }

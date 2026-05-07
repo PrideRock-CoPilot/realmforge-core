@@ -16,10 +16,7 @@
 use tracing::instrument;
 
 use rfsource_catalog::ArtifactRegistry;
-use rfsource_core::{
-    CommitArtifactRequest, CommitOutcome, Manifest, ProjectStats, SearchHit,
-};
-use rfsource_materialize;
+use rfsource_core::{CommitArtifactRequest, CommitOutcome, Manifest, ProjectStats};
 use rfsource_query::{ArtifactQuery, SearchResults};
 use rfsource_store::RFSource;
 
@@ -51,12 +48,17 @@ impl RFSourceService {
     }
 
     /// Commit an artifact.
+    ///
+    /// Requires `actor_grant` — authorization will be enforced against
+    /// the artifact's `allowed_grants`. Pass `"*"` for unrestricted
+    /// system-level writes.
     #[instrument(skip(self, req))]
     pub fn commit_artifact(
         &mut self,
         req: CommitArtifactRequest,
+        actor_grant: &str,
     ) -> Result<CommitOutcome, ServiceError> {
-        let outcome = self.store.commit_artifact(req.clone())?;
+        let outcome = self.store.commit_artifact(req.clone(), actor_grant)?;
 
         // Register in Artifact Registry
         self.registry
@@ -89,7 +91,11 @@ impl RFSourceService {
     }
 
     /// Search artifacts.
-    pub fn search(&self, query: &ArtifactQuery, actor_grant: &str) -> Result<SearchResults, ServiceError> {
+    pub fn search(
+        &self,
+        query: &ArtifactQuery,
+        actor_grant: &str,
+    ) -> Result<SearchResults, ServiceError> {
         let chunks = self.store.chunks()?;
         let symbols = self.store.symbols()?;
         Ok(rfsource_query::search_artifacts(
@@ -107,7 +113,11 @@ impl RFSourceService {
         output_dir: impl AsRef<std::path::Path>,
         grant: Option<&str>,
     ) -> Result<usize, ServiceError> {
-        Ok(rfsource_materialize::materialize(&self.store, output_dir, grant)?)
+        Ok(rfsource_materialize::materialize(
+            &self.store,
+            output_dir,
+            grant,
+        )?)
     }
 
     /// Get the Artifact Registry (for inspection/grant management).
@@ -155,26 +165,38 @@ mod tests {
 
     #[test]
     fn test_service_commit_and_search() {
+        use rfsource_catalog::GrantBinding;
+
         let dir = tempdir().unwrap();
         let path = dir.path().join("test.rfsource");
         let store = RFSource::create(&path, "test").unwrap();
         drop(store);
 
         let mut service = RFSourceService::open(&path).unwrap();
-        service
-            .commit_artifact(CommitArtifactRequest {
-                logical_path: "src/main.rs".to_string(),
-                language: "Rust".to_string(),
-                content: "fn hello() {}".to_string(),
-                owner_capability: "backend".to_string(),
-                risk_level: "low".to_string(),
-                policy_bindings: vec![],
-                allowed_grants: vec![],
-                required_tests: vec![],
-                actor: "test".to_string(),
-                message: "init".to_string(),
-            })
+        let outcome = service
+            .commit_artifact(
+                CommitArtifactRequest {
+                    logical_path: "src/main.rs".to_string(),
+                    language: "Rust".to_string(),
+                    content: "fn hello() {}".to_string(),
+                    owner_capability: "backend".to_string(),
+                    risk_level: "low".to_string(),
+                    policy_bindings: vec![],
+                    allowed_grants: vec!["*".to_string()],
+                    required_tests: vec![],
+                    actor: "test".to_string(),
+                    message: "init".to_string(),
+                },
+                "*",
+            )
             .unwrap();
+
+        // Grant must be bound in the registry for the search to see it
+        service.registry_mut().add_grant(GrantBinding {
+            grant: "*".to_string(),
+            artifact_id: outcome.artifact.artifact_id.clone(),
+            created_at: chrono::Utc::now(),
+        });
 
         let results = service
             .search(

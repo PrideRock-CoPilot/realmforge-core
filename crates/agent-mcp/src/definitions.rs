@@ -542,5 +542,20 @@ pub fn core_tool_definitions() -> Vec<ToolDefinition> {
                 }
             }),
         ),
+        // ── Workflow tools ──
+        tool(
+            "core_run_workflow",
+            "Run a full workflow lifecycle through the stage orchestrator — Idea, Planning, Architecture, Development, Peer Review, Code Review, Testing, Documentation (and optional Design + Council).",
+            json!({
+                "type": "object",
+                "required": ["workflow_id", "tenant_id", "project_id"],
+                "properties": {
+                    "workflow_id": {"type": "string", "description": "Unique workflow instance ID"},
+                    "tenant_id": {"type": "string"},
+                    "project_id": {"type": "string"},
+                    "include_extended": {"type": "boolean", "description": "Include extended stages: Design and Council"}
+                }
+            }),
+        ),
     ]
 }

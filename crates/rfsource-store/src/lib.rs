@@ -15,6 +15,7 @@
 
 pub mod error;
 pub mod rf_source;
+pub mod source_control;
 pub mod tree;
 
 pub use error::StoreError;

@@ -191,6 +191,12 @@ pub async fn handle_tool(name: &str, args: Value, ctx: &ServiceContext) -> Resul
             tools::login::core_login(args, ctx).await
         }
 
+        // ── Workflow ──
+        "core_run_workflow" => {
+            let args: tools::workflow::RunWorkflowArgs = serde_json::from_value(args)?;
+            tools::workflow::core_run_workflow(args, ctx).await
+        }
+
         // ── Live Watch ──
         "core_get_watch_signals" => {
             let args: tools::live_watch::GetWatchSignalsArgs = serde_json::from_value(args)?;

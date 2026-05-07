@@ -68,6 +68,7 @@ mod tests {
             "core_deploy_runtime",
             "core_execute_runtime_action",
             "core_stop_runtime",
+            "core_run_workflow",
         ] {
             assert!(
                 tool_names.contains(*name),
@@ -78,8 +79,8 @@ mod tests {
     }
 
     #[test]
-    fn core_tool_surface_stays_under_40() {
-        assert!(core_tool_definitions().len() <= 40);
+    fn core_tool_surface_stays_under_45() {
+        assert!(core_tool_definitions().len() <= 45);
     }
 
     #[test]

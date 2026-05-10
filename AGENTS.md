@@ -9,7 +9,7 @@ Every agent working in `E:\realmforge` must read these files before changing cod
 3. `docs/realm_forge_ai_native_path_forward.md`
 4. `docs/spec/00_INDEX.md`
 5. Relevant docs under `docs/spec/`
-6. Relevant skills under `skills/` or installed `.claude/skills/`
+6. Relevant skills in `/Users/pliekhus@outlook.com/.assistant/skills/`
 
 ## Docs-First Law
 

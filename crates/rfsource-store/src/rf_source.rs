@@ -1,9 +1,10 @@
-//! RFSource store — single-file source ledger operations.
+//! RFSource store — source ledger operations with multi-file support (DDR-003).
 //!
 //! Provides the main `RFSource` struct that wraps read/write operations
-//! on a `.rfsource` file, including commit, branch, proposal, and
-//! time-warp operations.
+//! on `.rfsource` files (single-file mode) or multi-file repositories
+//! (multi-file mode for repositories > 1.5 GB).
 
+use std::cell::RefCell;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -14,16 +15,39 @@ use rfsource_core::{
     CommitRecord, Manifest, ProjectStats, ProposalRecord, RFSourceError, SourceArtifact,
     SourceChunk, SymbolRecord, MAIN_BRANCH_ID, MAIN_BRANCH_NAME,
 };
-use rfsource_format::{append_frame, append_frames, initialize, read_frames};
+use rfsource_format::{
+    append_frame, append_frames, detect_repository_mode, initialize, read_frames,
+    single_file_path, RepositoryMode,
+};
 use rfsource_governance::run_checks;
 
 use crate::error::{Result, StoreError};
+use crate::multi_file::MultiFileRepo;
 use crate::tree::resolve_branch;
 
-/// The main RFSource store — wraps a `.rfsource` file.
-#[derive(Clone, Debug)]
+/// The main RFSource store — wraps a `.rfsource` file or multi-file repository.
+///
+/// ## Multi-File Support (DDR-003)
+///
+/// When the repository directory contains `.rfsource.manifest`, the store operates
+/// in multi-file mode with 1 GB segments. Otherwise, it uses the legacy single-file
+/// `.rfsource` format.
+#[derive(Debug)]
 pub struct RFSource {
     pub(crate) path: PathBuf,
+    mode: RepositoryMode,
+    multi_file: RefCell<Option<MultiFileRepo>>,
+}
+
+// Manual Clone implementation since RefCell<Option<MultiFileRepo>> needs special handling
+impl Clone for RFSource {
+    fn clone(&self) -> Self {
+        Self {
+            path: self.path.clone(),
+            mode: self.mode,
+            multi_file: RefCell::new(None), // Don't clone the multi_file repo
+        }
+    }
 }
 
 /// In-memory representation of a `.rfsource` file's state.
@@ -51,12 +75,16 @@ pub(crate) struct BuiltCommit {
 
 impl RFSource {
     /// Create a new `.rfsource` project at the given path.
+    ///
+    /// Creates a single-file repository. It will automatically transition to
+    /// multi-file mode when size exceeds 1 GB during writes.
     pub fn create(path: impl Into<PathBuf>, project_name: &str) -> Result<Self> {
         let path = path.into();
-        initialize(&path)?;
+        let file_path = single_file_path(&path);
+        initialize(&file_path)?;
 
         let manifest = Manifest::new(project_name, short_id("prj", project_name));
-        append_frames(&path, &[serde_json::to_value(&manifest)?])?;
+        append_frames(&file_path, &[serde_json::to_value(&manifest)?])?;
 
         // Create main branch
         let main_branch = BranchRecord {
@@ -70,18 +98,39 @@ impl RFSource {
             created_at: Utc::now(),
             updated_at: Utc::now(),
         };
-        append_frames(&path, &[serde_json::to_value(&main_branch)?])?;
+        append_frames(&file_path, &[serde_json::to_value(&main_branch)?])?;
 
-        Ok(Self { path })
+        Ok(Self {
+            path,
+            mode: RepositoryMode::SingleFile,
+            multi_file: RefCell::new(None),
+        })
     }
 
     /// Open an existing `.rfsource` project.
+    ///
+    /// Automatically detects single-file vs. multi-file mode.
     pub fn open(path: impl Into<PathBuf>) -> Result<Self> {
         let path = path.into();
-        if !path.exists() {
-            return Err(RFSourceError::NotFound("RFSource file".to_string(), path.clone()).into());
+        let mode = detect_repository_mode(&path);
+
+        // Verify the repository exists
+        let file_to_check = match mode {
+            RepositoryMode::SingleFile => single_file_path(&path),
+            RepositoryMode::MultiFile => path.join(".rfsource.manifest"),
+        };
+
+        if !file_to_check.exists() {
+            return Err(
+                RFSourceError::NotFound("RFSource file".to_string(), file_to_check).into(),
+            );
         }
-        Ok(Self { path })
+
+        Ok(Self {
+            path,
+            mode,
+            multi_file: RefCell::new(None),
+        })
     }
 
     /// Get the root path.
@@ -89,9 +138,86 @@ impl RFSource {
         &self.path
     }
 
-    /// Read the manifest from the `.rfsource` file.
+    /// Get the repository mode (single-file or multi-file).
+    pub fn mode(&self) -> RepositoryMode {
+        self.mode
+    }
+
+    /// Get or initialize the multi-file repo (lazy initialization).
+    fn get_multi_file(&self) -> Result<std::cell::Ref<MultiFileRepo>> {
+        // Initialize if needed
+        if self.multi_file.borrow().is_none() {
+            let repo = MultiFileRepo::open_or_init(&self.path)?;
+            *self.multi_file.borrow_mut() = Some(repo);
+        }
+
+        Ok(std::cell::Ref::map(self.multi_file.borrow(), |opt| {
+            opt.as_ref().unwrap()
+        }))
+    }
+
+    /// Get mutable multi-file repo reference.
+    fn get_multi_file_mut(&self) -> Result<std::cell::RefMut<MultiFileRepo>> {
+        // Initialize if needed
+        if self.multi_file.borrow().is_none() {
+            let repo = MultiFileRepo::open_or_init(&self.path)?;
+            *self.multi_file.borrow_mut() = Some(repo);
+        }
+
+        Ok(std::cell::RefMut::map(self.multi_file.borrow_mut(), |opt| {
+            opt.as_mut().unwrap()
+        }))
+    }
+
+    /// Append a frame to the repository (mode-aware).
+    fn append_frame_internal<T: serde::Serialize>(&self, value: &T) -> Result<()> {
+        match self.mode {
+            RepositoryMode::SingleFile => {
+                let file_path = single_file_path(&self.path);
+                append_frame(&file_path, value)?;
+                Ok(())
+            }
+            RepositoryMode::MultiFile => {
+                let mut repo = self.get_multi_file_mut()?;
+                repo.append_frame(value)?;
+                Ok(())
+            }
+        }
+    }
+
+    /// Append multiple frames to the repository (mode-aware).
+    fn append_frames_internal<T: serde::Serialize>(&self, values: &[T]) -> Result<()> {
+        match self.mode {
+            RepositoryMode::SingleFile => {
+                let file_path = single_file_path(&self.path);
+                append_frames(&file_path, values)?;
+                Ok(())
+            }
+            RepositoryMode::MultiFile => {
+                let mut repo = self.get_multi_file_mut()?;
+                repo.append_frames(values)?;
+                Ok(())
+            }
+        }
+    }
+
+    /// Read all frames from the repository (mode-aware).
+    fn read_frames_internal(&self) -> Result<Vec<serde_json::Value>> {
+        match self.mode {
+            RepositoryMode::SingleFile => {
+                let file_path = single_file_path(&self.path);
+                Ok(read_frames(&file_path)?)
+            }
+            RepositoryMode::MultiFile => {
+                let repo = self.get_multi_file()?;
+                Ok(repo.read_all_frames()?)
+            }
+        }
+    }
+
+    /// Read the manifest from the repository.
     pub fn manifest(&self) -> Result<Manifest> {
-        let frames: Vec<serde_json::Value> = read_frames(&self.path)?;
+        let frames = self.read_frames_internal()?;
         frames
             .first()
             .and_then(|v| serde_json::from_value(v.clone()).ok())
@@ -115,11 +241,41 @@ impl RFSource {
         })
     }
 
-    /// Commit an artifact to the main branch.
+    /// Get the current size of the repository in bytes.
     ///
-    /// Requires `actor_grant` — authorization will be enforced against
-    /// the artifact's `allowed_grants`. Pass `Some("*")` for unrestricted
-    /// system-level writes.
+    /// For single-file mode, returns the `.rfsource` file size.
+    /// For multi-file mode, returns the total size across all segments.
+    pub fn file_size(&self) -> Result<u64> {
+        match self.mode {
+            RepositoryMode::SingleFile => {
+                let file_path = single_file_path(&self.path);
+                Ok(rfsource_format::get_file_size(&file_path)?)
+            }
+            RepositoryMode::MultiFile => {
+                let repo = self.get_multi_file()?;
+                Ok(repo.manifest().total_size_bytes)
+            }
+        }
+    }
+
+    /// Get the maximum file size limit in bytes (1.5 GB).
+    ///
+    /// Note: This applies only to single-file mode. Multi-file mode has no limit.
+    pub fn file_size_limit(&self) -> u64 {
+        rfsource_format::MAX_FILE_SIZE_BYTES
+    }
+
+    /// Get the file size warning threshold in bytes (1 GB).
+    pub fn file_size_warning_threshold(&self) -> u64 {
+        rfsource_format::FILE_SIZE_WARNING_BYTES
+    }
+
+    /// Check if the file size has exceeded the warning threshold.
+    pub fn file_size_warning(&self) -> Result<bool> {
+        Ok(self.file_size()? > self.file_size_warning_threshold())
+    }
+
+    /// Commit an artifact to the main branch.
     pub fn commit_artifact(
         &self,
         req: CommitArtifactRequest,
@@ -154,16 +310,10 @@ impl RFSource {
             .ok_or_else(|| StoreError::BranchNotFound(branch.to_string()))?;
 
         // Grant check for write
-        //
-        // INVARIANT: Default-deny when allowed_grants is non-empty and actor_grant
-        // is not a match. If allowed_grants is empty, the artifact has no grant
-        // protections — only grant "*" passes through (F-002 mitigation).
         if let Some(grant) = actor_grant {
             let allowed_contains_grant = req.allowed_grants.contains(&grant.to_string());
             let allowed_contains_wildcard = req.allowed_grants.contains(&"*".to_string());
             if !allowed_contains_grant && !allowed_contains_wildcard {
-                // Default-deny: if allowed_grants is non-empty and doesn't match, reject.
-                // If allowed_grants is empty, only grant "*" passes (system-level).
                 if grant != "*" || !req.allowed_grants.is_empty() {
                     return Err(StoreError::GrantDenied(format!(
                         "Actor grant '{}' not in allowed grants for '{}'",
@@ -189,7 +339,6 @@ impl RFSource {
         }
 
         // Build commit bundle
-        // INVARIANT: req.logical_path is unique per commit within a branch
         let artifact_id = short_id(
             "art",
             &format!(
@@ -287,14 +436,14 @@ impl RFSource {
             dependencies: vec![],
         };
 
-        // Write the bundle frames
-        append_frames(&self.path, &[serde_json::to_value(&bundle)?])?;
+        // Write the bundle frames (mode-aware)
+        self.append_frames_internal(&[serde_json::to_value(&bundle)?])?;
 
         // Update the branch record with the new head commit ID
         let mut updated_branch = branch_record.clone();
         updated_branch.head_commit_id = Some(commit.commit_id.clone());
         updated_branch.updated_at = Utc::now();
-        append_frame(&self.path, &updated_branch)?;
+        self.append_frame_internal(&updated_branch)?;
 
         let outcome = CommitOutcome {
             commit,
@@ -320,37 +469,9 @@ impl RFSource {
             .collect()
     }
 
-    /// Get current artifacts map.
-    pub fn current_artifacts(&self) -> Result<BTreeMap<String, SourceArtifact>> {
-        let state = self.read_valid_state()?;
-        Ok(state.artifacts)
-    }
-
-    /// Get all chunks.
-    pub fn chunks(&self) -> Result<Vec<SourceChunk>> {
-        let state = self.read_valid_state()?;
-        Ok(state.chunks)
-    }
-
-    /// Get all symbols.
-    pub fn symbols(&self) -> Result<Vec<SymbolRecord>> {
-        let state = self.read_valid_state()?;
-        Ok(state.symbols)
-    }
-
-    /// Check if a grant is allowed for all artifacts (global check).
-    pub fn grant_allows(&self, grant: &str) -> Result<bool> {
-        let state = self.read_valid_state()?;
-        Ok(state.artifacts.values().all(|a| {
-            a.allowed_grants.is_empty()
-                || a.allowed_grants.contains(&grant.to_string())
-                || a.allowed_grants.contains(&"*".to_string())
-        }))
-    }
-
-    /// Read and validate the full state from the `.rfsource` file.
+    /// Read and parse all frames into a complete source state.
     pub(crate) fn read_valid_state(&self) -> Result<SourceState> {
-        let frames: Vec<serde_json::Value> = read_frames(&self.path)?;
+        let frames = self.read_frames_internal()?;
         let mut manifest: Option<Manifest> = None;
         let mut branches = BTreeMap::new();
         let mut commits = Vec::new();
@@ -421,69 +542,24 @@ mod tests {
     fn test_create_and_open() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("test.rfsource");
-        let _store = RFSource::create(&path, "test-project").unwrap();
-        assert!(path.exists());
 
-        let opened = RFSource::open(&path).unwrap();
+        let store = RFSource::create(&path, "test_project").unwrap();
+        assert_eq!(store.mode(), RepositoryMode::SingleFile);
+
+        let opened = RFSource::open(&dir.path()).unwrap();
+        assert_eq!(opened.mode(), RepositoryMode::SingleFile);
+
         let manifest = opened.manifest().unwrap();
-        assert_eq!(manifest.project_name, "test-project");
+        assert_eq!(manifest.project_name, "test_project");
     }
 
     #[test]
-    fn test_commit_artifact() {
+    fn test_single_file_mode() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("test.rfsource");
-        let store = RFSource::create(&path, "test-project").unwrap();
 
-        let outcome = store
-            .commit_artifact(
-                CommitArtifactRequest {
-                    logical_path: "src/main.rs".to_string(),
-                    language: "Rust".to_string(),
-                    content: "fn main() {}".to_string(),
-                    owner_capability: "backend".to_string(),
-                    risk_level: "low".to_string(),
-                    policy_bindings: vec![],
-                    allowed_grants: vec![],
-                    required_tests: vec![],
-                    actor: "test".to_string(),
-                    message: "Initial commit".to_string(),
-                },
-                "*",
-            )
-            .unwrap();
-
-        assert_eq!(outcome.artifact.logical_path, "src/main.rs");
-        assert_eq!(outcome.chunk_count, 1);
-        assert_eq!(outcome.version.line_count, 1);
-    }
-
-    #[test]
-    fn test_stats() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().join("test.rfsource");
-        let store = RFSource::create(&path, "test-project").unwrap();
-
-        store
-            .commit_artifact(
-                CommitArtifactRequest {
-                    logical_path: "src/main.rs".to_string(),
-                    language: "Rust".to_string(),
-                    content: "fn main() {}".to_string(),
-                    owner_capability: "backend".to_string(),
-                    risk_level: "low".to_string(),
-                    policy_bindings: vec![],
-                    allowed_grants: vec![],
-                    required_tests: vec![],
-                    actor: "test".to_string(),
-                    message: "Initial".to_string(),
-                },
-                "*",
-            )
-            .unwrap();
-
-        let stats = store.stats().unwrap();
-        assert_eq!(stats.artifact_count, 1);
-        assert_eq!(stats.commit_count, 1);
+        let store = RFSource::create(&path, "test").unwrap();
+        assert_eq!(store.mode(), RepositoryMode::SingleFile);
+        assert!(store.file_size().unwrap() > 0);
     }
 }

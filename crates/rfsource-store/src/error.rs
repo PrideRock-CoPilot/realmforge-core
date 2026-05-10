@@ -1,5 +1,6 @@
 //! Error types for the rfsource store layer.
 
+use std::path::PathBuf;
 use rfsource_core::RFSourceError;
 
 #[derive(Debug, thiserror::Error)]
@@ -12,6 +13,15 @@ pub enum StoreError {
 
     #[error("JSON error: {0}")]
     Json(#[from] serde_json::Error),
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("File not found: {0}")]
+    NotFound(PathBuf),
+
+    #[error("Internal error: {0}")]
+    Internal(String),
 
     #[error("Governance check failed: {0}")]
     Governance(String),

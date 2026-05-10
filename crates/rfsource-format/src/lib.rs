@@ -16,6 +16,20 @@
 //!   ...
 //! ```
 //!
+//! ## Multi-File Support (DDR-003)
+//!
+//! For repositories larger than 1.5 GB, RFSource uses fixed-size segments:
+//!
+//! ```text
+//! my-repo/
+//! ├── .rfsource.0        # First segment (1 GB)
+//! ├── .rfsource.1        # Second segment (1 GB)
+//! ├── .rfsource.2        # Active segment
+//! └── .rfsource.manifest # Segment metadata
+//! ```
+//!
+//! See `/docs/design/DDR-003-MULTI-FILE-DESIGN.md` for full design.
+//!
 //! ## Crate Law
 //!
 //! - Reader/writer for `.rfsource` binary frames only
@@ -24,6 +38,12 @@
 
 pub mod error;
 pub mod frame;
+pub mod manifest;
+pub mod footer;
+pub mod checksum;
 
 pub use error::FormatError;
 pub use frame::*;
+pub use manifest::{Manifest, SegmentInfo, ArchivedSegmentInfo};
+pub use footer::SegmentFooter;
+pub use checksum::{SegmentChecksum, ChecksumWriter, ChecksumReader, ChecksumError, checksum_file, verify_file};
